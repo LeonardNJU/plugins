@@ -1,0 +1,31 @@
+name: bulwark-plugins-test
+
+# Backend services for plugin end-to-end tests. See README.md.
+#
+# Host ports are picked to stay clear of the webmail integration stack
+# (8025/1025/1143) and other local containers.
+
+services:
+  stalwart:
+    build:
+      context: stalwart
+    container_name: bpt-stalwart
+    ports:
+      - "18025:8080"
+      - "11587:587"
+    volumes:
+      - stalwart-data:/var/lib/stalwart
+      - stalwart-config:/etc/stalwart
+    environment:
+      STALWART_RECOVERY_ADMIN: ${STALWART_RECOVERY_ADMIN:-admin:bootstrap-secret}
+      TEST_ACCOUNT_PASSWORD: ${TEST_ACCOUNT_PASSWORD:-test-pass-123}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -u alice@example.org:$${TEST_ACCOUNT_PASSWORD} http://127.0.0.1:8080/jmap/session >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+volumes:
+  stalwart-data:
+  stalwart-config:
