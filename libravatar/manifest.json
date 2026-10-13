@@ -1,12 +1,13 @@
 {
   "id": "libravatar",
   "name": "Libravatar Avatars",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "Bulwark Mail Community",
   "description": "Resolves Libravatar profile pictures for email contacts via the avatar transform hook. Libravatar is a federated, privacy-friendly Gravatar alternative.",
   "type": "hook",
   "permissions": [
-    "email:read"
+    "email:read",
+    "http:fetch"
   ],
   "entrypoint": "index.js",
   "minAppVersion": "1.7.0",
@@ -37,5 +38,8 @@
       ],
       "default": "404"
     }
-  }
+  },
+  "httpOrigins": [
+    "https://seccdn.libravatar.org"
+  ]
 }

@@ -1,12 +1,13 @@
 {
   "id": "gravatar",
   "name": "Gravatar Avatars",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "author": "Bulwark Mail Community",
   "description": "Resolves Gravatar profile pictures for email contacts via the avatar transform hook",
   "type": "hook",
   "permissions": [
-    "email:read"
+    "email:read",
+    "http:fetch"
   ],
   "entrypoint": "index.js",
   "minAppVersion": "1.7.0",
@@ -16,7 +17,7 @@
     "size": {
       "type": "number",
       "label": "Image size (px)",
-      "description": "Size of the Gravatar image in pixels (16\u2013512)",
+      "description": "Size of the Gravatar image in pixels (16–512)",
       "default": 160,
       "min": 16,
       "max": 512
@@ -48,5 +49,8 @@
       ],
       "default": "404"
     }
-  }
+  },
+  "httpOrigins": [
+    "https://gravatar.com"
+  ]
 }

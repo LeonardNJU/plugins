@@ -58,10 +58,12 @@ function buildExistenceUrl(hash) {
 
 async function gravatarExists(hash) {
   try {
-    const res = await fetch(buildExistenceUrl(hash), {
-      method: 'HEAD',
-      signal: AbortSignal.timeout(HEAD_TIMEOUT_MS),
-    });
+    // The sandbox has no network of its own; the host makes the request
+    // and checks it against httpOrigins in the manifest.
+    const res = await Promise.race([
+      pluginApi.http.fetch(buildExistenceUrl(hash), { method: 'HEAD' }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), HEAD_TIMEOUT_MS)),
+    ]);
     return res.ok;
   } catch {
     return false;
