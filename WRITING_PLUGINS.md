@@ -893,7 +893,7 @@ stylesheet, so lay out with `Stack` and `Row` instead of class names.
 | `Select` | the settings select; `options`, `onChange(value)`, `block` for full width in forms |
 | `Checkbox`, `Switch`, `Segmented` | the composer's check items, the settings toggle and choice row |
 | `Field` | label above a control, `hint` and `error` below |
-| `Stack`, `Row`, `Text`, `Heading`, `Divider` | layout and text in the app's sizes and colours |
+| `Stack`, `Row`, `Text`, `Heading`, `Divider` | layout and text in the app's sizes and colours; `Row fill` puts fields side by side |
 | `Page`, `PageHeader` | an app page's width and padding, title, description and actions |
 | `Section`, `SettingRow`, `Card` | a settings group and row; the admin pages' bordered card |
 | `Tabs` | the tab bar of the app's dialogs |
@@ -904,6 +904,8 @@ stylesheet, so lay out with `Stack` and `Row` instead of class names.
 | `Alert`, `ProgressBar`, `Spinner`, `Loading`, `EmptyState` | messages, progress, loading and empty states |
 | `SidebarRow`, `SidebarEmpty` | rows and the "nothing here" line of a sidebar section |
 | `DiffView` | a text with removed and added words marked, for previews |
+| `Panel`, `DetailHeading`, `DetailList`, `DetailRow` | the padding of side panels; the message details' small caps headings and label/value rows |
+| `ColorDot` | a dot in a colour the data carries (a calendar's colour); `#rgb` or `#rrggbb` only |
 | `Icon` | an app icon by name (the names `setActions` takes) |
 | `DialogButtons` | the buttons of a plugin dialog, drawn by the host in the dialog's footer |
 
