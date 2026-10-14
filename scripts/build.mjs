@@ -7,7 +7,7 @@
 //
 // Each plugin folder has manifest.json and src/index.js. The bundle is
 // CommonJS (the host evaluates it with `new Function(module, exports,
-// require)`), with React and the host API left external. The zip holds
+// require)`), with React, the host API and the UI kit left external. The zip holds
 // manifest.json and index.js at its root, which is what the admin upload,
 // the marketplace and the dev directory all expect.
 //
@@ -21,7 +21,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const EXTERNAL = ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', '@plugin-host'];
+// @plugin-host/ui is the app's UI kit, provided by the sandbox like React.
+const EXTERNAL = ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', '@plugin-host', '@plugin-host/ui'];
 // Fixed timestamp so rebuilding unchanged sources gives a byte-identical zip.
 const ZIP_DATE = new Date('2026-01-01T00:00:00Z');
 
