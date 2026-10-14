@@ -57,11 +57,16 @@ async function bundle(dir) {
   return result.outputFiles[0].contents;
 }
 
+// Line ends are made LF, so a checkout with core.autocrlf (CRLF files)
+// builds the same zip as one without. JavaScript reads CRLF in template
+// literals as LF anyway, so the bundle means the same.
+const toLf = (text) => text.replace(/\r\n/g, '\n');
+
 async function packageZip(dir, code) {
-  const manifest = readFileSync(path.join(ROOT, dir, 'manifest.json'));
+  const manifest = toLf(readFileSync(path.join(ROOT, dir, 'manifest.json'), 'utf8'));
   const zip = new JSZip();
   zip.file('manifest.json', manifest, { date: ZIP_DATE });
-  zip.file('index.js', code, { date: ZIP_DATE });
+  zip.file('index.js', toLf(Buffer.from(code).toString('utf8')), { date: ZIP_DATE });
   return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 9 } });
 }
 
@@ -75,7 +80,7 @@ for (const dir of dirs) {
   const manifest = JSON.parse(readFileSync(path.join(ROOT, dir, 'manifest.json'), 'utf8'));
   const code = await bundle(dir);
   const zip = await packageZip(dir, code);
-  const out = path.join(ROOT, dir, `${manifest.id === dir ? dir : dir}.zip`);
+  const out = path.join(ROOT, dir, `${dir}.zip`);
   if (check) {
     const current = existsSync(out) ? readFileSync(out) : null;
     if (!current || !current.equals(zip)) {
