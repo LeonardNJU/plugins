@@ -1,0 +1,10 @@
+{
+  "name": "bulwark-plugin-paperless",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node ../scripts/build.mjs paperless",
+    "test": "node ../node_modules/vitest/vitest.mjs run paperless"
+  }
+}
