@@ -1,13 +1,13 @@
 # Calendar Agenda Plugin
 
-A sidebar widget that shows an agenda of your **upcoming calendar events**, grouped by day (Today / Tomorrow / weekday). A companion to the Quick Notes plugin, sharing its slot-iframe and background-hook architecture.
+A sidebar section that shows an agenda of your **upcoming calendar events**, each with when it starts (Today 14:00, Tomorrow 09:30, Wed, Oct 16). A companion to the Quick Notes plugin, sharing its slot-iframe and background-hook architecture.
 
 ## Features
 
-- **Sidebar agenda** — Upcoming events for the next _N_ days, grouped by day with time, location, and per-calendar colour.
+- **Sidebar agenda** — Upcoming events for the next _N_ days as sidebar rows, with the start time where a folder shows its count and the location in the tooltip.
 - **Recurring events** — Recurring series are expanded server-side, so the right occurrences show up.
 - **Live updates** — Refreshes on a timer, on focus, and immediately whenever you create/update/delete an event.
-- **Theme-aware** — Uses CSS variables for light/dark mode.
+- **Looks like the app** — Drawn with the app's UI kit (sidebar rows, list rows, info bar), so it follows light, dark and custom themes.
 - **Credentials stay server-side** — The plugin only ever sees slim event DTOs.
 
 ## How it works
@@ -26,7 +26,8 @@ The background hooks (`onAfterEventCreate`, `onAfterEventUpdate`, `onAfterEventD
 ## Demonstrates
 
 - `api.http.post()` — calling a same-origin host sidecar (allow-listed via `apiPostPaths`)
-- `api.ui.registerSidebarWidget()` / `slots['sidebar-widget']` — an interactive React widget
+- `slots['sidebar-section']` with `api.ui.setSectionTitle()` — the host draws the section header and folding
+- `@plugin-host/ui` — `SidebarRow`, `ListRow`, `InfoBar` and `Chip` from the app's UI kit
 - `api.hooks.onAfter*` calendar hooks — reacting to data changes from the background iframe
 - `api.storage` — cross-iframe coordination via a dirty marker
 - `api.plugin.settings` — number settings
@@ -43,7 +44,7 @@ The background hooks (`onAfterEventCreate`, `onAfterEventUpdate`, `onAfterEventD
 
 ### Position
 
-The widget can live in one of three slots: `sidebar-widget` (left sidebar), `email-detail-sidebar` (beside an open email), or `app-top-banner` (top of the app). At load time the plugin reads the `position` setting and registers **only** the matching slot, so the other locations reserve no space. Changing the position requires reloading the plugin (re-enable it from Admin → Plugins) so it re-registers against the new slot.
+The agenda can live in one of three slots: `sidebar-section` (left sidebar, a section below the folders), `email-detail-sidebar` (beside an open email), or `app-top-banner` (top of the app). At load time the plugin reads the `position` setting and registers **only** the matching slot, so the other locations reserve no space. Changing the position requires reloading the plugin (re-enable it from Admin → Plugins) so it re-registers against the new slot.
 
 ## Build & Install
 
