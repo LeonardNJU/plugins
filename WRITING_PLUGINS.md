@@ -222,6 +222,102 @@ must be structured-cloneable — no functions in returned data (slot
 in-frame `localStorage`/`IndexedDB` are unavailable). Privileged plugins may
 additionally use real in-frame `IndexedDB` for large/binary data.
 
+### Mail, calendar and other user data
+
+These methods work in the untrusted tier. Each needs the permission in the
+comment, granted by the user. Reads go to the server and never change what
+the user has open; writes go through the same code as the user's own edits,
+so other plugins' hooks run and may stop them. Every input is checked: an
+unknown property, a wrong type or a value over the limit rejects the call
+with a message that names the field.
+
+```ts
+// Calendar. Times are '2026-05-01' (a day), '2026-05-01T09:30' (wall clock in
+// timeZone, default the user's zone) or '2026-05-01T07:30:00Z' (UTC).
+// Nothing here sends invitations, updates or cancellations.
+api.calendar.listCalendars()                        // calendar:read  -> CalendarView[]
+api.calendar.getEvents({ from, to, calendarIds? })  // calendar:read  -> CalendarEventView[]
+                                                    //   at most 366 days, recurrences expanded,
+                                                    //   earliest first, at most 1000
+api.calendar.getEvent(id)                           // calendar:read  -> CalendarEventView | null
+api.calendar.createEvent({ title, start, end? | duration?, timeZone?, isAllDay?,
+  description?, location?, calendarId?, participants? })
+                                                    // calendar:write -> CalendarEventView | null
+                                                    //   null: another plugin stopped it or the
+                                                    //   server refused; end is exclusive
+api.calendar.updateEvent(id, patch)                 // calendar:write (same fields, all optional)
+api.calendar.deleteEvent(id)                        // calendar:write
+
+// Tasks
+api.tasks.list({ includeCompleted? })               // tasks:read  -> TaskView[] (at most 1000)
+api.tasks.get(id)                                   // tasks:read  -> TaskView | null
+api.tasks.create({ title, description?, due?, priority?, calendarId? })
+                                                    // tasks:write -> TaskView | null
+api.tasks.update(id, patch)                         // tasks:write (due: null removes it)
+api.tasks.setComplete(id, complete)                 // tasks:write
+api.tasks.delete(id)                                // tasks:write
+
+// Message templates (synced with the user's settings, at most 500)
+api.templates.list() / get(id)                      // templates:read
+api.templates.create({ name, subject?, body?, isHTML?, category? })
+api.templates.update(id, patch) / delete(id)        // templates:write; HTML bodies are sanitised
+
+// Sender identities: read them with api.user.getIdentities() (identity:read)
+api.identities.update(id, { name?, replyTo?, textSignature?, htmlSignature? })
+                                                    // identity:write -> IdentityView
+                                                    //   the address can't be changed; HTML
+                                                    //   signatures are sanitised like in Settings
+
+// Out-of-office reply
+api.vacation.get()                                  // vacation:read  -> VacationView
+api.vacation.set({ isEnabled, subject?, textBody?, htmlBody?, fromDate?, toDate? })
+                                                    // vacation:write -> VacationView | null
+                                                    //   dates with a zone ('...Z'), or null
+
+// Reading mail
+api.email.get(emailId)                              // email:read -> EmailReadView | null (any message)
+api.email.list({ mailboxId?, limit?, position? })   // email:read -> EmailSummary[] (limit 1-100)
+api.mailboxes.list()                                // email:read -> { id, name, role, parentId,
+                                                    //   totalEmails, unreadEmails }[]
+
+// Bytes of a message the plugin names (at most 25 MB each)
+api.email.getAttachment(emailId, blobId)            // email:blob-read -> { name, type, size, data: ArrayBuffer }
+                                                    //   blobId must be an attachment of that message
+api.email.getRaw(emailId)                           // email:blob-read -> ArrayBuffer (RFC 5322 source)
+
+// Writing mail. Nothing here sends anything.
+api.compose.open({ to?, cc?, bcc?, subject?, body?, isHtml?, attachments? })
+                                                    // compose:open -> 'opened' | 'navigating'
+                                                    //   the user still presses Send; 5 a minute
+api.drafts.create({ to?, cc?, bcc?, subject?, body?, isHtml?, attachments? })
+                                                    // email:write -> draft email id; 10 a minute
+
+// Notifications
+api.notifications.show({ title, body?, tag? })      // ui:notifications -> 'system' | 'toast'
+                                                    //   title 120, body 300 characters;
+                                                    //   names the plugin; 5 a minute
+```
+
+Addresses are `a@example.com` or `Name <a@example.com>`; a message takes at
+most 100 recipients in all. `attachments` are files the plugin uploaded with
+`api.jmap.uploadBlob` (`email:blob-write`): `{ blobId, name, type, size }`,
+at most 20. An HTML `body` is sanitised like any HTML a plugin hands the host.
+
+`api.compose.open` opens the composer in place on the mail page and asks
+first when a draft is already open. Anywhere else the app goes to the mail
+page and opens it there, which reloads the plugin; that call resolves to
+`'navigating'`.
+
+`api.notifications.show` shows a system notification when the user allowed
+them for the webmail, otherwise a toast. Clicking a system notification
+brings the webmail to the front and fires the `onNotificationClick` hook of
+the plugin that sent it, with its `tag`. That hook needs `email:read`.
+
+`api.email.getAttachment` and `api.email.getRaw` are what a storage plugin
+(Nextcloud, Paperless) uses to save an attachment or a whole message as
+`.eml`. Reading arbitrary blob ids stays `api.jmap.fetchBlob`, privileged
+tier only.
+
 ---
 
 ## 7. UI slots
@@ -272,7 +368,8 @@ crypto library. To be granted the same-origin tier, **all** of these must hold
    plugins are pre-approved by the operator).
 
 Relevant permissions: `crypto:full` (umbrella), `email:blob-read` (read raw
-message bytes), `email:raw-send` (submit signed/encrypted messages),
+message bytes; untrusted plugins get the attachments and source of a message
+they name, see §6), `email:raw-send` (submit signed/encrypted messages),
 `email:render-takeover` (replace rendered body).
 
 Because same-origin == effectively full host access, treat `crypto:full` like a
