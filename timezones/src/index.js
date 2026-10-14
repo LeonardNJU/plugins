@@ -6,26 +6,25 @@ import { loadAddressZones } from './lib/address-zones.js';
 import { eventZones, outsideHoursWarning } from './lib/event.js';
 import { senderTime, worthShowing } from './lib/sender.js';
 import { mirrorSettings, readSettings } from './lib/settings.js';
-import { ComposeButton, ComposeDialog } from './ui/compose-time.jsx';
+import { ComposeDialog, INSERT_ACTION, OPTIONS_SURFACE, composerActions, openComposeDialog } from './ui/compose-time.jsx';
 import { EventZones } from './ui/event-zones.jsx';
-import { SenderDetails, SenderLine } from './ui/sender-time.jsx';
+import { SenderBanner, SenderDetails } from './ui/sender-time.jsx';
 import { WorldClock } from './ui/world-clock.jsx';
 import { SettingsSection } from './ui/settings-section.jsx';
 
 const ALWAYS = {
   'settings-section': { component: SettingsSection },
   'calendar-event-form': { component: EventZones },
-  'reader-below-subject': {
-    component: SenderLine,
-    // Only when the sender's clock differed from yours; the slot itself
-    // also shows the time now where a sender with a saved zone is.
+  'email-banner': {
+    component: SenderBanner,
+    // Only when the sender's clock differed from yours, or a zone other
+    // than yours is saved for them (the bar then says the time there now).
     shouldShow: (ctx) => {
       const api = getApi();
       const home = readSettings(api?.plugin?.settings ?? {}).home;
       return worthShowing(senderTime(ctx?.email, { home }), home);
     },
   },
-  'composer-toolbar': { component: ComposeButton },
   'plugin-dialog': { component: ComposeDialog },
   'email-details-section': {
     component: SenderDetails,
@@ -46,6 +45,16 @@ export function slotsFor(settings) {
 export const slots = slotsFor(readSettings(getApi()?.plugin?.settings ?? {}));
 
 export const hooks = {
+  /** The Options menu entry: the dialog, which inserts into that composer. */
+  onAction({ surface, actionId, context } = {}) {
+    const api = getApi();
+    if (!api || surface !== OPTIONS_SURFACE || actionId !== INSERT_ACTION) return;
+    const composerId = context?.composerId;
+    if (typeof composerId !== 'string' || !composerId) return;
+    // Not awaited: the host times hooks out, the dialog stays open longer.
+    void Promise.resolve(openComposeDialog(api, composerId)).catch(() => {});
+  },
+
   /** Adds "Outside 08:00–20:00 for …" to the event form's warnings. */
   async onCheckEventConflicts(warnings, context) {
     const api = getApi();
@@ -58,8 +67,15 @@ export const hooks = {
   },
 };
 
+async function registerActions(api) {
+  await api.ui.setActions(OPTIONS_SURFACE, composerActions());
+}
+
 export function activate(api) {
   mirrorSettings(api);
+  const register = () => registerActions(api).catch((err) => api.log?.warn?.('setActions failed', err));
+  void register();
+  api.i18n.onLocaleChange?.(() => { void register(); });
 }
 
 export default { slots, hooks, activate };

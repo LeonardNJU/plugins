@@ -35,8 +35,8 @@ can pick their zone right there; it is remembered for that address.
 When the event falls outside working hours (08:00 to 20:00 by default, see
 **Working hours start** and **Working hours end** in the settings) for a
 participant, the form shows a warning next to its other warnings, for
-example "Outside 08:00–20:00 for kei@example.jp (Tokyo)". Favourite zones are
-only marked, not warned about. The warning appears when the times change
+example "Outside 08:00–20:00 for kei@example.jp (Tokyo)", and so does the
+Time zones section itself. Favourite zones are only marked, not warned about. The warning appears when the times change
 (the form re-checks then); all-day events get none.
 
 The section reads the event's own time zone. The warning is worked out from
@@ -48,8 +48,10 @@ the times in the form and your time zone setting (or your browser's).
 ## Reading mail
 
 A message's Date header keeps the UTC offset the sender's computer used.
-When it differs from yours, a line under the sender says when they wrote it
-on their own clock, for example "Sent 11:40 PM their time (UTC−5)". In the
+When it differs from yours, an info bar above the message (with the
+reader's own bars, like the one for external images) says when they wrote it
+on their clock and on yours, for example "Sent at 11:40 PM their time
+(UTC−5), 6:40 AM your time". In the
 message details (Show details), a **Their time** row under Recipients &
 routing shows the same, and lets you set the sender's time zone. Once it is
 set, both places add the time it is there now.
@@ -63,14 +65,15 @@ it. Headers with an unknown zone (`-0000`) show nothing.
 
 ## Composer
 
-The composer's plugin row gets a **Time zones** button. It opens a dialog
-where you pick a date and a time (in your zone) and the zones to show; your
+The composer's **Options** menu gets **Insert time in other zones…**. It
+opens a dialog where you pick a date and a time (in your zone) and the zones to show; your
 zone and your favourites are ticked, and you can add others. It writes one
 line such as `3:00 PM Berlin / 9:00 AM New York` (with weekdays when the
 zones are on different dates). **Insert** puts it where the cursor is in the
-message (replacing selected text); **Copy** puts it on the clipboard
-instead. Where the browser doesn't let the plugin frame copy, the dialog
-selects the text and asks you to press Ctrl+C.
+message (replacing selected text), as one undo step. If the message can't
+take it (the composer was closed meanwhile), the dialog stays open and
+offers **Copy** instead. Where the browser doesn't let the plugin frame
+copy, the dialog selects the text and asks you to press Ctrl+C.
 
 ![Composer](screenshots/composer-light.png)
 ![Composer, dark](screenshots/composer-dark.png)
@@ -80,8 +83,8 @@ selects the text and asks you to press Ctrl+C.
 Off by default. Turn on **World clock in the sidebar** in the settings and
 reload the page: a section in the mail sidebar then shows the time now in
 your zone and each favourite zone, with the UTC offset and "+1" or "−1"
-when that zone is already on another day. Zones outside working hours are
-dimmed. The time updates every 30 seconds.
+when that zone is already on another day. Zones in working hours have a
+sun, zones outside them a moon. The time updates every 30 seconds.
 
 ![World clock](screenshots/world-clock-light.png)
 ![World clock, dark](screenshots/world-clock-dark.png)
@@ -92,11 +95,11 @@ dimmed. The time updates every 30 seconds.
 | --- | --- |
 | `ui:settings-section` | The plugin's page in Settings. |
 | `ui:calendar-action` | The section in the event form. |
-| `ui:email-banner` | The line under the sender of the open message. |
+| `ui:email-banner` | The info bar above the open message. |
 | `ui:email-details` | The row in the message details. |
 | `email:read` | To read the open message's Date header and sender address. Nothing else of the message is used. |
-| `ui:composer-toolbar` | The button in the composer. The dialog it opens needs no permission of its own. |
-| `compose:open` | To insert the line into the message (the composer's insertText). The plugin never opens a composer by itself. |
+| `ui:composer-toolbar` | The entry in the composer's Options menu. The dialog it opens needs no permission of its own. |
+| `compose:write` | To insert the line at the cursor (api.composer.replaceSelection). The plugin reads nothing of the message. |
 | `ui:sidebar-widget` | The world clock section in the mail sidebar (only offered when it is turned on). |
 | `calendar:read` | To see the event in the form (times, participants) and add the working-hours warning (onCheckEventConflicts). |
 

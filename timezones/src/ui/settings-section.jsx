@@ -2,17 +2,19 @@
 // understood, and the zones set for people (with a way to add and remove).
 
 import { useState } from 'react';
+import { Alert, Button, Field, Input, List, ListRow, Row, RowAction, Section, Stack, Text } from '@plugin-host/ui';
 import { t, locale } from '../host.js';
 import { normaliseAddress } from '../lib/address-zones.js';
 import { formatOffset, formatTime, offsetMinutes, zoneCity } from '../lib/zones.js';
-import { Styles, ZoneField, useAddressZones, useSettings } from './common.jsx';
+import { ZoneField, useAddressZones, useSettings } from './common.jsx';
 
-function ZoneLine({ zone, now }) {
+function ZoneRow({ zone, now }) {
   return (
-    <span>
-      <strong>{zoneCity(zone)}</strong>{' '}
-      <span className="tz-muted">{zone} · {formatOffset(offsetMinutes(zone, now))} · {formatTime(now, zone, locale())}</span>
-    </span>
+    <ListRow
+      title={zoneCity(zone)}
+      subtitle={`${zone} · ${formatOffset(offsetMinutes(zone, now))}`}
+      meta={[formatTime(now, zone, locale())]}
+    />
   );
 }
 
@@ -26,63 +28,62 @@ export function SettingsSection() {
   const people = Object.entries(zones);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '4px 0' }} data-tz="settings">
-      <Styles />
-      <section aria-labelledby="tz-home">
-        <div id="tz-home" className="tz-label">{t('settings.yourZone')}</div>
-        <div><ZoneLine zone={settings.home} now={now} /></div>
+    <Stack gap={6}>
+      <Section title={t('settings.yourZone')}>
+        <List label={t('settings.yourZone')}>
+          <ZoneRow zone={settings.home} now={now} />
+        </List>
         {settings.homeUnknown && (
-          <div className="tz-warn" role="status">{t('settings.homeUnknown', { entry: settings.homeUnknown })}</div>
+          <Alert tone="warning" icon="alert-triangle">{t('settings.homeUnknown', { entry: settings.homeUnknown })}</Alert>
         )}
-      </section>
+      </Section>
 
-      <section aria-labelledby="tz-fav">
-        <div id="tz-fav" className="tz-label">{t('settings.favourites')}</div>
+      <Section title={t('settings.favourites')}>
         {settings.favourites.length === 0 ? (
-          <div className="tz-muted">{t('settings.noFavourites')}</div>
+          <Text tone="muted">{t('settings.noFavourites')}</Text>
         ) : (
-          <ul style={{ margin: 0, paddingInlineStart: 18 }} data-tz="favourites">
-            {settings.favourites.map((z) => <li key={z}><ZoneLine zone={z} now={now} /></li>)}
-          </ul>
+          <List label={t('settings.favourites')}>
+            {settings.favourites.map((z) => <ZoneRow key={z} zone={z} now={now} />)}
+          </List>
         )}
         {settings.unknown.length > 0 && (
-          <div className="tz-warn" role="status" data-tz="unknown">{t('settings.unknown', { entries: settings.unknown.join(', ') })}</div>
+          <Alert tone="warning" icon="alert-triangle">{t('settings.unknown', { entries: settings.unknown.join(', ') })}</Alert>
         )}
-      </section>
+      </Section>
 
-      <section aria-labelledby="tz-people">
-        <div id="tz-people" className="tz-label">{t('settings.people')}</div>
+      <Section title={t('settings.people')}>
         {people.length === 0 ? (
-          <div className="tz-muted">{t('settings.noPeople')}</div>
+          <Text tone="muted">{t('settings.noPeople')}</Text>
         ) : (
-          <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 2 }} data-tz="people">
+          <List label={t('settings.people')}>
             {people.map(([a, z]) => (
-              <li key={a} className="tz-row" style={{ justifyContent: 'space-between' }}>
-                <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{a} <span className="tz-muted">· {zoneCity(z)} ({formatOffset(offsetMinutes(z, now))})</span></span>
-                <button type="button" className="tz-btn tz-btn-ghost" onClick={() => void save(a, null)} aria-label={`${t('remove')}: ${a}`}>{t('remove')}</button>
-              </li>
+              <ListRow
+                key={a}
+                title={a}
+                subtitle={`${zoneCity(z)} · ${formatOffset(offsetMinutes(z, now))}`}
+                actions={<RowAction icon="trash" label={`${t('remove')}: ${a}`} onClick={() => void save(a, null)} />}
+              />
             ))}
-          </ul>
+          </List>
         )}
         {!adding ? (
-          <button type="button" className="tz-btn" style={{ marginTop: 6 }} onClick={() => setAdding(true)}>{t('settings.addPerson')}</button>
+          <Row>
+            <Button variant="secondary" icon="plus" onClick={() => setAdding(true)}>{t('settings.addPerson')}</Button>
+          </Row>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
-            <label className="tz-muted" style={{ fontSize: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {t('settings.address')}
-              <input
-                className="tz-input"
+          <Stack gap={4}>
+            <Field label={t('settings.address')} error={addressError || undefined}>
+              <Input
                 type="email"
                 value={address}
                 autoFocus
                 onChange={(e) => { setAddress(e.target.value); setAddressError(''); }}
               />
-            </label>
-            {addressError && <div role="alert" className="tz-error">{addressError}</div>}
+            </Field>
             <ZoneField
               autoFocus={false}
               label={t('zone.label')}
-              onCancel={() => { setAdding(false); setAddress(''); }}
+              onCancel={() => { setAdding(false); setAddress(''); setAddressError(''); }}
               onSubmit={async (zone) => {
                 const a = normaliseAddress(address);
                 if (!a) { setAddressError(t('settings.invalidAddress')); return; }
@@ -91,9 +92,9 @@ export function SettingsSection() {
                 setAddress('');
               }}
             />
-          </div>
+          </Stack>
         )}
-      </section>
-    </div>
+      </Section>
+    </Stack>
   );
 }

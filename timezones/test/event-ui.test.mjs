@@ -12,6 +12,8 @@ const view = (participants, extra = {}) => ({
   ...extra,
 });
 
+const zoneRow = (ui, city) => ui.$$('[role="listitem"]').find((r) => r.firstChild.textContent.split(' · ')[0] === city);
+
 async function setup({ zones = {}, settings = {} } = {}) {
   const api = fakeApi({ settings: { homeZone: 'Europe/Berlin', ...settings }, translations: manifest.locales, locale: 'en-GB' });
   await api.storage.set('addressZones', zones);
@@ -25,22 +27,27 @@ describe('event form section', () => {
   it('shows the time for each participant zone and marks late ones', async () => {
     await setup({ zones: { 'kei@example.jp': 'Asia/Tokyo', 'bob@example.org': 'America/Chicago' } });
     const ui = await mount(EventZones, { event: view(['kei@example.jp', 'bob@example.org']) });
-    const rows = ui.$$('[data-zone]');
-    expect(rows.map((r) => r.dataset.zone)).toEqual(['Asia/Tokyo', 'America/Chicago']);
+    const rows = ui.$$('[role="listitem"]');
+    expect(rows.map((r) => r.firstChild.textContent)).toEqual(['Tokyo · kei@example.jp', 'Chicago · bob@example.org']);
     expect(rows[0].textContent).toContain('22:00–23:00');
     expect(rows[0].textContent).toContain('outside working hours');
     expect(rows[1].textContent).toContain('08:00–09:00');
     expect(rows[1].textContent).not.toContain('outside working hours');
+    // One warning for the participants outside working hours.
+    expect(ui.$('[role="status"][data-tone="warning"]').textContent).toBe('Outside 08:00–20:00 for kei@example.jp (Tokyo)');
     await ui.unmount();
   });
 
   it('shows favourites and the next-day hint', async () => {
     await setup({ settings: { favouriteZones: 'Auckland' } });
     const ui = await mount(EventZones, { event: view([]) });
-    const row = ui.$('[data-zone="Pacific/Auckland"]');
+    const row = zoneRow(ui, 'Auckland');
     expect(row.textContent).toContain('02:00–03:00');
     expect(row.textContent).toContain('(next day)');
     expect(row.textContent).toContain('favourite');
+    // Favourites are marked, not warned about.
+    expect(row.textContent).toContain('outside working hours');
+    expect(ui.$('[data-tone="warning"][role="status"]')).toBeNull();
     await ui.unmount();
   });
 
@@ -52,7 +59,7 @@ describe('event form section', () => {
     await type(ui.$('input'), 'Chicago');
     await click(button(ui.container, 'Save'));
     expect(api.storageSnapshot().addressZones).toEqual({ 'new@example.com': 'America/Chicago' });
-    expect(ui.$('[data-zone="America/Chicago"]').textContent).toContain('new@example.com');
+    expect(zoneRow(ui, 'Chicago').textContent).toContain('new@example.com');
     expect(ui.text()).not.toContain('No time zone for');
     await ui.unmount();
   });

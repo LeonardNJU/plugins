@@ -145,17 +145,19 @@ for (const theme of ['light', 'dark']) {
     await setUserSettings(page, { 'Favourite time zones': 'New York, Tokio, Asia/Tokyo', 'Your time zone': 'Europe/Berlin' });
     await useTheme(page, theme);
     const frame = await openPluginSettingsPage(page);
-    await expect(frame.locator('[data-tz="favourites"]')).toContainText('America/New_York');
-    await expect(frame.locator('[data-tz="favourites"]')).toContainText('Asia/Tokyo');
-    await expect(frame.locator('[data-tz="unknown"]')).toContainText('Tokio');
-    await expect(frame.getByText('Europe/Berlin')).toBeVisible();
+    const favourites = frame.getByRole('list', { name: 'Favourite time zones' });
+    await expect(favourites).toContainText('America/New_York');
+    await expect(favourites).toContainText('Asia/Tokyo');
+    await expect(frame.getByRole('status').filter({ hasText: 'Not recognised: Tokio' })).toBeVisible();
+    await expect(frame.getByRole('list', { name: 'Your time zone' })).toContainText('Europe/Berlin');
     // A zone for a person, added on the same page, is listed and can be removed.
     await frame.getByRole('button', { name: 'Add a person' }).click();
     await frame.getByLabel('Email address').fill('Bob@Example.org');
     await frame.getByLabel('Time zone', { exact: true }).fill('Chicago');
     await frame.getByRole('button', { name: 'Save' }).click();
-    await expect(frame.locator('[data-tz="people"]')).toContainText('bob@example.org');
-    await expect(frame.locator('[data-tz="people"]')).toContainText('Chicago');
+    const people = frame.getByRole('list', { name: 'Time zones of people' });
+    await expect(people).toContainText('bob@example.org');
+    await expect(people).toContainText('Chicago');
     await shootThemed(page, 'settings', theme);
   });
 }
@@ -176,24 +178,29 @@ for (const theme of ['light', 'dark']) {
     await openApp(page, '/calendar');
     await page.getByRole('button', { name: 'Create event' }).click();
     await page.getByPlaceholder('Title').fill('Planning call');
-    await page.locator('input[type="time"]').first().fill('15:00');
+    const form = page.getByRole('dialog', { name: 'Create event' });
+    const startTime = form.locator('input[type="time"]').first();
+    await startTime.fill('15:00');
+    await expect(startTime).toHaveValue('15:00');
     await page.getByPlaceholder('Add email address or search contacts').fill('kei@example.jp');
     await page.keyboard.press('Enter');
 
     const frame = slotFrame(page, 'calendar-event-form');
-    await expect(frame.locator('[data-zone="America/New_York"]')).toContainText('9:00');
+    const zoneRow = (city) => frame.getByRole('listitem').filter({ hasText: city });
+    await expect(zoneRow('New York')).toContainText('9:00');
     await expect(frame.getByText('No time zone for kei@example.jp')).toBeVisible();
     await frame.getByRole('button', { name: 'Time zone for kei@example.jp' }).click();
     await frame.getByLabel('Time zone for kei@example.jp').fill('Tokyo');
     await frame.getByRole('button', { name: 'Save' }).click();
-    const tokyo = frame.locator('[data-zone="Asia/Tokyo"]');
+    const tokyo = zoneRow('Tokyo');
     await expect(tokyo).toContainText('10:00');
     await expect(tokyo).toContainText('kei@example.jp');
     await expect(tokyo).toContainText('outside working hours');
+    await expect(frame.getByRole('status').filter({ hasText: /Outside 8:00\sAM–8:00\sPM for kei@example\.jp \(Tokyo\)/ })).toBeVisible();
 
     // The form's own warnings come from the conflict check, which runs when
     // the times change.
-    await page.locator('input[type="time"]').nth(1).fill('16:30');
+    await form.locator('input[type="time"]').nth(1).fill('16:30');
     await expect(page.getByText(/Outside 8:00\sAM–8:00\sPM for kei@example\.jp \(Tokyo\)/)).toBeVisible();
     await page.locator('[data-plugin-slot="calendar-event-form"]').scrollIntoViewIfNeeded();
     await shootThemed(page, 'event-form', theme);
@@ -262,8 +269,8 @@ for (const theme of ['light', 'dark']) {
       await waitForPlugin(page, ID);
       await page.getByText(subject).first().click();
 
-      const line = slotFrame(page, 'reader-below-subject');
-      await expect(line.getByText('Sent 11:40 PM their time (UTC−5)')).toBeVisible();
+      const banner = slotFrame(page, 'email-banner');
+      await expect(banner.getByText(/^Sent at 11:40\sPM their time \(UTC−5\), 6:40\sAM your time$/)).toBeVisible();
 
       await page.getByRole('button', { name: /show details/i }).first().click();
       const details = slotFrame(page, 'email-details-section');
@@ -272,6 +279,11 @@ for (const theme of ['light', 'dark']) {
       await details.getByLabel('Time zone for bob@example.org').fill('Chicago');
       await details.getByRole('button', { name: 'Save' }).click();
       await expect(details.getByText(/now \d{1,2}:\d\d\s[AP]M in Chicago/)).toBeVisible();
+      // The banner adds the time there now, too.
+      await expect(banner.getByText(/^now \d{1,2}:\d\d\s[AP]M in Chicago$/)).toBeVisible();
+      // The screenshot shows the bar above the message, so close the details.
+      await page.getByRole('button', { name: /hide details/i }).first().click();
+      await expect(banner.getByText(/in Chicago$/)).toBeInViewport();
       await shootThemed(page, 'reader', theme);
     } finally {
       await destroyMessage(id);
@@ -282,8 +294,7 @@ for (const theme of ['light', 'dark']) {
 // ─── Composer ────────────────────────────────────────────────
 
 for (const theme of ['light', 'dark']) {
-  test(`composer writes a time in several zones into the message (${theme})`, async ({ page, context }) => {
-    await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: BASE });
+  test(`composer writes a time in several zones into the message (${theme})`, async ({ page }) => {
     await preparePage(page, { theme });
     await signIn(page);
     await waitForPlugin(page, ID);
@@ -293,19 +304,31 @@ for (const theme of ['light', 'dark']) {
     await waitForPlugin(page, ID);
     await page.getByRole('button', { name: /compose|new message/i }).first().click();
 
-    await slotFrame(page, 'composer-toolbar').getByRole('button', { name: 'Time zones' }).click();
+    // No plugin row in the composer any more: the entry is in Options.
+    await expect(page.locator(`[data-plugin-iframe-slot="${ID}:composer-toolbar"]`)).toHaveCount(0);
+    const body = page.locator('.ProseMirror').first();
+    // A new message focuses the To field just after it opens; wait for
+    // that, or it takes the caret away from the text typed below.
+    await expect.poll(() => page.evaluate(() => document.activeElement?.tagName)).toBe('INPUT');
+    await body.click();
+    await page.keyboard.type('Can we talk at ');
+    await expect(body).toHaveText('Can we talk at');
+    await page.getByTestId('composer-options-menu').click();
+    await page.getByRole('menuitem', { name: 'Insert time in other zones…' }).click();
     const dialog = slotFrame(page, 'plugin-dialog');
     await dialog.getByLabel('Date').fill('2026-10-14');
     await dialog.getByLabel('Time in Berlin').fill('15:00');
     await expect(dialog.getByLabel('Text to paste')).toHaveValue(/^3:00\sPM Berlin \/ 9:00\sAM New York$/);
-    await dialog.getByRole('button', { name: 'Copy' }).click();
-    await expect(dialog.getByRole('status')).toHaveText('Copied. Paste it into your message.');
+    // The buttons are in the host's dialog footer, not in the frame.
+    const host = page.getByRole('dialog').filter({ hasText: 'Time in several zones' });
+    await expect(dialog.getByRole('button', { name: 'Insert' })).toHaveCount(0);
+    await expect(host.getByRole('button', { name: 'Cancel', exact: true })).toBeVisible();
     await shootThemed(page, 'composer', theme);
 
     // Insert writes the line where the cursor is in the message.
-    await dialog.getByRole('button', { name: 'Insert' }).click();
-    const body = page.locator('[contenteditable="true"]').first();
-    await expect(body).toContainText(/3:00\sPM Berlin \/ 9:00\sAM New York/);
+    await host.getByRole('button', { name: 'Insert', exact: true }).click();
+    await expect(host).toHaveCount(0);
+    await expect(body).toContainText(/Can we talk at 3:00\sPM Berlin \/ 9:00\sAM New York/);
     // Clean up: throw the draft away (best effort, the test already passed).
     try {
       await page.getByRole('button', { name: 'Discard', exact: true }).click({ timeout: 10_000, force: true });
@@ -333,9 +356,9 @@ for (const theme of ['light', 'dark']) {
       await useTheme(page, theme);
       await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
       const clock = slotFrame(page, 'sidebar-section');
-      await expect(clock.locator('[data-zone="Europe/Berlin"]')).toBeVisible({ timeout: 60_000 });
-      await expect(clock.locator('[data-zone="America/New_York"]')).toContainText('New York');
-      await expect(clock.locator('[data-zone="Asia/Tokyo"]')).toContainText(/\d{1,2}:\d\d/);
+      await expect(clock.getByTitle(/^Berlin · UTC\+\d/)).toBeVisible({ timeout: 60_000 });
+      await expect(clock.getByTitle(/^New York · /)).toContainText('New York');
+      await expect(clock.getByTitle(/^Tokyo · /)).toContainText(/\d{1,2}:\d\d/);
       await shootThemed(page, 'world-clock', theme);
     } finally {
       await setUserSettings(page, { 'World clock in the sidebar': false, 'Your time zone': 'Europe/Berlin' });

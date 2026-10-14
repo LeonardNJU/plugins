@@ -1,13 +1,15 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act } from 'react';
+import { ADDRESS_ZONES_REFRESH_MS } from '../src/ui/common.jsx';
 import { fakeApi } from '../../test-utils/fake-api.mjs';
 import { findDateHeader, parseDateHeader, senderClock } from '../src/lib/date-header.js';
 import { senderTime, worthShowing } from '../src/lib/sender.js';
 import { setApi } from '../src/host.js';
-import { SenderDetails, SenderLine } from '../src/ui/sender-time.jsx';
+import { SenderBanner, SenderDetails } from '../src/ui/sender-time.jsx';
 import plugin from '../src/index.js';
 import manifest from '../manifest.json' with { type: 'json' };
-import { button, click, mount, type } from './dom.mjs';
+import { button, click, mount, settle, type } from './dom.mjs';
 
 describe('parseDateHeader', () => {
   it('reads the instant and the offset', () => {
@@ -46,7 +48,7 @@ const mail = (date, from = 'bob@example.org') => ({ id: 'm1', from: [{ name: 'Bo
 describe('senderTime', () => {
   it('gives the sender\'s clock and offset', () => {
     const info = senderTime(mail('Wed, 14 Oct 2026 23:40:00 -0500'), { home: 'Europe/Berlin', locale: 'de' });
-    expect(info).toMatchObject({ sent: '23:40', offset: 'UTC−5', sameAsYours: false, savedZone: null, nowThere: null });
+    expect(info).toMatchObject({ sent: '23:40', yours: '06:40', offset: 'UTC−5', sameAsYours: false, savedZone: null, nowThere: null });
     expect(worthShowing(info, 'Europe/Berlin')).toBe(true);
   });
   it('is not worth a line when the sender was on your clock', () => {
@@ -77,9 +79,11 @@ describe('reader slots', () => {
     return api;
   };
 
-  it('offers the line only when the sender\'s clock differs from yours', async () => {
+  it('offers the banner only when the sender\'s clock differs from yours', async () => {
     await setup();
-    const { shouldShow } = plugin.slots['reader-below-subject'];
+    expect(plugin.slots['reader-below-subject']).toBeUndefined();
+    expect(plugin.slots['email-banner'].component).toBe(SenderBanner);
+    const { shouldShow } = plugin.slots['email-banner'];
     expect(shouldShow({ email: mail('Wed, 14 Oct 2026 23:40:00 -0500') })).toBe(true);
     expect(shouldShow({ email: mail('Wed, 14 Oct 2026 15:00:00 +0200') })).toBe(false);
     expect(shouldShow({ email: { headers: {} } })).toBe(false);
@@ -94,10 +98,42 @@ describe('reader slots', () => {
     expect(shouldShow({ email: { headers: {} }, category: 'recipients_routing' })).toBe(false);
   });
 
-  it('writes the line under the subject', async () => {
+  it('says in one info bar line when the sender wrote, on their clock and on yours', async () => {
     await setup();
-    const ui = await mount(SenderLine, { email: mail('Wed, 14 Oct 2026 23:40:00 -0500') });
-    expect(ui.$('[data-tz="sender-line"] span').textContent).toBe('Sent 23:40 their time (UTC−5)');
+    const ui = await mount(SenderBanner, { email: mail('Wed, 14 Oct 2026 23:40:00 -0500') });
+    expect(ui.$('.bk-infobar').textContent).toBe('Sent at 23:40 their time (UTC−5), 06:40 your time');
+    await ui.unmount();
+  });
+
+  it('adds the time there now once a zone is saved for the sender', async () => {
+    await setup({ 'bob@example.org': 'America/Chicago' });
+    const ui = await mount(SenderBanner, { email: mail('Wed, 14 Oct 2026 15:00:00 +0200') });
+    const [line, there] = ui.$('.bk-infobar').children;
+    expect(line.textContent).toBe('Sent at 15:00 their time (UTC+2), 15:00 your time');
+    expect(there.textContent).toMatch(/^now \d\d:\d\d in Chicago$/);
+    await ui.unmount();
+  });
+
+  it('picks up a zone saved for the sender in another frame (the details)', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      const api = await setup();
+      const ui = await mount(SenderBanner, { email: mail('Wed, 14 Oct 2026 23:40:00 -0500') });
+      expect(ui.text()).not.toContain('Chicago');
+      await api.storage.set('addressZones', { 'bob@example.org': 'America/Chicago' });
+      await act(async () => { vi.advanceTimersByTime(ADDRESS_ZONES_REFRESH_MS); });
+      await settle();
+      expect(ui.text()).toMatch(/your timenow \d\d:\d\d in Chicago$/);
+      await ui.unmount();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('shows no bar when there is nothing to tell', async () => {
+    await setup();
+    const ui = await mount(SenderBanner, { email: mail('Wed, 14 Oct 2026 15:00:00 +0200') });
+    expect(ui.container.innerHTML).toBe('');
     await ui.unmount();
   });
 

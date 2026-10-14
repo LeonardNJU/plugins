@@ -19,17 +19,17 @@ describe('world clock', () => {
     expect(manifest.settingsSchema.worldClock.default).toBe(false);
   });
 
-  it('shows your zone and the favourites, dims those outside working hours, and keeps ticking', async () => {
+  it('shows your zone and the favourites, marks those outside working hours, and keeps ticking', async () => {
     vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
     vi.setSystemTime(new Date('2026-10-14T13:00:00Z'));
     setApi(fakeApi({ settings: { homeZone: 'Europe/Berlin', favouriteZones: 'New York, Tokyo', worldClock: true }, translations: manifest.locales, locale: 'en-GB' }));
     const ui = await mount(WorldClock);
-    const rows = () => ui.$$('[data-zone]');
-    expect(rows().map((r) => r.dataset.zone)).toEqual(['Europe/Berlin', 'America/New_York', 'Asia/Tokyo']);
+    const rows = () => ui.$$('[title]');
+    expect(rows().map((r) => r.firstChild.textContent)).toEqual(['Berlin', 'New York', 'Tokyo']);
     expect(rows()[0].textContent).toContain('15:00');
     expect(rows()[1].textContent).toContain('09:00');
     expect(rows()[2].textContent).toContain('22:00');
-    expect(rows().map((r) => r.dataset.outside)).toEqual(['false', 'false', 'true']);
+    expect(rows().map((r) => r.title)).toEqual(['Berlin · UTC+2', 'New York · UTC−4', 'Tokyo · UTC+9 · outside working hours']);
     await act(async () => { vi.advanceTimersByTime(30 * 60_000); });
     await settle();
     expect(rows()[0].textContent).toContain('15:30');
@@ -41,8 +41,9 @@ describe('world clock', () => {
     vi.setSystemTime(new Date('2026-10-14T20:00:00Z'));
     setApi(fakeApi({ settings: { homeZone: 'Europe/Berlin', favouriteZones: 'Auckland' }, translations: manifest.locales, locale: 'en-GB' }));
     const ui = await mount(WorldClock);
-    expect(ui.$('[data-zone="Pacific/Auckland"] [data-tz="day"]').textContent.trim()).toBe('+1');
-    expect(ui.$('[data-zone="Europe/Berlin"] [data-tz="day"]')).toBeNull();
+    const [berlin, auckland] = ui.$$('[title]');
+    expect(auckland.lastChild.textContent).toBe('09:00 +1');
+    expect(berlin.lastChild.textContent).toBe('22:00');
     await ui.unmount();
   });
 

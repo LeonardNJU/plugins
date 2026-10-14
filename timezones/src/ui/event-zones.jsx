@@ -1,18 +1,32 @@
 // In the event form: the event's time for each participant with a known
 // time zone and in the favourite zones, marked when it falls outside working
-// hours, and a way to set a missing zone. The warning itself comes from the
-// onCheckEventConflicts hook, so the form shows it with its own warnings.
+// hours, and a way to set a missing zone. The same warning also goes to the
+// form's own warnings through the onCheckEventConflicts hook.
 
 import { useState } from 'react';
+import { Alert, Badge, LinkButton, List, ListRow, Row, Stack, Text } from '@plugin-host/ui';
 import { t, locale } from '../host.js';
-import { eventZones } from '../lib/event.js';
+import { eventZones, outsideHoursWarning } from '../lib/event.js';
 import { formatOffset, formatTime, offsetMinutes, zoneCity } from '../lib/zones.js';
-import { ClockIcon, Styles, ZoneField, useAddressZones, useSettings } from './common.jsx';
+import { ZoneField, useAddressZones, useSettings } from './common.jsx';
 
 function range(row, loc) {
   const from = formatTime(row.start, row.zone, loc);
   if (row.end <= row.start) return from;
   return `${from}–${formatTime(row.end, row.zone, loc)}`;
+}
+
+/** "22:00–23:00 (next day) · UTC+9", plus "· favourite" for a favourite zone without participants. */
+function detail(row, loc) {
+  const parts = [range(row, loc) + (row.dayShift !== 0 ? ` (${t(row.dayShift > 0 ? 'event.nextDay' : 'event.prevDay')})` : '')];
+  parts.push(formatOffset(offsetMinutes(row.zone, row.start)));
+  if (row.emails.length === 0) parts.push(t('event.favourite'));
+  return parts.join(' · ');
+}
+
+/** "Tokyo · kei@example.jp" */
+function title(row) {
+  return [zoneCity(row.zone), ...row.emails].join(' · ');
 }
 
 export function EventZones(props) {
@@ -25,48 +39,41 @@ export function EventZones(props) {
   if (!info || info.allDay) return null;
   if (info.rows.length === 0 && info.missing.length === 0) return null;
   const loc = locale();
+  const warning = outsideHoursWarning(info, settings, t, loc);
 
   return (
-    <div data-tz="event" style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '4px 0', fontSize: 13 }}>
-      <Styles />
-      <div className="tz-row tz-muted" style={{ gap: 6, alignItems: 'center' }}>
-        <ClockIcon />
-        <span style={{ fontWeight: 600 }}>{t('event.heading')}</span>
-      </div>
+    <Stack gap={2}>
+      <Text weight="medium">{t('event.heading')}</Text>
       {info.rows.length > 0 && (
-        <ul data-tz="rows" style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <List label={t('event.heading')}>
           {info.rows.map((row) => (
-            <li key={row.zone} className="tz-row" style={{ gap: 6 }} data-zone={row.zone}>
-              <strong style={{ fontWeight: 600 }}>{zoneCity(row.zone)}</strong>
-              <span style={{ fontVariantNumeric: 'tabular-nums' }}>{range(row, loc)}</span>
-              <span className="tz-muted">{formatOffset(offsetMinutes(row.zone, row.start))}</span>
-              {row.dayShift !== 0 && <span className="tz-muted">({t(row.dayShift > 0 ? 'event.nextDay' : 'event.prevDay')})</span>}
-              {row.emails.length > 0
-                ? <span className="tz-muted" style={{ overflowWrap: 'anywhere' }}>{row.emails.join(', ')}</span>
-                : <span className="tz-muted">· {t('event.favourite')}</span>}
-              {row.outside && <span className="tz-warn">· {t('event.outside')}</span>}
-            </li>
-          ))}
-        </ul>
-      )}
-      {info.missing.map((address) => (
-        <div key={address} data-tz="missing">
-          {editing === address ? (
-            <ZoneField
-              label={t('zone.labelFor', { address })}
-              onCancel={() => setEditing(null)}
-              onSubmit={async (zone) => { await save(address, zone); setEditing(null); }}
+            <ListRow
+              key={row.zone}
+              title={title(row)}
+              subtitle={detail(row, loc)}
+              actions={row.outside ? <Badge tone="warning">{t('event.outside')}</Badge> : undefined}
             />
-          ) : (
-            <div className="tz-row" style={{ gap: 6 }}>
-              <span className="tz-muted" style={{ overflowWrap: 'anywhere' }}>{t('event.missing', { address })}</span>
-              <button type="button" className="tz-link" onClick={() => setEditing(address)} aria-label={t('zone.labelFor', { address })}>
-                {t('event.set')}
-              </button>
-            </div>
-          )}
-        </div>
+          ))}
+        </List>
+      )}
+      {warning && <Alert tone="warning" icon="alert-triangle">{warning.message}</Alert>}
+      {info.missing.map((address) => (
+        editing === address ? (
+          <ZoneField
+            key={address}
+            label={t('zone.labelFor', { address })}
+            onCancel={() => setEditing(null)}
+            onSubmit={async (zone) => { await save(address, zone); setEditing(null); }}
+          />
+        ) : (
+          <Row key={address} gap={2}>
+            <Text tone="muted">{t('event.missing', { address })}</Text>
+            <LinkButton onClick={() => setEditing(address)} aria-label={t('zone.labelFor', { address })}>
+              {t('event.set')}
+            </LinkButton>
+          </Row>
+        )
       ))}
-    </div>
+    </Stack>
   );
 }

@@ -43,3 +43,10 @@ export async function click(el) {
 export function button(container, name) {
   return [...container.querySelectorAll('button')].find((b) => b.textContent.trim() === name || b.getAttribute('aria-label') === name);
 }
+
+/** The control a label (found by its text) points to. */
+export function byLabel(container, text) {
+  const label = [...container.querySelectorAll('label')].find((l) => l.textContent.trim() === text);
+  if (!label) return null;
+  return label.htmlFor ? label.ownerDocument.getElementById(label.htmlFor) : null;
+}
