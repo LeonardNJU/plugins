@@ -8,7 +8,10 @@
   "permissions": [
     "ui:settings-section",
     "calendar:read",
-    "ui:calendar-action"
+    "ui:calendar-action",
+    "email:read",
+    "ui:email-banner",
+    "ui:email-details"
   ],
   "entrypoint": "index.js",
   "minAppVersion": "1.14.2",
@@ -69,7 +72,12 @@
       "event.prevDay": "previous day",
       "event.missing": "No time zone for {address}",
       "event.set": "Set",
-      "zone.labelFor": "Time zone for {address}"
+      "zone.labelFor": "Time zone for {address}",
+      "reader.sent": "Sent {time} their time ({offset})",
+      "reader.nowThere": "now {time} in {city}",
+      "reader.label": "Their time",
+      "reader.setFor": "Set time zone",
+      "reader.change": "Change time zone"
     },
     "ar": {
       "remove": "إزالة",
@@ -97,7 +105,12 @@
       "event.prevDay": "اليوم السابق",
       "event.missing": "لا توجد منطقة زمنية لـ {address}",
       "event.set": "تعيين",
-      "zone.labelFor": "المنطقة الزمنية لـ {address}"
+      "zone.labelFor": "المنطقة الزمنية لـ {address}",
+      "reader.sent": "أُرسلت الساعة {time} بتوقيتهم ({offset})",
+      "reader.nowThere": "الساعة الآن {time} في {city}",
+      "reader.label": "توقيتهم",
+      "reader.setFor": "تعيين المنطقة الزمنية",
+      "reader.change": "تغيير المنطقة الزمنية"
     },
     "ca": {
       "remove": "Elimina",
@@ -125,7 +138,12 @@
       "event.prevDay": "el dia abans",
       "event.missing": "Sense zona horària per a {address}",
       "event.set": "Configura",
-      "zone.labelFor": "Zona horària de {address}"
+      "zone.labelFor": "Zona horària de {address}",
+      "reader.sent": "Enviat a les {time}, hora local ({offset})",
+      "reader.nowThere": "ara són les {time} a {city}",
+      "reader.label": "Hora local",
+      "reader.setFor": "Configura la zona horària",
+      "reader.change": "Canvia la zona horària"
     },
     "cs": {
       "remove": "Odstranit",
@@ -153,7 +171,12 @@
       "event.prevDay": "předchozí den",
       "event.missing": "Žádné časové pásmo pro {address}",
       "event.set": "Nastavit",
-      "zone.labelFor": "Časové pásmo pro {address}"
+      "zone.labelFor": "Časové pásmo pro {address}",
+      "reader.sent": "Odesláno v {time} místního času ({offset})",
+      "reader.nowThere": "nyní {time} v {city}",
+      "reader.label": "Místní čas",
+      "reader.setFor": "Nastavit časové pásmo",
+      "reader.change": "Změnit časové pásmo"
     },
     "da": {
       "remove": "Fjern",
@@ -181,7 +204,12 @@
       "event.prevDay": "dagen før",
       "event.missing": "Ingen tidszone for {address}",
       "event.set": "Angiv",
-      "zone.labelFor": "Tidszone for {address}"
+      "zone.labelFor": "Tidszone for {address}",
+      "reader.sent": "Sendt kl. {time} lokal tid ({offset})",
+      "reader.nowThere": "nu {time} i {city}",
+      "reader.label": "Lokal tid",
+      "reader.setFor": "Angiv tidszone",
+      "reader.change": "Skift tidszone"
     },
     "de": {
       "remove": "Entfernen",
@@ -209,7 +237,12 @@
       "event.prevDay": "am Vortag",
       "event.missing": "Keine Zeitzone für {address}",
       "event.set": "Festlegen",
-      "zone.labelFor": "Zeitzone für {address}"
+      "zone.labelFor": "Zeitzone für {address}",
+      "reader.sent": "Gesendet um {time} Ortszeit ({offset})",
+      "reader.nowThere": "dort jetzt {time} ({city})",
+      "reader.label": "Ortszeit",
+      "reader.setFor": "Zeitzone festlegen",
+      "reader.change": "Zeitzone ändern"
     },
     "es": {
       "remove": "Eliminar",
@@ -237,7 +270,12 @@
       "event.prevDay": "día anterior",
       "event.missing": "Sin zona horaria para {address}",
       "event.set": "Configurar",
-      "zone.labelFor": "Zona horaria de {address}"
+      "zone.labelFor": "Zona horaria de {address}",
+      "reader.sent": "Enviado a las {time}, hora local ({offset})",
+      "reader.nowThere": "ahora son las {time} en {city}",
+      "reader.label": "Hora local",
+      "reader.setFor": "Configurar zona horaria",
+      "reader.change": "Cambiar zona horaria"
     },
     "fa": {
       "remove": "حذف",
@@ -265,7 +303,12 @@
       "event.prevDay": "روز قبل",
       "event.missing": "منطقهٔ زمانی برای {address} تنظیم نشده",
       "event.set": "تنظیم",
-      "zone.labelFor": "منطقهٔ زمانی {address}"
+      "zone.labelFor": "منطقهٔ زمانی {address}",
+      "reader.sent": "ارسال شده ساعت {time} به وقت فرستنده ({offset})",
+      "reader.nowThere": "اکنون ساعت {time} در {city}",
+      "reader.label": "وقت فرستنده",
+      "reader.setFor": "تنظیم منطقهٔ زمانی",
+      "reader.change": "تغییر منطقهٔ زمانی"
     },
     "fr": {
       "remove": "Supprimer",
@@ -293,7 +336,12 @@
       "event.prevDay": "la veille",
       "event.missing": "Aucun fuseau horaire pour {address}",
       "event.set": "Définir",
-      "zone.labelFor": "Fuseau horaire de {address}"
+      "zone.labelFor": "Fuseau horaire de {address}",
+      "reader.sent": "Envoyé à {time}, heure locale ({offset})",
+      "reader.nowThere": "il est {time} à {city}",
+      "reader.label": "Heure locale",
+      "reader.setFor": "Définir le fuseau horaire",
+      "reader.change": "Changer le fuseau horaire"
     },
     "he": {
       "remove": "הסר",
@@ -321,7 +369,12 @@
       "event.prevDay": "יום קודם",
       "event.missing": "אין אזור זמן עבור {address}",
       "event.set": "הגדרה",
-      "zone.labelFor": "אזור זמן עבור {address}"
+      "zone.labelFor": "אזור זמן עבור {address}",
+      "reader.sent": "נשלח ב-{time} לפי השעון שלהם ({offset})",
+      "reader.nowThere": "עכשיו {time} ב-{city}",
+      "reader.label": "השעה אצלם",
+      "reader.setFor": "הגדרת אזור זמן",
+      "reader.change": "שינוי אזור זמן"
     },
     "hu": {
       "remove": "Eltávolítás",
@@ -349,7 +402,12 @@
       "event.prevDay": "előző nap",
       "event.missing": "Nincs időzóna: {address}",
       "event.set": "Beállítás",
-      "zone.labelFor": "{address} időzónája"
+      "zone.labelFor": "{address} időzónája",
+      "reader.sent": "Elküldve helyi idő szerint {time}-kor ({offset})",
+      "reader.nowThere": "most {time} van itt: {city}",
+      "reader.label": "Helyi idő",
+      "reader.setFor": "Időzóna beállítása",
+      "reader.change": "Időzóna módosítása"
     },
     "it": {
       "remove": "Rimuovi",
@@ -377,7 +435,12 @@
       "event.prevDay": "giorno prima",
       "event.missing": "Nessun fuso orario per {address}",
       "event.set": "Imposta",
-      "zone.labelFor": "Fuso orario di {address}"
+      "zone.labelFor": "Fuso orario di {address}",
+      "reader.sent": "Inviato alle {time} ora locale ({offset})",
+      "reader.nowThere": "ora sono le {time} a {city}",
+      "reader.label": "Ora locale",
+      "reader.setFor": "Imposta fuso orario",
+      "reader.change": "Cambia fuso orario"
     },
     "ja": {
       "remove": "削除",
@@ -405,7 +468,12 @@
       "event.prevDay": "前日",
       "event.missing": "{address} のタイムゾーンが未設定です",
       "event.set": "設定",
-      "zone.labelFor": "{address} のタイムゾーン"
+      "zone.labelFor": "{address} のタイムゾーン",
+      "reader.sent": "相手の現地時刻 {time} に送信（{offset}）",
+      "reader.nowThere": "{city} は現在 {time}",
+      "reader.label": "相手の時刻",
+      "reader.setFor": "タイムゾーンを設定",
+      "reader.change": "タイムゾーンを変更"
     },
     "ko": {
       "remove": "삭제",
@@ -433,7 +501,12 @@
       "event.prevDay": "전날",
       "event.missing": "{address}의 시간대가 없습니다",
       "event.set": "설정",
-      "zone.labelFor": "{address}의 시간대"
+      "zone.labelFor": "{address}의 시간대",
+      "reader.sent": "상대 현지 시각 {time}에 보냄 ({offset})",
+      "reader.nowThere": "{city} 현재 {time}",
+      "reader.label": "상대 시각",
+      "reader.setFor": "시간대 설정",
+      "reader.change": "시간대 변경"
     },
     "lv": {
       "remove": "Noņemt",
@@ -461,7 +534,12 @@
       "event.prevDay": "iepriekšējā dienā",
       "event.missing": "Nav laika joslas: {address}",
       "event.set": "Iestatīt",
-      "zone.labelFor": "Laika josla: {address}"
+      "zone.labelFor": "Laika josla: {address}",
+      "reader.sent": "Nosūtīts {time} pēc vietējā laika ({offset})",
+      "reader.nowThere": "tagad {time} ({city})",
+      "reader.label": "Vietējais laiks",
+      "reader.setFor": "Iestatīt laika joslu",
+      "reader.change": "Mainīt laika joslu"
     },
     "mn": {
       "remove": "Устгах",
@@ -489,7 +567,12 @@
       "event.prevDay": "өмнөх өдөр",
       "event.missing": "{address}-д цагийн бүс алга",
       "event.set": "Тохируулах",
-      "zone.labelFor": "{address}-ийн цагийн бүс"
+      "zone.labelFor": "{address}-ийн цагийн бүс",
+      "reader.sent": "Орон нутгийн цагаар {time}-д илгээсэн ({offset})",
+      "reader.nowThere": "{city}-д одоо {time}",
+      "reader.label": "Орон нутгийн цаг",
+      "reader.setFor": "Цагийн бүс тохируулах",
+      "reader.change": "Цагийн бүс өөрчлөх"
     },
     "nb": {
       "remove": "Fjern",
@@ -517,7 +600,12 @@
       "event.prevDay": "dagen før",
       "event.missing": "Ingen tidssone for {address}",
       "event.set": "Angi",
-      "zone.labelFor": "Tidssone for {address}"
+      "zone.labelFor": "Tidssone for {address}",
+      "reader.sent": "Sendt kl. {time} lokal tid ({offset})",
+      "reader.nowThere": "nå {time} i {city}",
+      "reader.label": "Lokal tid",
+      "reader.setFor": "Angi tidssone",
+      "reader.change": "Endre tidssone"
     },
     "nl": {
       "remove": "Verwijderen",
@@ -545,7 +633,12 @@
       "event.prevDay": "vorige dag",
       "event.missing": "Geen tijdzone voor {address}",
       "event.set": "Instellen",
-      "zone.labelFor": "Tijdzone voor {address}"
+      "zone.labelFor": "Tijdzone voor {address}",
+      "reader.sent": "Verzonden om {time} lokale tijd ({offset})",
+      "reader.nowThere": "nu {time} in {city}",
+      "reader.label": "Lokale tijd",
+      "reader.setFor": "Tijdzone instellen",
+      "reader.change": "Tijdzone wijzigen"
     },
     "pl": {
       "remove": "Usuń",
@@ -573,7 +666,12 @@
       "event.prevDay": "poprzedniego dnia",
       "event.missing": "Brak strefy czasowej dla {address}",
       "event.set": "Ustaw",
-      "zone.labelFor": "Strefa czasowa dla {address}"
+      "zone.labelFor": "Strefa czasowa dla {address}",
+      "reader.sent": "Wysłano o {time} czasu lokalnego ({offset})",
+      "reader.nowThere": "teraz {time} w {city}",
+      "reader.label": "Czas lokalny",
+      "reader.setFor": "Ustaw strefę czasową",
+      "reader.change": "Zmień strefę czasową"
     },
     "pt": {
       "remove": "Remover",
@@ -601,7 +699,12 @@
       "event.prevDay": "dia anterior",
       "event.missing": "Sem fuso horário para {address}",
       "event.set": "Definir",
-      "zone.labelFor": "Fuso horário de {address}"
+      "zone.labelFor": "Fuso horário de {address}",
+      "reader.sent": "Enviado às {time} no horário local ({offset})",
+      "reader.nowThere": "agora são {time} em {city}",
+      "reader.label": "Horário local",
+      "reader.setFor": "Definir fuso horário",
+      "reader.change": "Alterar fuso horário"
     },
     "ro": {
       "remove": "Eliminați",
@@ -629,7 +732,12 @@
       "event.prevDay": "ziua anterioară",
       "event.missing": "Niciun fus orar pentru {address}",
       "event.set": "Setați",
-      "zone.labelFor": "Fusul orar pentru {address}"
+      "zone.labelFor": "Fusul orar pentru {address}",
+      "reader.sent": "Trimis la {time}, ora locală ({offset})",
+      "reader.nowThere": "acum este {time} în {city}",
+      "reader.label": "Ora locală",
+      "reader.setFor": "Setați fusul orar",
+      "reader.change": "Schimbați fusul orar"
     },
     "ru": {
       "remove": "Удалить",
@@ -657,7 +765,12 @@
       "event.prevDay": "накануне",
       "event.missing": "Нет часового пояса для {address}",
       "event.set": "Задать",
-      "zone.labelFor": "Часовой пояс для {address}"
+      "zone.labelFor": "Часовой пояс для {address}",
+      "reader.sent": "Отправлено в {time} по местному времени ({offset})",
+      "reader.nowThere": "сейчас {time} ({city})",
+      "reader.label": "Местное время",
+      "reader.setFor": "Задать часовой пояс",
+      "reader.change": "Изменить часовой пояс"
     },
     "sk": {
       "remove": "Odstrániť",
@@ -685,7 +798,12 @@
       "event.prevDay": "predchádzajúci deň",
       "event.missing": "Žiadne časové pásmo pre {address}",
       "event.set": "Nastaviť",
-      "zone.labelFor": "Časové pásmo pre {address}"
+      "zone.labelFor": "Časové pásmo pre {address}",
+      "reader.sent": "Odoslané o {time} miestneho času ({offset})",
+      "reader.nowThere": "teraz {time} v {city}",
+      "reader.label": "Miestny čas",
+      "reader.setFor": "Nastaviť časové pásmo",
+      "reader.change": "Zmeniť časové pásmo"
     },
     "tr": {
       "remove": "Kaldır",
@@ -713,7 +831,12 @@
       "event.prevDay": "önceki gün",
       "event.missing": "{address} için saat dilimi yok",
       "event.set": "Ayarla",
-      "zone.labelFor": "{address} için saat dilimi"
+      "zone.labelFor": "{address} için saat dilimi",
+      "reader.sent": "Yerel saatle {time} gönderildi ({offset})",
+      "reader.nowThere": "{city} saatiyle şimdi {time}",
+      "reader.label": "Yerel saat",
+      "reader.setFor": "Saat dilimini ayarla",
+      "reader.change": "Saat dilimini değiştir"
     },
     "uk": {
       "remove": "Видалити",
@@ -741,7 +864,12 @@
       "event.prevDay": "напередодні",
       "event.missing": "Немає часового поясу для {address}",
       "event.set": "Задати",
-      "zone.labelFor": "Часовий пояс для {address}"
+      "zone.labelFor": "Часовий пояс для {address}",
+      "reader.sent": "Надіслано о {time} за місцевим часом ({offset})",
+      "reader.nowThere": "зараз {time} ({city})",
+      "reader.label": "Місцевий час",
+      "reader.setFor": "Задати часовий пояс",
+      "reader.change": "Змінити часовий пояс"
     },
     "zh": {
       "remove": "移除",
@@ -769,7 +897,12 @@
       "event.prevDay": "前一天",
       "event.missing": "{address} 没有设置时区",
       "event.set": "设置",
-      "zone.labelFor": "{address} 的时区"
+      "zone.labelFor": "{address} 的时区",
+      "reader.sent": "对方当地时间 {time} 发送（{offset}）",
+      "reader.nowThere": "{city} 现在 {time}",
+      "reader.label": "对方时间",
+      "reader.setFor": "设置时区",
+      "reader.change": "更改时区"
     },
     "zh-TW": {
       "remove": "移除",
@@ -797,7 +930,12 @@
       "event.prevDay": "前一天",
       "event.missing": "{address} 尚未設定時區",
       "event.set": "設定",
-      "zone.labelFor": "{address} 的時區"
+      "zone.labelFor": "{address} 的時區",
+      "reader.sent": "對方當地時間 {time} 寄出（{offset}）",
+      "reader.nowThere": "{city} 現在 {time}",
+      "reader.label": "對方時間",
+      "reader.setFor": "設定時區",
+      "reader.change": "變更時區"
     }
   }
 }

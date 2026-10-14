@@ -4,13 +4,30 @@
 import { getApi } from './host.js';
 import { loadAddressZones } from './lib/address-zones.js';
 import { eventZones, outsideHoursWarning } from './lib/event.js';
+import { senderTime, worthShowing } from './lib/sender.js';
 import { mirrorSettings, readSettings } from './lib/settings.js';
 import { EventZones } from './ui/event-zones.jsx';
+import { SenderDetails, SenderLine } from './ui/sender-time.jsx';
 import { SettingsSection } from './ui/settings-section.jsx';
 
 export const slots = {
   'settings-section': { component: SettingsSection },
   'calendar-event-form': { component: EventZones },
+  'reader-below-subject': {
+    component: SenderLine,
+    // Only when the sender's clock differed from yours; the slot itself
+    // also shows the time now where a sender with a saved zone is.
+    shouldShow: (ctx) => {
+      const api = getApi();
+      const home = readSettings(api?.plugin?.settings ?? {}).home;
+      return worthShowing(senderTime(ctx?.email, { home }), home);
+    },
+  },
+  'email-details-section': {
+    component: SenderDetails,
+    // One row under "Recipients & routing", where the Sent date is.
+    shouldShow: (ctx) => ctx?.category === 'recipients_routing' && !!senderTime(ctx?.email, {}),
+  },
 };
 
 export const hooks = {

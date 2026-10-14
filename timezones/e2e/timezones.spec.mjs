@@ -8,6 +8,8 @@ import {
 } from '../../e2e/helpers.mjs';
 
 const ID = 'timezones';
+const STALWART = process.env.STALWART_URL || 'http://localhost:18025';
+const AUTH = 'Basic ' + Buffer.from('alice@example.org:test-pass-123').toString('base64');
 
 test.use({ timezoneId: 'Europe/Berlin', locale: 'en-US' });
 
@@ -42,7 +44,7 @@ async function setUserSettings(page, values) {
   }
   // Slots opened from now on start from the copy the background keeps
   // (see mirrorSettings); wait until it has the new values.
-  await expect.poll(() => readMirror(page)).toContain(JSON.stringify(Object.values(values).at(-1)).slice(1, -1));
+  await expect.poll(() => readMirror(page), { timeout: 60_000 }).toContain(JSON.stringify(Object.values(values).at(-1)).slice(1, -1));
 }
 
 /** The settings copy the background keeps in the plugin's storage ('' before it started). */
@@ -54,14 +56,18 @@ function readMirror(page) {
 }
 
 /**
- * Light or dark for screenshots. The test account's appearance syncs from
- * the server and other suites use it too, so the theme follows the system
- * and the browser plays light or dark.
+ * Light or dark for screenshots, set in Settings → Appearance. The test
+ * account's appearance syncs through the server and other suites change it
+ * too; shootThemed checks it is still right.
  */
 async function useTheme(page, theme) {
   await page.emulateMedia({ colorScheme: theme });
   await page.goto(`${BASE}/settings/appearance`, { waitUntil: 'domcontentloaded' });
-  await page.getByRole('button', { name: 'System', exact: true }).first().click();
+  const synced = page.waitForEvent('console', { predicate: (m) => /Settings synced to server/.test(m.text()), timeout: 15_000 }).catch(() => {});
+  await page.getByRole('button', { name: theme === 'dark' ? 'Dark' : 'Light', exact: true }).first().click();
+  // The change goes to the server a moment later; a reload before that
+  // would load the old theme back.
+  await synced;
 }
 
 /** Open the plugin's own page in Settings (from the Settings menu). */
@@ -88,9 +94,39 @@ async function adminApi() {
 
 let admin;
 
+/**
+ * installPlugin() with retries: other suites install and remove their own
+ * plugins on the same webmail at the same time, and the admin plugin list
+ * sometimes answers 500 or loses a concurrent change.
+ */
+async function installWithRetry(api) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await installPlugin(api, ID);
+      const list = await (await api.get('/api/admin/plugins')).json();
+      if ((list.plugins ?? list).some((p) => p.id === ID && p.enabled)) return;
+      throw new Error('not in the plugin list after install');
+    } catch (err) {
+      if (attempt >= 5) throw err;
+      await new Promise((r) => setTimeout(r, 3000 * attempt));
+    }
+  }
+}
+
+// Retries: the shared test account's appearance can be switched by another
+// suite between our setting it and the screenshot (see shootThemed).
+test.describe.configure({ timeout: 300_000, retries: 2 });
+
+/** Screenshot, but only in the theme asked for; a wrong one fails the try. */
+async function shootThemed(page, name, theme) {
+  const dark = await page.evaluate(() => document.documentElement.classList.contains('dark'));
+  expect(dark ? 'dark' : 'light', 'theme at screenshot time').toBe(theme);
+  await shoot(page, ID, name, theme);
+}
+
 test.beforeAll(async () => {
   admin = await adminApi();
-  await installPlugin(admin, ID);
+  await installWithRetry(admin);
 });
 
 test.afterAll(async () => {
@@ -116,13 +152,13 @@ for (const theme of ['light', 'dark']) {
     await frame.getByRole('button', { name: 'Save' }).click();
     await expect(frame.locator('[data-tz="people"]')).toContainText('bob@example.org');
     await expect(frame.locator('[data-tz="people"]')).toContainText('Chicago');
-    await shoot(page, ID, 'settings', theme);
+    await shootThemed(page, 'settings', theme);
   });
 }
 
 /** Plugins start with the mail page; go to another part of the app the way a user does. */
 async function openFromRail(page, name) {
-  await page.getByRole('link', { name, exact: true }).first().click();
+  await page.locator(`nav [aria-label="${name}"]`).first().click();
 }
 
 for (const theme of ['light', 'dark']) {
@@ -155,7 +191,85 @@ for (const theme of ['light', 'dark']) {
     await page.locator('input[type="time"]').nth(1).fill('16:30');
     await expect(page.getByText(/Outside 8:00\sAM–8:00\sPM for kei@example\.jp \(Tokyo\)/)).toBeVisible();
     await page.locator('[data-plugin-slot="calendar-event-form"]').scrollIntoViewIfNeeded();
-    await shoot(page, ID, 'event-form', theme);
+    await shootThemed(page, 'event-form', theme);
     await page.getByRole('button', { name: 'Cancel', exact: true }).last().click();
+  });
+}
+
+// ─── Reader ──────────────────────────────────────────────────
+
+/** JMAP calls to the Stalwart container as alice. */
+async function jmap(calls) {
+  const api = await playwrightRequest.newContext({ extraHTTPHeaders: { Authorization: AUTH } });
+  try {
+    const session = await (await api.get(`${STALWART}/.well-known/jmap`)).json();
+    const accountId = session.primaryAccounts['urn:ietf:params:jmap:mail'];
+    const apiUrl = session.apiUrl.replace(/^https?:\/\/[^/]+/, STALWART);
+    return await calls({ api, accountId, apiUrl });
+  } finally {
+    await api.dispose();
+  }
+}
+
+/**
+ * Put a message from bob, written at 23:40 in UTC−5, into alice's inbox.
+ * Email/set rather than an upload and Email/import: the test account shares
+ * Stalwart's blob upload quota with the other suites. Returns its id.
+ */
+async function createLateMessage(subject) {
+  return jmap(async ({ api, accountId, apiUrl }) => {
+    const using = ['urn:ietf:params:jmap:core', 'urn:ietf:params:jmap:mail'];
+    const boxes = await (await api.post(apiUrl, { data: { using, methodCalls: [['Mailbox/query', { accountId, filter: { role: 'inbox' } }, 'a']] } })).json();
+    const inbox = boxes.methodResponses[0][1].ids[0];
+    const email = {
+      mailboxIds: { [inbox]: true },
+      from: [{ name: 'Bob Example', email: 'bob@example.org' }],
+      to: [{ email: 'alice@example.org' }],
+      subject,
+      'header:Date': ' Wed, 14 Oct 2026 23:40:00 -0500',
+      bodyValues: { b: { value: 'Sorry for the late mail, can we talk tomorrow?' } },
+      textBody: [{ partId: 'b', type: 'text/plain' }],
+    };
+    const res = await (await api.post(apiUrl, { data: { using, methodCalls: [['Email/set', { accountId, create: { m: email } }, 'b']] } })).json();
+    const created = res.methodResponses[0][1].created?.m;
+    if (!created) throw new Error(`Creating the message failed: ${JSON.stringify(res.methodResponses[0][1])}`);
+    return created.id;
+  });
+}
+
+async function destroyMessage(id) {
+  await jmap(({ api, accountId, apiUrl }) => api.post(apiUrl, {
+    data: { using: ['urn:ietf:params:jmap:core', 'urn:ietf:params:jmap:mail'], methodCalls: [['Email/set', { accountId, destroy: [id] }, 'c']] },
+  }));
+}
+
+for (const theme of ['light', 'dark']) {
+  test(`reader shows the sender's local time and takes a zone for them (${theme})`, async ({ page }) => {
+    const subject = `Late call ${theme} ${Date.now()}`;
+    const id = await createLateMessage(subject);
+    try {
+      await preparePage(page, { theme });
+      await signIn(page);
+      await waitForPlugin(page, ID);
+      await setUserSettings(page, { 'Your time zone': 'Europe/Berlin' });
+      await useTheme(page, theme);
+      await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+      await waitForPlugin(page, ID);
+      await page.getByText(subject).first().click();
+
+      const line = slotFrame(page, 'reader-below-subject');
+      await expect(line.getByText('Sent 11:40 PM their time (UTC−5)')).toBeVisible();
+
+      await page.getByRole('button', { name: /show details/i }).first().click();
+      const details = slotFrame(page, 'email-details-section');
+      await expect(details.getByText('Their time')).toBeVisible();
+      await details.getByRole('button', { name: 'Set time zone' }).click();
+      await details.getByLabel('Time zone for bob@example.org').fill('Chicago');
+      await details.getByRole('button', { name: 'Save' }).click();
+      await expect(details.getByText(/now \d{1,2}:\d\d\s[AP]M in Chicago/)).toBeVisible();
+      await shootThemed(page, 'reader', theme);
+    } finally {
+      await destroyMessage(id);
+    }
   });
 }

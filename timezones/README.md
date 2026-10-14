@@ -45,12 +45,31 @@ the times in the form and your time zone setting (or your browser's).
 ![Event form](screenshots/event-form-light.png)
 ![Event form, dark](screenshots/event-form-dark.png)
 
+## Reading mail
+
+A message's Date header keeps the UTC offset the sender's computer used.
+When it differs from yours, a line under the sender says when they wrote it
+on their own clock, for example "Sent 11:40 PM their time (UTC−5)". In the
+message details (Show details), a **Their time** row under Recipients &
+routing shows the same, and lets you set the sender's time zone. Once it is
+set, both places add the time it is there now.
+
+The offset only says where the sender's clock was when they sent the
+message, not which zone they are in, so the plugin never guesses a zone from
+it. Headers with an unknown zone (`-0000`) show nothing.
+
+![Reader](screenshots/reader-light.png)
+![Reader, dark](screenshots/reader-dark.png)
+
 ## Permissions
 
 | Permission | Why |
 | --- | --- |
 | `ui:settings-section` | The plugin's page in Settings. |
 | `ui:calendar-action` | The section in the event form. |
+| `ui:email-banner` | The line under the sender of the open message. |
+| `ui:email-details` | The row in the message details. |
+| `email:read` | To read the open message's Date header and sender address. Nothing else of the message is used. |
 | `calendar:read` | To see the event in the form (times, participants) and add the working-hours warning (onCheckEventConflicts). |
 
 ## Data
