@@ -2,7 +2,7 @@
 // CSS variables, so light, dark and custom themes all work.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { runTask } from '../lib/assistant.js';
+import { privacyMessage, runTask } from '../lib/assistant.js';
 import { AiError, messageFor } from '../lib/errors.js';
 
 export const host = () => require('@plugin-host');
@@ -93,7 +93,17 @@ export async function copyWithToast(text, okKey = 'common.copied') {
  */
 export function useTask() {
   const [state, setState] = useState({ status: 'idle', text: '', error: null, task: null });
+  const [consent, setConsent] = useState(null);
   const current = useRef(null);
+
+  // The privacy notice is shown in the plugin's own UI: the host's confirm
+  // dialog can't open while the plugin's dialog is open.
+  const askConsent = useCallback((endpoint) => new Promise((resolve) => {
+    setConsent({
+      endpoint,
+      answer: (ok) => { setConsent(null); resolve(ok); },
+    });
+  }), []);
 
   const run = useCallback(async (task, input) => {
     current.current?.abort();
@@ -103,12 +113,14 @@ export function useTask() {
     try {
       const text = await runTask(host(), task, input, {
         signal: controller.signal,
+        askConsent,
         onText: (full) => { if (current.current === controller) setState((s) => ({ ...s, text: full })); },
       });
       if (current.current === controller) setState({ status: 'done', text, error: null, task });
       return text;
     } catch (err) {
       if (current.current !== controller) return null;
+      if (!(err instanceof AiError) || err.detail) host().log.warn(`${task} failed`, err?.message ?? err);
       const error = err instanceof AiError ? err : new AiError('unreachable', { detail: err?.message });
       if (error.code === 'cancelled') setState((s) => ({ status: 'stopped', text: error.partial || s.text, error: null, task }));
       else if (error.code === 'declined') setState({ status: 'idle', text: '', error: null, task: null });
@@ -118,6 +130,7 @@ export function useTask() {
   }, []);
 
   const cancel = useCallback(() => current.current?.abort(), []);
+  const stopConsent = () => consent?.answer(false);
   const reset = useCallback(() => {
     current.current?.abort();
     current.current = null;
@@ -125,7 +138,22 @@ export function useTask() {
   }, []);
 
   useEffect(() => () => current.current?.abort(), []);
-  return { ...state, run, cancel, reset };
+  return { ...state, consent, run, cancel: () => { stopConsent(); cancel(); }, reset: () => { stopConsent(); reset(); } };
+}
+
+/** The privacy notice before the first request to a service. */
+export function ConsentPrompt({ consent }) {
+  if (!consent) return null;
+  return (
+    <div className="ai-card" role="alertdialog" aria-labelledby="ai-consent-title" aria-describedby="ai-consent-text" style={{ padding: 12, display: 'grid', gap: 8 }}>
+      <div id="ai-consent-title" className="ai-title">{t('privacy.title')}</div>
+      <div id="ai-consent-text">{privacyMessage(t, consent.endpoint)}</div>
+      <div className="ai-row">
+        <button type="button" className="ai-btn primary" onClick={() => consent.answer(true)} autoFocus>{t('privacy.continue')}</button>
+        <button type="button" className="ai-btn" onClick={() => consent.answer(false)}>{t('common.cancel')}</button>
+      </div>
+    </div>
+  );
 }
 
 /** The error in plain words, with a retry button that waits out a rate limit. */

@@ -6,8 +6,10 @@
   "description": "Write, rewrite, translate and proofread emails, and summarise messages, with an OpenAI-compatible service (OpenAI, Ollama, ...) or Anthropic. Text is only sent when you click.",
   "type": "ui-extension",
   "permissions": [
+    "email:read",
     "http:proxy",
     "admin:config",
+    "ui:composer-toolbar",
     "ui:settings-section"
   ],
   "entrypoint": "index.js",
@@ -19,8 +21,14 @@
       "description": "Used when both services below are set up and the user hasn't picked one.",
       "default": "openai",
       "options": [
-        { "label": "OpenAI-compatible", "value": "openai" },
-        { "label": "Anthropic", "value": "anthropic" }
+        {
+          "label": "OpenAI-compatible",
+          "value": "openai"
+        },
+        {
+          "label": "Anthropic",
+          "value": "anthropic"
+        }
       ]
     },
     "openaiBaseUrl": {
@@ -68,26 +76,36 @@
     "openai": {
       "label": "OpenAI-compatible service",
       "scope": "admin",
-      "inject": { "type": "bearer" },
+      "inject": {
+        "type": "bearer"
+      },
       "secretKey": "openaiKey",
       "originKey": "openaiBaseUrl"
     },
     "anthropic": {
       "label": "Anthropic",
       "scope": "admin",
-      "inject": { "type": "header", "name": "x-api-key" },
+      "inject": {
+        "type": "header",
+        "name": "x-api-key"
+      },
       "secretKey": "anthropicKey",
       "originKey": "anthropicBaseUrl"
     },
     "own-openai": {
       "label": "Your OpenAI-compatible API key",
       "scope": "user",
-      "inject": { "type": "bearer" }
+      "inject": {
+        "type": "bearer"
+      }
     },
     "own-anthropic": {
       "label": "Your Anthropic API key",
       "scope": "user",
-      "inject": { "type": "header", "name": "x-api-key" }
+      "inject": {
+        "type": "header",
+        "name": "x-api-key"
+      }
     }
   },
   "locales": {
@@ -145,7 +163,32 @@
       "settings.connected": "Connected to {host}.",
       "settings.connect_failed": "Could not connect the key.",
       "settings.disconnect": "Stop using my key",
-      "settings.disconnected": "Your key was removed."
+      "settings.disconnected": "Your key was removed.",
+      "composer.open": "Assistant",
+      "composer.title": "Writing assistant",
+      "composer.your_text": "Your text",
+      "composer.text_placeholder": "Your message without the quoted email. Type or paste text here, or let the assistant write it.",
+      "composer.prompt_label": "What should the email say?",
+      "composer.prompt_placeholder": "What should the email say? For example: thank Anna and propose Tuesday at 10",
+      "composer.write": "Write",
+      "composer.rewrite_label": "How to rewrite",
+      "composer.rewrite": "Rewrite",
+      "composer.style.shorter": "Shorter",
+      "composer.style.longer": "Longer",
+      "composer.style.formal": "More formal",
+      "composer.style.friendly": "Friendlier",
+      "composer.style.tone": "Fix the tone",
+      "composer.translate_label": "Translate into",
+      "composer.translate": "Translate",
+      "composer.result.write": "Suggested text",
+      "composer.result.rewrite": "Rewritten text",
+      "composer.result.translate": "Translation",
+      "composer.use": "Use this",
+      "composer.discard": "Discard",
+      "composer.undo": "Undo",
+      "composer.copy": "Copy and close",
+      "composer.copied": "Copied. Paste it into your message.",
+      "composer.paste_hint": "The assistant can't change your message directly. Copy the text and paste it into the message."
     }
   }
 }

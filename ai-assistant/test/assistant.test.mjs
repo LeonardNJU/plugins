@@ -38,6 +38,15 @@ describe('privacy notice', () => {
     expect(await api.storage.get(consentKey({ provider: 'anthropic', origin: 'http://localhost:18099' }))).toBeNull();
   });
 
+  it("can ask in the plugin's own UI instead of the host dialog", async () => {
+    const api = apiWith();
+    const asked = [];
+    await runTask(api, 'summary', { email: { text: 'Body' } }, { askConsent: async (ep) => { asked.push(ep.provider); return true; } });
+    expect(asked).toEqual(['anthropic']);
+    expect(api.calls('ui.confirm')).toHaveLength(0);
+    expect(api.calls('proxy.fetch')).toHaveLength(1);
+  });
+
   it('asks again for a different server', async () => {
     const api = apiWith();
     await ensureConsent(api, { provider: 'anthropic', origin: 'https://a.example', baseUrl: 'https://a.example/v1', model: 'x' });

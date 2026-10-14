@@ -34,3 +34,19 @@ export async function adminApi() {
   await api.storageState({ path: STATE });
   return api;
 }
+
+/** installPlugin from the shared helpers; signs in again when the session was dropped and retries once on a 500. */
+export async function install(api, pluginId, installPlugin) {
+  try {
+    await installPlugin(api, pluginId);
+    return api;
+  } catch (err) {
+    if (!/HTTP (401|500)/.test(String(err))) throw err;
+    // 500: another suite was writing the plugin registry at the same moment.
+    if (/HTTP 401/.test(String(err))) fs.rmSync(STATE, { force: true });
+    await new Promise((r) => setTimeout(r, 2000));
+    const fresh = await adminApi();
+    await installPlugin(fresh, pluginId);
+    return fresh;
+  }
+}

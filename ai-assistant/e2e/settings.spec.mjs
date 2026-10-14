@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { adminApi } from './admin.mjs';
+import { adminApi, install } from './admin.mjs';
 import { installPlugin, uninstallPlugin, setPluginConfig, preparePage, signIn, waitForPlugin, shoot } from '../../e2e/helpers.mjs';
 
 // Settings: which service is used, and connecting the user's own key
@@ -33,8 +33,7 @@ async function openSettings(page) {
 
 for (const theme of ['light', 'dark']) {
   test(`settings show the admin's service and connect an own key (${theme})`, async ({ page }) => {
-    const api = await adminApi();
-    await installPlugin(api, ID);
+    const api = await install(await adminApi(), ID, installPlugin);
     try {
       await configure(api);
       await preparePage(page, { theme });

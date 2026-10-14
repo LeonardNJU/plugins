@@ -53,36 +53,46 @@ export function consentKey(endpoint) {
   return `consent:${endpoint.provider}:${endpoint.origin}`;
 }
 
+/** The privacy notice: which service, which server, which model. */
+export function privacyMessage(t, endpoint) {
+  return t(endpoint.own ? 'privacy.message_own' : 'privacy.message', {
+    provider: PROVIDER_LABELS[endpoint.provider],
+    host: hostOf(endpoint.baseUrl),
+    model: endpoint.model,
+  });
+}
+
+/** Ask with the host's confirm dialog (not usable from inside a plugin dialog). */
+export function confirmWithHost(api) {
+  return (endpoint) => api.ui.confirm({
+    title: api.i18n.t('privacy.title'),
+    message: privacyMessage(api.i18n.t, endpoint),
+    confirmLabel: api.i18n.t('privacy.continue'),
+    cancelLabel: api.i18n.t('common.cancel'),
+  });
+}
+
 /**
  * Before the first request to a service, say which one it is and where the
- * text goes, and ask. Remembered per service and server.
+ * text goes, and ask. Remembered per service and server. `ask(endpoint)`
+ * resolves to true to go ahead.
  */
-export async function ensureConsent(api, endpoint) {
+export async function ensureConsent(api, endpoint, ask = confirmWithHost(api)) {
   const key = consentKey(endpoint);
   if (await api.storage.get(key)) return true;
-  const t = api.i18n.t;
-  const ok = await api.ui.confirm({
-    title: t('privacy.title'),
-    message: t(endpoint.own ? 'privacy.message_own' : 'privacy.message', {
-      provider: PROVIDER_LABELS[endpoint.provider],
-      host: hostOf(endpoint.baseUrl),
-      model: endpoint.model,
-    }),
-    confirmLabel: t('privacy.continue'),
-    cancelLabel: t('common.cancel'),
-  });
+  const ok = (await ask(endpoint)) === true;
   if (ok) await api.storage.set(key, true);
-  return ok === true;
+  return ok;
 }
 
 /**
  * Run one task after a user action. Resolves to the answer; streams it to
  * onText. Rejects with AiError (not_configured, declined, cancelled, ...).
  */
-export async function runTask(api, task, input, { onText, signal, setup, timeouts = {} } = {}) {
+export async function runTask(api, task, input, { onText, signal, setup, askConsent, timeouts = {} } = {}) {
   const { endpoint } = setup ?? await loadSetup(api);
   if (!endpoint) throw new AiError('not_configured');
-  if (!(await ensureConsent(api, endpoint))) throw new AiError('declined');
+  if (!(await ensureConsent(api, endpoint, askConsent))) throw new AiError('declined');
   if (signal?.aborted) throw new AiError('cancelled');
   const prompt = buildPrompt(task, { language: api.i18n.getLocale?.() ?? 'en', ...input });
   return streamCompletion(api, endpoint, prompt, { onText, signal, ...timeouts });
