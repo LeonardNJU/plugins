@@ -1,6 +1,6 @@
 // End to end against the webmail and the Stalwart test server: contacts are
 // seeded over JMAP, the plugin is installed by the admin, and the results
-// (widget, reminder, composer, calendar events) are checked in the page and
+// (sidebar section, reminder, composer, calendar events) are checked in the page and
 // on the server.
 import { test, expect } from '@playwright/test';
 import { BASE, installPlugin, uninstallPlugin, preparePage, signIn, waitForPlugin, shoot } from '../../e2e/helpers.mjs';
@@ -21,6 +21,9 @@ function dayFromToday(days) {
 const partial = ({ month, day }, year) => (year ? { year, month, day } : { month, day });
 
 const widget = (page) => page.frameLocator('iframe[title="plugin-birthdays-slot"]');
+/** The host's header of the plugin's sidebar section (like Folders and Tags). */
+const sectionHeader = (page) => page.locator('[data-plugin-sidebar-section="birthdays"] > button[aria-expanded]');
+const row = (page, name) => widget(page).locator('[role="listitem"]', { hasText: name });
 
 /**
  * The account's synced settings would switch the theme after sign-in; pin
@@ -99,14 +102,17 @@ test.describe('birthday reminders', () => {
       ]);
       await open(page, theme);
 
-      const w = widget(page);
-      await expect(w.getByRole('heading', { name: 'Upcoming birthdays' })).toBeVisible({ timeout: 30_000 });
-      const ada = w.locator('li', { hasText: `Ada Today ${RUN}` });
-      await expect(ada).toContainText('Today');
-      await expect(ada).toContainText('turns 36');
-      await expect(w.locator('li', { hasText: `Ben Soon ${RUN}` })).toContainText('In 2 days');
+      // The host draws the header with the plugin's translated title; the
+      // plugin draws no heading of its own.
+      await expect(sectionHeader(page)).toHaveText('Upcoming birthdays', { timeout: 30_000 });
+      await expect(sectionHeader(page)).toHaveAttribute('aria-expanded', 'true');
+      const ada = row(page, `Ada Today ${RUN}`);
+      await expect(ada).toHaveText(`Ada Today ${RUN}Today`, { timeout: 30_000 });
+      await expect(ada.getByRole('button')).toHaveAttribute('title', /Today · .* · turns 36\nSend Ada Today .* a birthday greeting/);
+      await expect(row(page, `Ben Soon ${RUN}`).getByRole('button')).toHaveAttribute('title', /In 2 days/);
+      await expect(widget(page).getByRole('heading')).toHaveCount(0);
       // 60 days ahead is outside the default 30-day window.
-      await expect(w.locator('li', { hasText: `Cy Later ${RUN}` })).toHaveCount(0);
+      await expect(row(page, `Cy Later ${RUN}`)).toHaveCount(0);
 
       // The reminders land in the notification panel (and as a toast, or a
       // system notification when the browser allows them).
@@ -120,7 +126,7 @@ test.describe('birthday reminders', () => {
       // Reloading the app does not repeat today's reminders.
       await page.reload();
       await waitForPlugin(page, ID);
-      await expect(widget(page).locator('li', { hasText: `Ada Today ${RUN}` })).toBeVisible({ timeout: 30_000 });
+      await expect(row(page, `Ada Today ${RUN}`)).toBeVisible({ timeout: 30_000 });
       await page.waitForTimeout(5000);
       const again = await openPanel(page);
       await expect(again.filter({ hasText: `It’s Ada Today ${RUN}’s birthday today` })).toHaveCount(1);
@@ -138,30 +144,50 @@ test.describe('birthday reminders', () => {
         { name: `Dora Greet ${RUN}`, email: `dora-${RUN}@example.org`, date: partial(dayFromToday(1)) },
       ]);
       await open(page, theme);
-      const row = widget(page).locator('li', { hasText: `Dora Greet ${RUN}` });
-      await expect(row).toBeVisible({ timeout: 30_000 });
-      await row.getByRole('button', { name: `Send Dora Greet ${RUN} a birthday greeting` }).click();
+      const dora = row(page, `Dora Greet ${RUN}`);
+      await expect(dora).toBeVisible({ timeout: 30_000 });
+      await expect(dora).toContainText('Tomorrow');
+      // The whole row is the button, like a folder row.
+      await dora.getByRole('button', { name: new RegExp(`Dora Greet ${RUN}`) }).click();
 
       const subject = page.locator('input[placeholder="Subject"]');
       await expect(subject).toHaveValue('Happy birthday, Dora!', { timeout: 20_000 });
       await expect(page.getByText(`dora-${RUN}@example.org`).first()).toBeVisible();
       await subject.fill(`Happy birthday, Dora! ${RUN}`);
+      // Into the message text, so the recipient suggestions close for the screenshot.
+      await page.locator('[contenteditable="true"]').first().click();
       await shoot(page, ID, 'greeting', theme);
     });
   }
 
-  test('the widget fits a phone screen, in the menu', async ({ page }) => {
+  test('the section folds like Folders and Tags, and stays folded', async ({ page }) => {
+    contactIds = await createContacts([
+      { name: `Hal Fold ${RUN}`, email: `hal-${RUN}@example.org`, date: partial(dayFromToday(4)) },
+    ]);
+    await open(page);
+    await expect(row(page, `Hal Fold ${RUN}`)).toBeVisible({ timeout: 30_000 });
+    await sectionHeader(page).click();
+    await expect(sectionHeader(page)).toHaveAttribute('aria-expanded', 'false');
+    // A folded section has no iframe at all.
+    await expect(page.locator('iframe[title="plugin-birthdays-slot"]')).toHaveCount(0);
+    await page.reload();
+    await waitForPlugin(page, ID);
+    await expect(sectionHeader(page)).toHaveAttribute('aria-expanded', 'false', { timeout: 30_000 });
+    await sectionHeader(page).click();
+    await expect(row(page, `Hal Fold ${RUN}`)).toBeVisible({ timeout: 30_000 });
+  });
+
+  test('the section fits a phone screen, in the menu', async ({ page }) => {
     contactIds = await createContacts([
       { name: `Gus Phone ${RUN}`, email: `gus-${RUN}@example.org`, date: partial(dayFromToday(3), 1980) },
     ]);
     await page.setViewportSize({ width: 390, height: 844 });
     await open(page);
     await page.getByRole('button', { name: 'Toggle menu' }).first().click();
-    const row = widget(page).locator('li', { hasText: `Gus Phone ${RUN}` });
-    await expect(row).toBeVisible({ timeout: 30_000 });
-    await expect(row).toContainText('turns');
-    const greet = row.getByRole('button', { name: `Send Gus Phone ${RUN} a birthday greeting` });
-    await expect(greet).toBeVisible();
+    const gus = row(page, `Gus Phone ${RUN}`);
+    await expect(gus).toBeVisible({ timeout: 30_000 });
+    await expect(gus.getByRole('button')).toHaveAttribute('title', /turns/);
+    await expect(gus.getByRole('button')).toBeVisible();
     const box = await page.locator('iframe[title="plugin-birthdays-slot"]').boundingBox();
     expect(box.x + box.width).toBeLessThanOrEqual(390);
     await page.locator('iframe[title="plugin-birthdays-slot"]').scrollIntoViewIfNeeded();

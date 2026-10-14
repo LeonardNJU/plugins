@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // The built zip, loaded the way the webmail loads it: CommonJS evaluated
-// with a require that only knows React and '@plugin-host'.
+// with a require that only knows React, '@plugin-host' and the UI kit.
 import { afterEach, describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -8,6 +8,7 @@ import JSZip from 'jszip';
 import * as React from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { fakeApi } from '../../test-utils/fake-api.mjs';
+import * as kit from '../../test-utils/ui-kit.mjs';
 
 // jsdom gives import.meta.url an http scheme; tests run from the repo root.
 const DIR = path.join(process.cwd(), 'birthdays');
@@ -19,7 +20,7 @@ async function load(api) {
   expect(JSON.parse(await zip.file('manifest.json').async('string'))).toEqual(manifest);
   const code = await zip.file('index.js').async('string');
   const mod = { exports: {} };
-  const known = { react: React, '@plugin-host': api };
+  const known = { react: React, '@plugin-host': api, '@plugin-host/ui': kit };
   const require = (name) => {
     if (name in known) return known[name];
     throw new Error(`module ${name} is not available`);
@@ -41,11 +42,11 @@ const HOOK_PERMISSIONS = {
 const IMPLICIT = ['app:lifecycle', 'ui:observe'];
 
 describe('built plugin', () => {
-  it('exports the sidebar widget, its hooks and activate, each with a declared permission', async () => {
+  it('exports the sidebar section, its hooks and activate, each with a declared permission', async () => {
     const api = fakeApi({ translations: manifest.locales, handlers: { 'contacts.list': async () => [] } });
     const plugin = await load(api);
-    expect(Object.keys(plugin.slots)).toEqual(['sidebar-widget']);
-    expect(typeof plugin.slots['sidebar-widget'].component).toBe('function');
+    expect(Object.keys(plugin.slots)).toEqual(['sidebar-section']);
+    expect(typeof plugin.slots['sidebar-section'].component).toBe('function');
     expect(manifest.permissions).toContain('ui:sidebar-widget');
     for (const name of Object.keys(plugin.hooks)) {
       const permission = HOOK_PERMISSIONS[name];
@@ -57,7 +58,7 @@ describe('built plugin', () => {
     expect(api.calls('contacts.list')).toHaveLength(1);
   });
 
-  it('opens a greeting from the sidebar widget', async () => {
+  it('opens a greeting from a sidebar row', async () => {
     const today = new Date();
     const date = { month: today.getMonth() + 1, day: today.getDate() };
     const api = fakeApi({
@@ -67,8 +68,8 @@ describe('built plugin', () => {
       },
     });
     const plugin = await load(api);
-    await act(async () => { render(React.createElement(plugin.slots['sidebar-widget'].component)); });
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Send Ada Lovelace a birthday greeting' })); });
+    await act(async () => { render(React.createElement(plugin.slots['sidebar-section'].component)); });
+    await act(async () => { fireEvent.click(screen.getByTitle(/Send Ada Lovelace a birthday greeting/)); });
     expect(api.calls('compose.open').map((c) => c.args[0].subject)).toEqual(['Happy birthday, Ada!']);
   });
 

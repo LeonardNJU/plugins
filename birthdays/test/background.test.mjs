@@ -35,6 +35,14 @@ describe('background reminders', () => {
   beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }));
   afterEach(() => vi.useRealTimers());
 
+  it('titles the sidebar section in the user language, and again when it changes', async () => {
+    const { api, bg } = setup();
+    bg.activate();
+    expect(api.calls('ui.setSectionTitle').map((c) => c.args)).toEqual([['Upcoming birthdays']]);
+    api.setLocale('de');
+    expect(api.calls('ui.setSectionTitle').map((c) => c.args[0])).toEqual(['Upcoming birthdays', 'Anstehende Geburtstage']);
+  });
+
   it('reminds of birthdays when the app starts, once', async () => {
     const { api, bg } = setup({ contacts: [person('1', 'Ada', { month: 10, day: 14 }), person('2', 'Ben', { month: 10, day: 16 })] });
     await bg.hooks.onAppReady({ accountId: 'a' });

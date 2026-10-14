@@ -48,6 +48,27 @@ export function ageText(age, i18n) {
   return i18n.t(key, { age });
 }
 
+/** "Oct 20" (no year) in the user's language. */
+export function shortMonthDay(iso, locale) {
+  const [y, m, d] = iso.split('-').map(Number);
+  try {
+    return new Intl.DateTimeFormat(safeLocale(locale), { month: 'short', day: 'numeric', timeZone: 'UTC' })
+      .format(new Date(Date.UTC(y, m - 1, d)));
+  } catch {
+    return iso.slice(5);
+  }
+}
+
+/**
+ * The short right-hand detail of a sidebar row, like a folder's count:
+ * "Today", "Tomorrow", otherwise the date ("Oct 30").
+ */
+export function shortWhen(entry, i18n) {
+  const locale = i18n.getLocale ? i18n.getLocale() : 'en';
+  if (entry.daysUntil <= 1) return capitalize(relativeDays(entry.daysUntil, locale), locale);
+  return shortMonthDay(entry.date, locale);
+}
+
 /** "Today · October 14 · turns 36" for one upcoming birthday. */
 export function whenLine(entry, i18n) {
   const locale = i18n.getLocale ? i18n.getLocale() : 'en';

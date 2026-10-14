@@ -4,12 +4,14 @@ Shows upcoming birthdays from your contacts in the mail sidebar, reminds you
 of them, opens a birthday greeting with one click and, if you want, keeps
 birthday events in your calendar.
 
-![Sidebar widget](screenshots/sidebar-light.png)
+![Sidebar section](screenshots/sidebar-light.png)
 
 ## What it does
 
-- **Sidebar widget.** Lists the birthdays of the next 30 days (setting), soonest
-  first: "Today · October 14 · turns 36". It reads every address book of your
+- **Sidebar section.** "Upcoming birthdays", below Folders and Tags and folded
+  the same way, lists the birthdays of the next 30 days (setting), soonest
+  first: the name, then "Today", "Tomorrow" or the date. The tooltip has the
+  whole line ("Today · October 14 · turns 36"). It reads every address book of your
   account, refreshes every 10 minutes and when you come back to the tab. Five
   rows are shown, the rest behind "Show all".
 - **Reminders.** A notification on the day ("It's Ada's birthday today") and
@@ -21,8 +23,8 @@ birthday events in your calendar.
   Reminders are checked when the webmail starts, when the day changes, every
   hour and a few seconds after you change a contact, so the webmail has to be
   open for them; the plugin can't remind you while it is closed.
-- **Send greeting.** Each contact with an email address gets a "Send greeting"
-  button in the widget. It opens the composer addressed to them, with "Happy
+- **Send greeting.** Click a contact with an email address in the list (the
+  tooltip says "Send Ada a birthday greeting"). It opens the composer addressed to them, with "Happy
   birthday, Ada!" as subject and a short line to start from, in your language.
   Nothing is sent until you press Send. Clicking a system notification for one
   contact does the same; a summary notification just brings the webmail to the

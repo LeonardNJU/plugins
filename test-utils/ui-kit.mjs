@@ -175,9 +175,9 @@ export function EmptyState({ title, description, actions }) {
   return h('div', { className: cls('empty') }, h('h3', null, title), description ? h('p', null, description) : null, actions ?? null);
 }
 
-export function SidebarRow({ label, detail, onClick, title }) {
+export function SidebarRow({ label, detail, onClick, title, ariaLabel }) {
   return onClick
-    ? h('button', { type: 'button', onClick, title }, label, detail ? h('span', null, detail) : null)
+    ? h('button', { type: 'button', onClick, title, 'aria-label': ariaLabel }, label, detail ? h('span', null, detail) : null)
     : h('div', { title }, label, detail ? h('span', null, detail) : null);
 }
 

@@ -3,7 +3,7 @@
 // The logic lives in plain modules under ./lib (unit-tested without the
 // host); this file only wires it to the plugin api. The bundle runs twice:
 // in the hidden background iframe (hooks, activate) and in the sidebar
-// widget's iframe (slots). Both get the same api from '@plugin-host'.
+// section's iframe (slots). Both get the same api from '@plugin-host'.
 
 const React = require('react');
 const api = require('@plugin-host');
@@ -22,7 +22,7 @@ export function activate() {
 }
 
 export const slots = {
-  'sidebar-widget': {
+  'sidebar-section': {
     component: BirthdayWidget,
     order: 50,
   },

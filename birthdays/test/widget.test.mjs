@@ -39,22 +39,27 @@ async function show(Widget) {
 
 afterEach(cleanup);
 
-describe('sidebar widget', () => {
-  it('lists upcoming birthdays from all address books, soonest first', async () => {
+describe('sidebar section', () => {
+  it('lists upcoming birthdays from all address books, soonest first, as sidebar rows', async () => {
     const { api, Widget } = setup([
       person('1', 'Zoe Later', { month: 10, day: 30 }),
       person('2', 'Ada Today', { year: 1990, month: 10, day: 14 }),
+      person('4', 'Tom Tomorrow', { month: 10, day: 15 }),
       person('3', 'Far Away', { month: 3, day: 1 }),
     ]);
     await show(Widget);
     // No address book id: the host lists every address book of the account.
     expect(api.calls('contacts.list')[0].args).toEqual([]);
     const rows = screen.getAllByRole('listitem');
-    expect(rows.map((r) => r.getAttribute('data-birthday'))).toEqual(['2', '1']);
-    expect(rows[0].textContent).toContain('Ada Today');
-    expect(rows[0].textContent).toContain('Today · October 14 · turns 36');
-    expect(rows[1].textContent).toContain('In 16 days · October 30');
-    expect(screen.getByRole('heading').textContent).toBe('Upcoming birthdays');
+    expect(rows.map((r) => r.getAttribute('data-birthday'))).toEqual(['2', '4', '1']);
+    // Name, then a short detail like a folder's count: Today, Tomorrow or the date.
+    expect(rows.map((r) => r.textContent)).toEqual(['Ada TodayToday', 'Tom TomorrowTomorrow', 'Zoe LaterOct 30']);
+    // The full line, with the age, is the tooltip.
+    expect(rows[0].firstChild.getAttribute('title')).toBe('Ada Today: Today · October 14 · turns 36');
+    expect(rows[2].firstChild.getAttribute('title')).toBe('Zoe Later: In 16 days · October 30');
+    // The host draws the section header; the plugin draws no heading of its own.
+    expect(screen.queryByRole('heading')).toBeNull();
+    expect(screen.getByRole('list').getAttribute('aria-label')).toBe('Upcoming birthdays');
   });
 
   it('looks as far ahead as the setting says', async () => {
@@ -71,28 +76,36 @@ describe('sidebar widget', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(5);
     fireEvent.click(screen.getByRole('button', { name: 'Show all (7)' }));
     expect(screen.getAllByRole('listitem')).toHaveLength(7);
-    expect(screen.getByRole('button', { name: 'Show fewer' }).getAttribute('aria-expanded')).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: 'Show fewer' }));
+    expect(screen.getAllByRole('listitem')).toHaveLength(5);
   });
 
   it('speaks the user language, with plural forms for the age', async () => {
     const { Widget } = setup([person('1', 'Иван', { year: 2001, month: 10, day: 16 })], { locale: 'ru' });
     await show(Widget);
-    const text = screen.getByRole('listitem').textContent;
-    expect(text).toContain('Послезавтра');
-    expect(text).toContain('исполняется 25 лет');
+    const row = screen.getByRole('listitem');
+    expect(row.textContent).toContain('16 окт');
+    const title = row.firstChild.getAttribute('title');
+    expect(title).toContain('Послезавтра');
+    expect(title).toContain('исполняется 25 лет');
   });
 
-  it('offers a greeting for contacts with an address, labelled with the name', async () => {
+  it('sends a greeting when a row with an address is clicked', async () => {
     const greeted = [];
     const { Widget } = setup([
       person('1', 'Ada Mail', { month: 10, day: 14 }, 'ada@example.org'),
       person('2', 'Bo NoMail', { month: 10, day: 15 }),
     ], { onGreet: async (b) => { greeted.push(b); } });
     await show(Widget);
-    const buttons = screen.getAllByRole('button', { name: /birthday greeting/ });
-    expect(buttons.map((b) => b.getAttribute('aria-label'))).toEqual(['Send Ada Mail a birthday greeting']);
-    expect(buttons[0].textContent).toBe('Send greeting');
-    fireEvent.click(buttons[0]);
+    const [ada, bo] = screen.getAllByRole('listitem');
+    // Only the contact with an address is a button; the tooltip says what it does.
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+    expect(ada.firstChild.tagName).toBe('BUTTON');
+    expect(ada.firstChild.getAttribute('title')).toBe('Ada Mail: Today · October 14\nSend Ada Mail a birthday greeting');
+    expect(bo.firstChild.tagName).not.toBe('BUTTON');
+    // Screen readers hear what the click does.
+    expect(screen.getByRole('button', { name: 'Send Ada Mail a birthday greeting (Today · October 14)' })).toBe(ada.firstChild);
+    fireEvent.click(ada.firstChild);
     expect(greeted.map((b) => [b.key, b.email])).toEqual([['1', 'ada@example.org']]);
   });
 

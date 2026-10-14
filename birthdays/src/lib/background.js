@@ -152,9 +152,22 @@ export function createBackground(api, { now = () => new Date() } = {}) {
     },
   };
 
+  function showSectionTitle() {
+    try {
+      const done = api.ui.setSectionTitle(api.i18n.t('widget.title').slice(0, 40));
+      if (done && typeof done.catch === 'function') done.catch((err) => api.log.warn('could not set the section title', err));
+    } catch (err) {
+      api.log.warn('could not set the section title', err);
+    }
+  }
+
   return {
     hooks,
     activate() {
+      // The host draws the sidebar section's header; give it our title in
+      // the user's language instead of the plugin's name.
+      showSectionTitle();
+      api.i18n.onLocaleChange(() => { showSectionTitle(); });
       let addToCalendar = readSettings(api.plugin.settings).addToCalendar;
       api.plugin.onSettingsChange((settings) => {
         const next = readSettings(settings).addToCalendar;
