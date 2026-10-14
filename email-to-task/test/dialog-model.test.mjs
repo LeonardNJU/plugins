@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fakeApi, proxyResponse } from '../../test-utils/fake-api.mjs';
 import { checkExisting, createTasks, prepareDialog } from '../src/lib/dialog-model.js';
+import { TASK_KEYWORD } from '../src/lib/mark-done.js';
 
 const LOCATION = { origin: 'http://localhost:3100', pathname: '/plugin-sandbox' };
 
@@ -56,11 +57,29 @@ describe('prepareDialog', () => {
     expect(s.missing).toEqual(['gone']);
   });
 
+  it('shows the tasks already made from a message', async () => {
+    const ref = { target: 'vikunja', taskId: '5', title: 'Old', createdAt: '2026-10-01T00:00:00Z' };
+    const s = await prepareDialog(api({ store: { tasks: { M1: [ref] } } }), { emailIds: ['M1'], location: LOCATION });
+    expect(s.items[0].existing).toEqual([ref]);
+  });
 });
 
+describe('checkExisting', () => {
+  it('forgets tasks that were deleted in the service and keeps the rest', async () => {
+    const refs = [{ target: 'vikunja', taskId: '5', title: 'gone' }, { target: 'vikunja', taskId: '6', title: 'still there' }];
+    const a = api({
+      store: { tasks: { M1: refs } },
+      fetch: async (id, url) => (url.endsWith('/tasks/5') ? proxyResponse({}, { status: 404 }) : proxyResponse({ id: 6 })),
+    });
+    const s = await prepareDialog(a, { emailIds: ['M1'], location: LOCATION });
+    const items = await checkExisting(a, s);
+    expect(items[0].existing.map((r) => r.taskId)).toEqual(['6']);
+    expect((await a.storage.get('tasks')).M1.map((r) => r.taskId)).toEqual(['6']);
+  });
+});
 
 describe('createTasks', () => {
-  it('creates one task per message and remembers the choices', async () => {
+  it('creates one task per message, remembers it and marks the message', async () => {
     let n = 10;
     const a = api({ fetch: async () => proxyResponse({ id: n++ }) });
     const s = await prepareDialog(a, { emailIds: ['M1', 'M2'], location: LOCATION });
@@ -69,9 +88,18 @@ describe('createTasks', () => {
     expect(out.failed).toEqual([]);
     expect(out.created.map((c) => c.ref.taskId)).toEqual(['10', '11']);
     expect(progress).toEqual(['0/2', '1/2', '2/2']);
-    expect(await a.storage.get('prefs')).toMatchObject({ target: 'vikunja', containers: { vikunja: '2' } });
+    const stored = await a.storage.get('tasks');
+    expect(stored.M1[0]).toMatchObject({ target: 'vikunja', taskId: '10', title: 'Invoice 2026-10', url: 'http://localhost:18456/tasks/10' });
+    expect(a.calls('email.setKeyword').map((c) => c.args)).toEqual([['M1', TASK_KEYWORD], ['M1', '$seen'], ['M2', TASK_KEYWORD], ['M2', '$seen']]);
+    expect(await a.storage.get('prefs')).toMatchObject({ target: 'vikunja', after: 'both', containers: { vikunja: '2' } });
   });
 
+  it('leaves the message alone when asked to', async () => {
+    const a = api();
+    const s = await prepareDialog(a, { emailIds: ['M1'], location: LOCATION });
+    await createTasks(a, s, { target: 'vikunja', containerId: '2', after: 'none', items: s.items });
+    expect(a.calls('email.setKeyword')).toEqual([]);
+  });
 
   it('stops after a rejected token instead of trying every message', async () => {
     const a = api({ fetch: async () => proxyResponse({ message: 'invalid token' }, { status: 401 }) });
@@ -91,6 +119,7 @@ describe('createTasks', () => {
     const out = await createTasks(a, s, { target: 'vikunja', containerId: '2', after: 'keyword', items: s.items });
     expect(out.failed.map((f) => f.error.code)).toEqual(['bad_request']);
     expect(out.created.map((c) => c.emailId)).toEqual(['M2']);
+    expect(a.calls('email.setKeyword').map((c) => c.args[0])).toEqual(['M2']);
   });
 
   it('refuses an empty title', async () => {

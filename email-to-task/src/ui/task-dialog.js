@@ -2,9 +2,10 @@
 // React.createElement so it runs in the sandbox without a JSX step.
 
 import * as React from 'react';
-import { connectTarget, containersFor, createTasks, prepareDialog } from '../lib/dialog-model.js';
+import { checkExisting, connectTarget, containersFor, createTasks, prepareDialog } from '../lib/dialog-model.js';
 import { errorText, RECONNECT_CODES, toTaskError } from '../lib/errors.js';
 import { PRIORITIES } from '../lib/priority.js';
+import { AFTER_CHOICES } from '../lib/mark-done.js';
 import { savePrefs } from '../lib/task-store.js';
 
 const h = React.createElement;
@@ -64,6 +65,7 @@ export function TaskDialog({ api, emailIds, onResult }) {
   const [target, setTarget] = useState(null);
   const [containers, setContainers] = useState({ status: 'idle', list: [], error: null });
   const [containerId, setContainerId] = useState('');
+  const [after, setAfter] = useState('keyword');
   const [bulkPriority, setBulkPriority] = useState('auto');
   const [manualUrl, setManualUrl] = useState('');
   const [busy, setBusy] = useState(null);
@@ -82,7 +84,10 @@ export function TaskDialog({ api, emailIds, onResult }) {
         setState(s);
         setItems(s.items.map((i) => ({ ...i, include: true })));
         setTarget(s.target);
+        setAfter(s.after);
         setManualUrl(s.prefs.caldavUrl || '');
+        const checked = await checkExisting(api, s);
+        if (!cancelled) setItems((now) => now.map((i) => ({ ...i, existing: checked.find((c) => c.emailId === i.emailId)?.existing ?? i.existing })));
       } catch (err) {
         if (!cancelled) setLoadError(toTaskError(err));
       }
@@ -161,6 +166,7 @@ export function TaskDialog({ api, emailIds, onResult }) {
     const form = {
       target,
       containerId,
+      after,
       items: chosen.map((i) => ({ ...i, priority: single || bulkPriority === 'auto' ? i.priority : bulkPriority })),
     };
     setBusy({ done: 0, total: form.items.length });
@@ -178,6 +184,7 @@ export function TaskDialog({ api, emailIds, onResult }) {
       api.toast.success(created.length === 1
         ? t('created.one', { service: serviceName })
         : t('created.many', { count: created.length, service: serviceName }));
+      if (created.some((c) => c.markFailed)) api.toast.warning(t('created.mark_failed'));
     }
     if (!failed.length) {
       onResult?.({ created: created.map((c) => c.emailId) });
@@ -204,6 +211,7 @@ export function TaskDialog({ api, emailIds, onResult }) {
       h('div', { className: 'actions' }, h('button', { type: 'button', onClick: () => onResult?.(null) }, t('dialog.close'))));
   }
 
+  const existing = items.flatMap((i) => i.existing.map((ref) => ({ ...ref, emailId: i.emailId })));
 
   const targetField = h('label', { className: 'field' }, t('dialog.service'),
     h('select', {
@@ -241,6 +249,12 @@ export function TaskDialog({ api, emailIds, onResult }) {
     }
   }
 
+  const existingNote = existing.length > 0 && h('div', { className: 'note warn', role: 'note' },
+    single
+      ? t('existing.single', { service: state.targets.find((x) => x.id === existing[0].target)?.name ?? existing[0].target, title: existing[0].title })
+      : t('existing.many', { count: new Set(existing.map((e) => e.emailId)).size }),
+    existing[0].url && single ? h('span', null, ' ',
+      h('button', { type: 'button', className: 'link', onClick: () => api.ui.openExternalUrl(existing[0].url) }, t('existing.open'))) : null);
 
   const priorityOptions = (withAuto) => [
     ...(withAuto ? [h('option', { key: 'auto', value: 'auto' }, t('priority.auto'))] : []),
@@ -310,12 +324,16 @@ export function TaskDialog({ api, emailIds, onResult }) {
   targetField,
   connectBox,
   containerField,
+  existingNote,
   state.missing.length > 0 && h('p', { className: 'note warn' }, t('dialog.missing', { count: state.missing.length })),
   state.skipped > 0 && h('p', { className: 'note warn' }, t('dialog.too_many', { count: state.skipped })),
   ...fields,
   error && h('div', { className: 'error', role: 'alert' }, errorText(t, error, serviceName),
     reconnect ? h('span', null, ' ', h('button', { type: 'button', className: 'link', onClick: connect }, t('connect.again'))) : null),
   h('div', { className: 'actions' },
+    h('label', { className: 'field grow' }, t('after.label'),
+      h('select', { value: after, onChange: (e) => setAfter(e.target.value) },
+        AFTER_CHOICES.map((c) => h('option', { key: c, value: c }, t(`after.${c}`))))),
     h('button', { type: 'button', disabled: !!busy, onClick: () => onResult?.(null) }, t('dialog.cancel')),
     h('button', { type: 'button', className: 'primary', disabled: !canCreate, onClick: () => { void create(); } },
       busy

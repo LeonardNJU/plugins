@@ -1,15 +1,18 @@
 // The plugin's buttons, hooks and badge, separate from src/index.js so they
 // can be tested with a fake api.
 
+import { loadTasks, tasksFor } from './task-store.js';
 
 export const SINGLE_SURFACES = ['message-row-actions', 'reader-actions'];
 export const BULK_SURFACE = 'message-bulk-actions';
 export const ACTION_ID = 'create-task';
 export const BULK_ACTION_ID = 'create-tasks';
+export const BADGE_KEY = 'email-to-task';
 
 export function createWiring(initialApi) {
   let api = initialApi;
   let openEmailId = null;
+  let taskMap = {};
   let dialogOpen = false;
 
   const t = (key, vars) => api.i18n.t(key, vars);
@@ -20,6 +23,13 @@ export function createWiring(initialApi) {
     await api.ui.setActions(BULK_SURFACE, [{ id: BULK_ACTION_ID, label: t('action.create_bulk'), icon: 'checklist', order: 60 }]);
   }
 
+  async function reloadTasks() {
+    try {
+      taskMap = await loadTasks(api);
+    } catch {
+      taskMap = {};
+    }
+  }
 
   /** Open the dialog for these messages. Not awaited by hooks: it waits for the user. */
   async function openDialog(emailIds) {
@@ -37,6 +47,7 @@ export function createWiring(initialApi) {
         extraProps: { emailIds: ids },
         width: 560,
       });
+      await reloadTasks();
       return result;
     } catch (err) {
       api.log.error('dialog failed', err);
@@ -61,12 +72,24 @@ export function createWiring(initialApi) {
     onEmailClose({ emailId } = {}) {
       if (!emailId || emailId === openEmailId) openEmailId = null;
     },
+    onEmailListItemRender(badges, { email } = {}) {
+      const refs = tasksFor(taskMap, email?.id);
+      if (!refs.length) return undefined;
+      const last = refs[refs.length - 1];
+      return [...(Array.isArray(badges) ? badges : []), {
+        key: BADGE_KEY,
+        label: t('badge.label'),
+        title: refs.length > 1 ? t('badge.title_many', { count: refs.length }) : t('badge.title', { title: last.title }),
+        color: 'var(--color-primary)',
+      }];
+    },
   };
 
   return {
     hooks,
     async activate(next) {
       if (next) api = next;
+      await reloadTasks();
       await setActions();
       api.i18n.onLocaleChange?.(() => { void setActions(); });
     },

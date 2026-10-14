@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fakeApi } from '../../test-utils/fake-api.mjs';
 import { createWiring } from '../src/lib/wiring.js';
+import { rememberTasks } from '../src/lib/task-store.js';
 
 function setup(handlers = {}) {
   const api = fakeApi({
@@ -86,3 +87,28 @@ describe('keyboard shortcut', () => {
   });
 });
 
+describe('row badge', () => {
+  it('marks messages that have a task, and only those', async () => {
+    const { api, wiring } = setup();
+    await rememberTasks(api, [{ emailId: 'M1', ref: { target: 'vikunja', taskId: '1', title: 'Pay' } }]);
+    await wiring.activate(api);
+    const other = { key: 'x', label: 'Other' };
+    expect(wiring.hooks.onEmailListItemRender([other], { email: { id: 'M1' } })).toEqual([
+      other, { key: 'email-to-task', label: 'Task', title: 'Task: Pay', color: 'var(--color-primary)' },
+    ]);
+    expect(wiring.hooks.onEmailListItemRender([other], { email: { id: 'M2' } })).toBeUndefined();
+  });
+
+  it('shows the badge for a new task after the dialog closes', async () => {
+    const { api, wiring } = setup({
+      'ui.openDialog': async () => {
+        await rememberTasks(api, [{ emailId: 'M3', ref: { target: 'todoist', taskId: '9', title: 'New' } }]);
+        return { created: ['M3'] };
+      },
+    });
+    await wiring.activate(api);
+    expect(wiring.hooks.onEmailListItemRender([], { email: { id: 'M3' } })).toBeUndefined();
+    await wiring.openDialog(['M3']);
+    expect(wiring.hooks.onEmailListItemRender([], { email: { id: 'M3' } })).toHaveLength(1);
+  });
+});

@@ -6,7 +6,8 @@ import { findDueDate } from './due-date.js';
 import { detectPriority } from './priority.js';
 import { messageLink, taskDescription, taskTitle, webmailBase } from './message.js';
 import { TARGETS, contextFor, loadAccounts, loadConfig, targetById } from './targets/index.js';
-import { loadPrefs, savePrefs } from './task-store.js';
+import { forgetTask, loadPrefs, loadTasks, rememberTasks, savePrefs, tasksFor } from './task-store.js';
+import { markMessages } from './mark-done.js';
 import { TaskError, toTaskError } from './errors.js';
 
 /** At most this many messages in one go. */
@@ -45,8 +46,8 @@ export async function prepareDialog(api, { emailIds, location = globalThis.locat
   const t = (k, v) => api.i18n.t(k, v);
   const locale = api.i18n.getLocale?.() ?? 'en';
   const ids = [...new Set((emailIds ?? []).filter((id) => typeof id === 'string' && id))];
-  const [config, accounts, prefs, bulwarkAvailable] = await Promise.all([
-    loadConfig(api), loadAccounts(api), loadPrefs(api), TARGETS[0].available(api),
+  const [config, accounts, prefs, taskMap, bulwarkAvailable] = await Promise.all([
+    loadConfig(api), loadAccounts(api), loadPrefs(api), loadTasks(api), TARGETS[0].available(api),
   ]);
   const base = webmailBase(location);
   const items = [];
@@ -63,6 +64,7 @@ export async function prepareDialog(api, { emailIds, location = globalThis.locat
       continue;
     }
     const item = itemFor(email, { t, base, locale, withExcerpt: prefs.withExcerpt !== false });
+    item.existing = tasksFor(taskMap, id);
     items.push(item);
   }
   const targets = TARGETS.map((target) => ({
@@ -82,6 +84,7 @@ export async function prepareDialog(api, { emailIds, location = globalThis.locat
     prefs,
     targets,
     target,
+    after: prefs.after,
   };
 }
 
@@ -103,6 +106,25 @@ export async function connectTarget(api, state, targetId) {
   return loadAccounts(api);
 }
 
+/**
+ * Check the tasks already made from these messages: drop the ones deleted
+ * in their service. Resolves to the items with `existing` updated.
+ */
+export async function checkExisting(api, state) {
+  const out = [];
+  for (const item of state.items) {
+    const kept = [];
+    for (const ref of item.existing) {
+      const target = targetById(ref.target);
+      const ctx = target && contextFor(api, target, { config: state.config, accounts: state.accounts });
+      const exists = ctx ? await target.exists(ctx, ref) : null;
+      if (exists === false) await forgetTask(api, item.emailId, ref.taskId);
+      else kept.push(ref);
+    }
+    out.push({ ...item, existing: kept });
+  }
+  return out;
+}
 
 /**
  * Create one task per item, one after the other. `onProgress(done, total)`.
@@ -150,8 +172,17 @@ export async function createTasks(api, state, form, onProgress = () => {}) {
     done++;
   }
   onProgress(form.items.length, form.items.length);
+  if (created.length) {
+    await rememberTasks(api, created);
+    const markFailed = await markMessages(api, created.map((c) => c.emailId), form.after);
+    for (const id of markFailed) {
+      const c = created.find((x) => x.emailId === id);
+      if (c) c.markFailed = true;
+    }
+  }
   await savePrefs(api, {
     target: target.id,
+    after: form.after,
     containers: { ...state.prefs.containers, ...(form.containerId ? { [target.id]: form.containerId } : {}) },
   });
   return { created, failed };
