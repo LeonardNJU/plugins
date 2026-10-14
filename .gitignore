@@ -26,3 +26,5 @@ npm-debug.log*
 
 # Plugin test environment secrets (written by test-env/seed)
 test-env/.secrets/
+test-results/
+playwright-report/
