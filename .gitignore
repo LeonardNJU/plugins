@@ -28,3 +28,4 @@ npm-debug.log*
 test-env/.secrets/
 test-results/
 playwright-report/
+__pycache__/
