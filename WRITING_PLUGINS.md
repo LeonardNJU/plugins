@@ -1031,7 +1031,7 @@ changes for another reason.
 | `email-banner` | frame | `ui:email-banner` | `email` (`email:read`) | a banner above the message body |
 | `reader-above-quote` | frame | `ui:email-banner` | `email` (`email:read`) | between the new text of a message and the quoted text below it |
 | `email-footer` | frame | `ui:email-footer` | `emailId` (`email:read`) | below the message body |
-| `thread-summary` | frame | `ui:email-banner` | `threadId` (`email:read`), `emailIds` (`email:read`) | above the messages of an open conversation |
+| `thread-summary` | frame | `ui:email-banner` | `threadId` (`email:read`), `emailIds` (`email:read`) | above the messages of an open conversation (the phone conversation view and Mountain View; the default desktop layout opens one message at a time and has no conversation view) |
 | `reader-actions` | action, inline | `ui:toolbar` | `emailId` (`email:read`) | buttons in the open message's toolbar |
 | `email-detail-sidebar` | frame | `ui:email-details` | `email` (`email:read`) | a side panel next to the open message |
 | `email-details-section` | frame | `ui:email-details` | `email` (`email:read`), `category` | a section in the message details |
@@ -1074,7 +1074,7 @@ changes for another reason.
 | `composer-below-body` | frame | `ui:composer-toolbar` or `ui:composer-sidebar` | `draft` (`email:send`), `insertText` (`compose:open`), `getSelectedText` (`email:send`) | below the message text, above the attachments |
 | `composer-sidebar` | frame | `ui:composer-sidebar` |  | a panel left of the composer |
 | `composer-sidebar-right` | frame | `ui:composer-sidebar` |  | a panel right of the composer |
-| `composer-attachment-source` | frame, inline | `ui:composer-toolbar` or `ui:composer-sidebar` | `onAttach`, `insertText` (`compose:open`) | the composer's attach menu, as a source of files |
+| `composer-attachment-source` | frame, inline | `ui:composer-toolbar` or `ui:composer-sidebar` | `onAttach`, `insertText` (`compose:open`) | the composer's plugin button row, next to composer-toolbar, as a source of files (for an entry in the Attach menu itself, use composer-attach-menu) |
 | `composer-send-menu` | action | `ui:composer-toolbar` | `draft` (`email:send`) | entries in the menu next to Send |
 | `composer-attach-menu` | action | `ui:composer-toolbar` |  | entries in the attach menu (for example "From Nextcloud") |
 
@@ -1108,7 +1108,7 @@ changes for another reason.
 | `calendar-event-actions` | frame, inline | `ui:calendar-action` | `eventData` (`calendar:read`), `setVirtualLocation` | buttons in the event form |
 | `calendar-event-detail` | frame | `ui:calendar-action` | `event` (`calendar:read`) | a section in an event's details |
 | `calendar-event-form` | frame | `ui:calendar-action` | `event` (`calendar:read`) | a section in the form for a new or edited event |
-| `calendar-day-header` | data | `ui:calendar-action` | `date` | a short label under a day's name in the day and week views (api.ui.setDayLabels) |
+| `calendar-day-header` | data | `ui:calendar-action` | `date` | a short label under a day's name in the day, week and month views; a dot in the phone month view (api.ui.setDayLabels) |
 | `mini-calendar-marks` | data | `ui:calendar-action` | `date` | dots on days in the small month calendar (api.ui.setDayLabels) |
 
 <p>
@@ -1179,7 +1179,7 @@ changes for another reason.
 
 | Surface | Kind | Permission | Props or context | Where |
 |---|---|---|---|---|
-| `settings-section` | frame | `ui:settings-section` |  | a section on the plugin's own page in Settings |
+| `settings-section` | frame | `ui:settings-section` |  | a section on the plugin's own page in Settings (above its settings-page, when it has one: one entry per plugin) |
 | `settings-page` | frame | `ui:settings-section` |  | a page of its own in Settings, listed under the plugin's name |
 
 <p>
