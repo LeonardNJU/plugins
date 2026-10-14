@@ -199,3 +199,8 @@ export function DialogButtons({ buttons, onClick }) {
     key: b.id, variant: b.variant ?? 'primary', disabled: b.disabled, busy: b.busy, onClick: () => onClick(b.id),
   }, b.label)));
 }
+
+export function DiffView({ parts, streaming = false, label }) {
+  return h('div', { 'aria-label': label, 'aria-busy': streaming || undefined },
+    parts.map((p, i) => (p.type === 'del' ? h('del', { key: i }, p.text) : p.type === 'add' ? h('ins', { key: i }, p.text) : h('span', { key: i }, p.text))));
+}
