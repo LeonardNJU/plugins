@@ -119,5 +119,19 @@
   "files.cantDownload": "Webmailen downloader ikke denne filtype. Åbn den i Nextcloud i stedet.",
   "files.preparing": "Henter {name}…",
   "error.mail_rate_limited": "Mailserveren får for mange forespørgsler lige nu. Vent et minut, og prøv igen.",
-  "error.mail_upload": "Mailserveren accepterede ikke filen."
+  "error.mail_upload": "Mailserveren accepterede ikke filen.",
+  "setting.passwordProtect": "Beskyt delingslinks med en adgangskode",
+  "setting.passwordProtect.help": "Nye delingslinks starter med en adgangskode. Du kan ændre det hver gang.",
+  "setting.expiryDays": "Delingslinks udløber efter (dage)",
+  "setting.expiryDays.help": "Standardudløb for nye delingslinks. 0 betyder, at de ikke udløber.",
+  "setting.offerLargeUpload": "Tilbyd at sende store vedhæftninger som Nextcloud-link",
+  "setting.offerLargeUpload.help": "Når du vedhæfter en fil på størrelse med en stor vedhæftning eller større, spørg om den i stedet skal uploades til Nextcloud og indsættes som link.",
+  "setting.largeFileMb": "Størrelse for store vedhæftninger (MB)",
+  "setting.largeFileMb.help": "Filer fra denne størrelse og op får tilbuddet.",
+  "setting.uploadFolder": "Uploadmappe",
+  "setting.uploadFolder.help": "Mappe i din Nextcloud til filer, der uploades fra webmailen. Oprettes efter behov.",
+  "setting.folderLayout": "Mappestruktur",
+  "setting.folderLayout.help": "Hvordan uploads sorteres i uploadmappen.",
+  "date": "Én mappe pr. dag",
+  "flat": "Alt i uploadmappen"
 }

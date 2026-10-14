@@ -119,5 +119,19 @@
   "files.cantDownload": "Webmail tento typ súboru nesťahuje. Otvorte ho v Nextcloude.",
   "files.preparing": "Načítava sa {name}…",
   "error.mail_rate_limited": "Poštový server teraz dostáva príliš veľa požiadaviek. Počkajte minútu a skúste to znova.",
-  "error.mail_upload": "Poštový server súbor neprijal."
+  "error.mail_upload": "Poštový server súbor neprijal.",
+  "setting.passwordProtect": "Chrániť odkazy na zdieľanie heslom",
+  "setting.passwordProtect.help": "Nové odkazy na zdieľanie začínajú s heslom. Zakaždým to môžete zmeniť.",
+  "setting.expiryDays": "Platnosť odkazov na zdieľanie (dni)",
+  "setting.expiryDays.help": "Predvolená platnosť nových odkazov na zdieľanie. 0 znamená bez obmedzenia.",
+  "setting.offerLargeUpload": "Ponúkať odoslanie veľkých príloh ako odkaz z Nextcloudu",
+  "setting.offerLargeUpload.help": "Keď priložíte súbor s veľkosťou veľkej prílohy alebo väčší, opýtať sa, či ho namiesto toho nahrať do Nextcloudu a pridať odkaz.",
+  "setting.largeFileMb": "Veľkosť veľkej prílohy (MB)",
+  "setting.largeFileMb.help": "Súbory od tejto veľkosti dostanú ponuku.",
+  "setting.uploadFolder": "Priečinok na nahrávanie",
+  "setting.uploadFolder.help": "Priečinok vo vašom Nextcloude pre súbory nahrané z webmailu. Vytvorí sa podľa potreby.",
+  "setting.folderLayout": "Usporiadanie priečinkov",
+  "setting.folderLayout.help": "Ako sa nahrané súbory triedia v priečinku na nahrávanie.",
+  "date": "Jeden priečinok na deň",
+  "flat": "Všetko v priečinku na nahrávanie"
 }

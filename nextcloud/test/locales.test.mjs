@@ -32,6 +32,15 @@ describe('translations', () => {
     }
   });
 
+  it('settings labels, help lines and choices are translation keys', () => {
+    const keys = [];
+    for (const field of Object.values(manifest.settingsSchema)) {
+      keys.push(field.label, field.description, ...(field.options ?? []));
+    }
+    expect(keys.length).toBeGreaterThan(10);
+    for (const key of keys) expect(en[key], key).toBeTypeOf('string');
+  });
+
   it('every key the code uses exists in English', () => {
     const used = new Set();
     for (const m of sources.matchAll(/\bt\(\s*'([a-z_]+\.[a-zA-Z_.]+)'/g)) used.add(m[1]);

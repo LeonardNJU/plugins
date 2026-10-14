@@ -119,5 +119,19 @@
   "files.cantDownload": "Webmailen laster ikke ned denne filtypen. Åpne den i Nextcloud i stedet.",
   "files.preparing": "Henter {name}…",
   "error.mail_rate_limited": "E-postserveren får for mange forespørsler akkurat nå. Vent et minutt og prøv igjen.",
-  "error.mail_upload": "E-postserveren godtok ikke filen."
+  "error.mail_upload": "E-postserveren godtok ikke filen.",
+  "setting.passwordProtect": "Beskytt delingslenker med passord",
+  "setting.passwordProtect.help": "Nye delingslenker starter med passord. Du kan endre det hver gang.",
+  "setting.expiryDays": "Delingslenker utløper etter (dager)",
+  "setting.expiryDays.help": "Standard utløp for nye delingslenker. 0 betyr at de ikke utløper.",
+  "setting.offerLargeUpload": "Tilby å sende store vedlegg som Nextcloud-lenke",
+  "setting.offerLargeUpload.help": "Når du legger ved en fil på størrelse med et stort vedlegg eller større, spør om den skal lastes opp til Nextcloud og legges inn som lenke i stedet.",
+  "setting.largeFileMb": "Størrelse for store vedlegg (MB)",
+  "setting.largeFileMb.help": "Filer fra denne størrelsen og opp får tilbudet.",
+  "setting.uploadFolder": "Opplastingsmappe",
+  "setting.uploadFolder.help": "Mappe i Nextcloud for filer som lastes opp fra webmailen. Opprettes ved behov.",
+  "setting.folderLayout": "Mappeoppsett",
+  "setting.folderLayout.help": "Hvordan opplastinger sorteres i opplastingsmappen.",
+  "date": "Én mappe per dag",
+  "flat": "Alt i opplastingsmappen"
 }

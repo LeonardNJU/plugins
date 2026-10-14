@@ -119,5 +119,19 @@
   "files.cantDownload": "Webmailul nu descarcă acest tip de fișier. Deschideți-l în Nextcloud.",
   "files.preparing": "Se preia {name}…",
   "error.mail_rate_limited": "Serverul de e-mail primește prea multe cereri acum. Așteptați un minut și încercați din nou.",
-  "error.mail_upload": "Serverul de e-mail nu a acceptat fișierul."
+  "error.mail_upload": "Serverul de e-mail nu a acceptat fișierul.",
+  "setting.passwordProtect": "Protejați linkurile de partajare cu parolă",
+  "setting.passwordProtect.help": "Linkurile de partajare noi pornesc cu parolă. Puteți schimba asta de fiecare dată.",
+  "setting.expiryDays": "Linkurile de partajare expiră după (zile)",
+  "setting.expiryDays.help": "Expirarea implicită pentru linkurile de partajare noi. 0 înseamnă că nu expiră.",
+  "setting.offerLargeUpload": "Oferiți trimiterea atașamentelor mari ca link Nextcloud",
+  "setting.offerLargeUpload.help": "Când atașați un fișier de mărimea unui atașament mare sau mai mare, întrebați dacă să fie încărcat în Nextcloud și înlocuit cu un link.",
+  "setting.largeFileMb": "Mărimea atașamentului mare (MB)",
+  "setting.largeFileMb.help": "Fișierele de la această mărime primesc oferta.",
+  "setting.uploadFolder": "Dosar de încărcare",
+  "setting.uploadFolder.help": "Dosar din Nextcloud pentru fișierele încărcate din webmail. Se creează la nevoie.",
+  "setting.folderLayout": "Organizarea dosarelor",
+  "setting.folderLayout.help": "Cum sunt ordonate fișierele încărcate în dosarul de încărcare.",
+  "date": "Un dosar pe zi",
+  "flat": "Totul în dosarul de încărcare"
 }

@@ -119,5 +119,19 @@
   "files.cantDownload": "La webmail non scarica questo tipo di file. Aprilo in Nextcloud.",
   "files.preparing": "Recupero di {name}…",
   "error.mail_rate_limited": "Il server di posta sta ricevendo troppe richieste in questo momento. Aspetta un minuto e riprova.",
-  "error.mail_upload": "Il server di posta non ha accettato il file."
+  "error.mail_upload": "Il server di posta non ha accettato il file.",
+  "setting.passwordProtect": "Proteggi i link di condivisione con una password",
+  "setting.passwordProtect.help": "I nuovi link di condivisione partono con una password. Puoi cambiarlo ogni volta.",
+  "setting.expiryDays": "I link di condivisione scadono dopo (giorni)",
+  "setting.expiryDays.help": "Scadenza predefinita dei nuovi link di condivisione. 0 significa che non scadono.",
+  "setting.offerLargeUpload": "Proponi di inviare gli allegati grandi come link Nextcloud",
+  "setting.offerLargeUpload.help": "Quando alleghi un file della dimensione di un allegato grande o più, chiedi se caricarlo su Nextcloud e aggiungere un link.",
+  "setting.largeFileMb": "Dimensione allegato grande (MB)",
+  "setting.largeFileMb.help": "I file da questa dimensione in su ricevono la proposta.",
+  "setting.uploadFolder": "Cartella di caricamento",
+  "setting.uploadFolder.help": "Cartella nel tuo Nextcloud per i file caricati dalla webmail. Viene creata quando serve.",
+  "setting.folderLayout": "Organizzazione delle cartelle",
+  "setting.folderLayout.help": "Come vengono ordinati i file caricati nella cartella di caricamento.",
+  "date": "Una cartella al giorno",
+  "flat": "Tutto nella cartella di caricamento"
 }

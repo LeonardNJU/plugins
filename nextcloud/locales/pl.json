@@ -119,5 +119,19 @@
   "files.cantDownload": "Poczta nie pobiera plików tego typu. Otwórz go w Nextcloud.",
   "files.preparing": "Pobieranie {name}…",
   "error.mail_rate_limited": "Serwer poczty dostaje teraz za dużo żądań. Odczekaj minutę i spróbuj ponownie.",
-  "error.mail_upload": "Serwer poczty nie przyjął pliku."
+  "error.mail_upload": "Serwer poczty nie przyjął pliku.",
+  "setting.passwordProtect": "Chroń linki do udostępniania hasłem",
+  "setting.passwordProtect.help": "Nowe linki do udostępniania mają domyślnie hasło. Za każdym razem możesz to zmienić.",
+  "setting.expiryDays": "Linki do udostępniania wygasają po (dniach)",
+  "setting.expiryDays.help": "Domyślny czas ważności nowych linków do udostępniania. 0 oznacza, że nie wygasają.",
+  "setting.offerLargeUpload": "Proponuj wysyłanie dużych załączników jako link Nextcloud",
+  "setting.offerLargeUpload.help": "Gdy załączasz plik o rozmiarze dużego załącznika lub większy, zapytaj, czy przesłać go do Nextcloud i dodać link.",
+  "setting.largeFileMb": "Rozmiar dużego załącznika (MB)",
+  "setting.largeFileMb.help": "Pliki od tego rozmiaru dostają propozycję.",
+  "setting.uploadFolder": "Folder przesyłania",
+  "setting.uploadFolder.help": "Folder w Twoim Nextcloud na pliki przesłane z poczty. Tworzony w razie potrzeby.",
+  "setting.folderLayout": "Układ folderów",
+  "setting.folderLayout.help": "Jak przesłane pliki są układane w folderze przesyłania.",
+  "date": "Jeden folder na dzień",
+  "flat": "Wszystko w folderze przesyłania"
 }

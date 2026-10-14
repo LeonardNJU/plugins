@@ -119,5 +119,19 @@
   "files.cantDownload": "El webmail no baixa aquest tipus de fitxer. Obriu-lo a Nextcloud.",
   "files.preparing": "S'està obtenint {name}…",
   "error.mail_rate_limited": "El servidor de correu està rebent massa sol·licituds ara mateix. Espereu un minut i torneu-ho a provar.",
-  "error.mail_upload": "El servidor de correu no ha acceptat el fitxer."
+  "error.mail_upload": "El servidor de correu no ha acceptat el fitxer.",
+  "setting.passwordProtect": "Protegeix els enllaços per compartir amb contrasenya",
+  "setting.passwordProtect.help": "Els enllaços nous per compartir comencen amb contrasenya. Ho podeu canviar cada vegada.",
+  "setting.expiryDays": "Els enllaços per compartir caduquen al cap de (dies)",
+  "setting.expiryDays.help": "Caducitat per defecte dels enllaços nous per compartir. 0 vol dir que no caduquen.",
+  "setting.offerLargeUpload": "Ofereix enviar els fitxers adjunts grans com a enllaç de Nextcloud",
+  "setting.offerLargeUpload.help": "Quan adjunteu un fitxer de la mida d'adjunt gran o més, pregunta si cal pujar-lo a Nextcloud i afegir-ne un enllaç.",
+  "setting.largeFileMb": "Mida d'adjunt gran (MB)",
+  "setting.largeFileMb.help": "Els fitxers a partir d'aquesta mida reben l'oferta.",
+  "setting.uploadFolder": "Carpeta de pujada",
+  "setting.uploadFolder.help": "Carpeta del vostre Nextcloud per als fitxers pujats des del webmail. Es crea quan cal.",
+  "setting.folderLayout": "Organització de carpetes",
+  "setting.folderLayout.help": "Com s'ordenen els fitxers pujats a la carpeta de pujada.",
+  "date": "Una carpeta per dia",
+  "flat": "Tot a la carpeta de pujada"
 }

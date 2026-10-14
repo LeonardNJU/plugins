@@ -119,5 +119,19 @@
   "files.cantDownload": "הדואר לא מוריד קבצים מהסוג הזה. פתחו אותו ב-Nextcloud.",
   "files.preparing": "מוריד את {name}…",
   "error.mail_rate_limited": "שרת הדואר מקבל כרגע יותר מדי בקשות. חכו דקה ונסו שוב.",
-  "error.mail_upload": "שרת הדואר לא קיבל את הקובץ."
+  "error.mail_upload": "שרת הדואר לא קיבל את הקובץ.",
+  "setting.passwordProtect": "הגנה על קישורי שיתוף בסיסמה",
+  "setting.passwordProtect.help": "קישורי שיתוף חדשים מתחילים עם סיסמה. אפשר לשנות את זה בכל פעם.",
+  "setting.expiryDays": "קישורי שיתוף פגים אחרי (ימים)",
+  "setting.expiryDays.help": "תוקף ברירת המחדל לקישורי שיתוף חדשים. 0 פירושו שהם לא פגים.",
+  "setting.offerLargeUpload": "הצעה לשלוח קבצים מצורפים גדולים כקישור Nextcloud",
+  "setting.offerLargeUpload.help": "כשמצרפים קובץ בגודל של קובץ מצורף גדול או יותר, לשאול אם להעלות אותו ל-Nextcloud ולהוסיף קישור במקומו.",
+  "setting.largeFileMb": "גודל קובץ מצורף גדול (MB)",
+  "setting.largeFileMb.help": "קבצים מהגודל הזה ומעלה יקבלו את ההצעה.",
+  "setting.uploadFolder": "תיקיית העלאות",
+  "setting.uploadFolder.help": "תיקיה ב-Nextcloud לקבצים שהועלו מהדואר. נוצרת לפי הצורך.",
+  "setting.folderLayout": "מבנה תיקיות",
+  "setting.folderLayout.help": "איך ההעלאות מסודרות בתיקיית ההעלאות.",
+  "date": "תיקיה אחת לכל יום",
+  "flat": "הכול בתיקיית ההעלאות"
 }

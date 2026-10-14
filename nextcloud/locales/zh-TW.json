@@ -119,5 +119,19 @@
   "files.cantDownload": "網頁郵件不會下載這類檔案。請在 Nextcloud 中開啟。",
   "files.preparing": "正在取得 {name}…",
   "error.mail_rate_limited": "郵件伺服器目前收到太多要求。請等一分鐘後再試一次。",
-  "error.mail_upload": "郵件伺服器未接受這個檔案。"
+  "error.mail_upload": "郵件伺服器未接受這個檔案。",
+  "setting.passwordProtect": "用密碼保護分享連結",
+  "setting.passwordProtect.help": "新的分享連結預設帶有密碼。每次都可以變更。",
+  "setting.expiryDays": "分享連結有效期限（天）",
+  "setting.expiryDays.help": "新分享連結的預設有效期限。0 表示永不過期。",
+  "setting.offerLargeUpload": "建議以 Nextcloud 連結傳送大型附件",
+  "setting.offerLargeUpload.help": "附加的檔案達到大型附件大小時，詢問是否改為上傳到 Nextcloud 並加入連結。",
+  "setting.largeFileMb": "大型附件大小（MB）",
+  "setting.largeFileMb.help": "達到此大小的檔案會收到建議。",
+  "setting.uploadFolder": "上傳資料夾",
+  "setting.uploadFolder.help": "你的 Nextcloud 中用來存放從網頁郵件上傳之檔案的資料夾。需要時會自動建立。",
+  "setting.folderLayout": "資料夾結構",
+  "setting.folderLayout.help": "上傳的檔案在上傳資料夾中的整理方式。",
+  "date": "每天一個資料夾",
+  "flat": "全部放在上傳資料夾"
 }

@@ -119,5 +119,19 @@
   "files.cantDownload": "Web メールはこの種類のファイルをダウンロードしません。Nextcloud で開いてください。",
   "files.preparing": "{name} を取得中…",
   "error.mail_rate_limited": "メールサーバーへのリクエストが現在多すぎます。1 分待ってから、もう一度お試しください。",
-  "error.mail_upload": "メールサーバーがファイルを受け付けませんでした。"
+  "error.mail_upload": "メールサーバーがファイルを受け付けませんでした。",
+  "setting.passwordProtect": "共有リンクをパスワードで保護する",
+  "setting.passwordProtect.help": "新しい共有リンクは最初からパスワード付きになります。毎回変更できます。",
+  "setting.expiryDays": "共有リンクの有効期限 (日)",
+  "setting.expiryDays.help": "新しい共有リンクの既定の有効期限です。0 にすると期限なしになります。",
+  "setting.offerLargeUpload": "大きな添付ファイルを Nextcloud リンクで送るよう提案する",
+  "setting.offerLargeUpload.help": "大きな添付ファイルのサイズ以上のファイルを添付したときに、代わりに Nextcloud にアップロードしてリンクを入れるか確認します。",
+  "setting.largeFileMb": "大きな添付ファイルのサイズ (MB)",
+  "setting.largeFileMb.help": "このサイズ以上のファイルで提案が表示されます。",
+  "setting.uploadFolder": "アップロード先フォルダー",
+  "setting.uploadFolder.help": "Web メールからアップロードしたファイルを入れる Nextcloud のフォルダーです。必要に応じて作成されます。",
+  "setting.folderLayout": "フォルダーの構成",
+  "setting.folderLayout.help": "アップロード先フォルダー内でのファイルの整理方法です。",
+  "date": "日付ごとにフォルダーを作る",
+  "flat": "すべてアップロード先フォルダーに入れる"
 }

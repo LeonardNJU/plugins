@@ -119,5 +119,19 @@
   "files.cantDownload": "Web posta bu dosya türünü indirmez. Dosyayı Nextcloud'da açın.",
   "files.preparing": "{name} alınıyor…",
   "error.mail_rate_limited": "Posta sunucusu şu anda çok fazla istek alıyor. Bir dakika bekleyip tekrar deneyin.",
-  "error.mail_upload": "Posta sunucusu dosyayı kabul etmedi."
+  "error.mail_upload": "Posta sunucusu dosyayı kabul etmedi.",
+  "setting.passwordProtect": "Paylaşım bağlantılarını parolayla koru",
+  "setting.passwordProtect.help": "Yeni paylaşım bağlantıları parolalı başlar. Bunu her seferinde değiştirebilirsiniz.",
+  "setting.expiryDays": "Paylaşım bağlantılarının geçerlilik süresi (gün)",
+  "setting.expiryDays.help": "Yeni paylaşım bağlantıları için varsayılan süre. 0, süresinin dolmayacağı anlamına gelir.",
+  "setting.offerLargeUpload": "Büyük ekleri Nextcloud bağlantısı olarak göndermeyi öner",
+  "setting.offerLargeUpload.help": "Büyük ek boyutunda veya daha büyük bir dosya eklediğinizde, bunun yerine Nextcloud'a yükleyip bağlantı eklemeyi sor.",
+  "setting.largeFileMb": "Büyük ek boyutu (MB)",
+  "setting.largeFileMb.help": "Bu boyuttan itibaren dosyalar için öneri gösterilir.",
+  "setting.uploadFolder": "Yükleme klasörü",
+  "setting.uploadFolder.help": "Web postadan yüklenen dosyalar için Nextcloud'unuzdaki klasör. Gerektiğinde oluşturulur.",
+  "setting.folderLayout": "Klasör düzeni",
+  "setting.folderLayout.help": "Yüklemelerin yükleme klasöründe nasıl sıralandığı.",
+  "date": "Her gün için bir klasör",
+  "flat": "Hepsi yükleme klasöründe"
 }

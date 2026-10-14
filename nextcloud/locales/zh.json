@@ -119,5 +119,19 @@
   "files.cantDownload": "网页邮箱不下载此类文件。请在 Nextcloud 中打开。",
   "files.preparing": "正在获取 {name}…",
   "error.mail_rate_limited": "邮件服务器当前收到的请求过多。请等一分钟后重试。",
-  "error.mail_upload": "邮件服务器未接受该文件。"
+  "error.mail_upload": "邮件服务器未接受该文件。",
+  "setting.passwordProtect": "用密码保护分享链接",
+  "setting.passwordProtect.help": "新的分享链接默认带密码。每次都可以更改。",
+  "setting.expiryDays": "分享链接有效期（天）",
+  "setting.expiryDays.help": "新分享链接的默认有效期。0 表示永不过期。",
+  "setting.offerLargeUpload": "建议以 Nextcloud 链接发送大附件",
+  "setting.offerLargeUpload.help": "添加的附件达到大附件大小时，询问是否改为上传到 Nextcloud 并添加链接。",
+  "setting.largeFileMb": "大附件大小（MB）",
+  "setting.largeFileMb.help": "达到此大小的文件会收到建议。",
+  "setting.uploadFolder": "上传文件夹",
+  "setting.uploadFolder.help": "你的 Nextcloud 中用于存放从网页邮箱上传的文件的文件夹。需要时会自动创建。",
+  "setting.folderLayout": "文件夹结构",
+  "setting.folderLayout.help": "上传的文件在上传文件夹中的整理方式。",
+  "date": "每天一个文件夹",
+  "flat": "全部放在上传文件夹中"
 }

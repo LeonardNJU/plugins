@@ -119,5 +119,19 @@
   "files.cantDownload": "The webmail doesn't download this type of file. Open it in Nextcloud instead.",
   "files.preparing": "Getting {name}…",
   "error.mail_rate_limited": "The mail server is getting too many requests right now. Wait a minute and try again.",
-  "error.mail_upload": "The mail server didn't accept the file."
+  "error.mail_upload": "The mail server didn't accept the file.",
+  "setting.passwordProtect": "Protect share links with a password",
+  "setting.passwordProtect.help": "Start with a password for new share links. You can change it each time.",
+  "setting.expiryDays": "Share links expire after (days)",
+  "setting.expiryDays.help": "Default expiry for new share links. 0 means they don't expire.",
+  "setting.offerLargeUpload": "Offer to send large attachments as a Nextcloud link",
+  "setting.offerLargeUpload.help": "When you attach a file of the large attachment size or more, ask whether to upload it to Nextcloud and add a link instead.",
+  "setting.largeFileMb": "Large attachment size (MB)",
+  "setting.largeFileMb.help": "Files from this size on get the offer.",
+  "setting.uploadFolder": "Upload folder",
+  "setting.uploadFolder.help": "Folder in your Nextcloud for files uploaded from the webmail. Created when needed.",
+  "setting.folderLayout": "Folder layout",
+  "setting.folderLayout.help": "How uploads are sorted in the upload folder.",
+  "date": "One folder per day",
+  "flat": "All in the upload folder"
 }

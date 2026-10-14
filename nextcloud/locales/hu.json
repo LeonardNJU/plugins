@@ -119,5 +119,19 @@
   "files.cantDownload": "A webmail nem tölti le ezt a fájltípust. Nyisd meg inkább a Nextcloudban.",
   "files.preparing": "{name} lekérése…",
   "error.mail_rate_limited": "A levelezőszerver most túl sok kérést kap. Várj egy percet, és próbáld újra.",
-  "error.mail_upload": "A levelezőszerver nem fogadta el a fájlt."
+  "error.mail_upload": "A levelezőszerver nem fogadta el a fájlt.",
+  "setting.passwordProtect": "Megosztási linkek védelme jelszóval",
+  "setting.passwordProtect.help": "Az új megosztási linkek jelszóval indulnak. Ezt minden alkalommal módosíthatod.",
+  "setting.expiryDays": "Megosztási linkek lejárata (nap)",
+  "setting.expiryDays.help": "Az új megosztási linkek alapértelmezett lejárata. A 0 azt jelenti, hogy nem járnak le.",
+  "setting.offerLargeUpload": "Nagy csatolmányok küldésének felajánlása Nextcloud-linkként",
+  "setting.offerLargeUpload.help": "Ha legalább nagy csatolmány méretű fájlt csatolsz, megkérdezi, hogy inkább feltöltse-e a Nextcloudba, és linket adjon hozzá.",
+  "setting.largeFileMb": "Nagy csatolmány mérete (MB)",
+  "setting.largeFileMb.help": "Ettől a mérettől kezdve jelenik meg az ajánlat.",
+  "setting.uploadFolder": "Feltöltési mappa",
+  "setting.uploadFolder.help": "Mappa a Nextcloudodban a webmailből feltöltött fájloknak. Szükség esetén létrejön.",
+  "setting.folderLayout": "Mappaszerkezet",
+  "setting.folderLayout.help": "Hogyan rendeződnek a feltöltések a feltöltési mappában.",
+  "date": "Naponta egy mappa",
+  "flat": "Minden a feltöltési mappában"
 }

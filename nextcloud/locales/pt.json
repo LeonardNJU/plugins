@@ -119,5 +119,19 @@
   "files.cantDownload": "O webmail não baixa este tipo de arquivo. Abra-o no Nextcloud.",
   "files.preparing": "Obtendo {name}…",
   "error.mail_rate_limited": "O servidor de e-mail está recebendo solicitações demais agora. Espere um minuto e tente de novo.",
-  "error.mail_upload": "O servidor de e-mail não aceitou o arquivo."
+  "error.mail_upload": "O servidor de e-mail não aceitou o arquivo.",
+  "setting.passwordProtect": "Proteger links de compartilhamento com senha",
+  "setting.passwordProtect.help": "Novos links de compartilhamento começam com senha. Você pode mudar isso a cada vez.",
+  "setting.expiryDays": "Links de compartilhamento expiram após (dias)",
+  "setting.expiryDays.help": "Validade padrão dos novos links de compartilhamento. 0 significa que não expiram.",
+  "setting.offerLargeUpload": "Oferecer enviar anexos grandes como link do Nextcloud",
+  "setting.offerLargeUpload.help": "Ao anexar um arquivo do tamanho de anexo grande ou maior, perguntar se ele deve ser enviado ao Nextcloud e trocado por um link.",
+  "setting.largeFileMb": "Tamanho de anexo grande (MB)",
+  "setting.largeFileMb.help": "Arquivos a partir deste tamanho recebem a oferta.",
+  "setting.uploadFolder": "Pasta de envio",
+  "setting.uploadFolder.help": "Pasta no seu Nextcloud para arquivos enviados pelo webmail. Criada quando necessário.",
+  "setting.folderLayout": "Organização das pastas",
+  "setting.folderLayout.help": "Como os arquivos enviados são organizados na pasta de envio.",
+  "date": "Uma pasta por dia",
+  "flat": "Tudo na pasta de envio"
 }

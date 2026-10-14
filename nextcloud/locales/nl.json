@@ -119,5 +119,19 @@
   "files.cantDownload": "De webmail downloadt dit soort bestanden niet. Open het in Nextcloud.",
   "files.preparing": "{name} ophalen…",
   "error.mail_rate_limited": "De mailserver krijgt nu te veel verzoeken. Wacht een minuut en probeer het opnieuw.",
-  "error.mail_upload": "De mailserver heeft het bestand niet geaccepteerd."
+  "error.mail_upload": "De mailserver heeft het bestand niet geaccepteerd.",
+  "setting.passwordProtect": "Deellinks beveiligen met een wachtwoord",
+  "setting.passwordProtect.help": "Nieuwe deellinks krijgen standaard een wachtwoord. Je kunt dat elke keer aanpassen.",
+  "setting.expiryDays": "Deellinks verlopen na (dagen)",
+  "setting.expiryDays.help": "Standaard verlooptijd voor nieuwe deellinks. 0 betekent dat ze niet verlopen.",
+  "setting.offerLargeUpload": "Aanbieden om grote bijlagen als Nextcloud-link te versturen",
+  "setting.offerLargeUpload.help": "Als je een bestand van de grote-bijlagegrootte of groter bijvoegt, vragen of het in plaats daarvan naar Nextcloud moet worden geüpload met een link.",
+  "setting.largeFileMb": "Grootte grote bijlage (MB)",
+  "setting.largeFileMb.help": "Bestanden vanaf deze grootte krijgen het aanbod.",
+  "setting.uploadFolder": "Uploadmap",
+  "setting.uploadFolder.help": "Map in je Nextcloud voor bestanden die vanuit de webmail worden geüpload. Wordt aangemaakt als dat nodig is.",
+  "setting.folderLayout": "Mapindeling",
+  "setting.folderLayout.help": "Hoe uploads in de uploadmap worden geordend.",
+  "date": "Eén map per dag",
+  "flat": "Alles in de uploadmap"
 }

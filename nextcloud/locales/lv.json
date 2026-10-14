@@ -119,5 +119,19 @@
   "files.cantDownload": "Tīmekļa pasts nelejupielādē šāda veida failus. Atveriet to Nextcloud.",
   "files.preparing": "Iegūst {name}…",
   "error.mail_rate_limited": "Pasta serveris šobrīd saņem pārāk daudz pieprasījumu. Pagaidiet minūti un mēģiniet vēlreiz.",
-  "error.mail_upload": "Pasta serveris nepieņēma failu."
+  "error.mail_upload": "Pasta serveris nepieņēma failu.",
+  "setting.passwordProtect": "Aizsargāt kopīgošanas saites ar paroli",
+  "setting.passwordProtect.help": "Jaunās kopīgošanas saites sākas ar paroli. To var mainīt katru reizi.",
+  "setting.expiryDays": "Kopīgošanas saites beidzas pēc (dienām)",
+  "setting.expiryDays.help": "Noklusējuma derīgums jaunām kopīgošanas saitēm. 0 nozīmē, ka tās nebeidzas.",
+  "setting.offerLargeUpload": "Piedāvāt sūtīt lielus pielikumus kā Nextcloud saiti",
+  "setting.offerLargeUpload.help": "Kad pievienojat liela pielikuma izmēra vai lielāku failu, jautāt, vai to augšupielādēt Nextcloud un pievienot saiti.",
+  "setting.largeFileMb": "Liela pielikuma izmērs (MB)",
+  "setting.largeFileMb.help": "Failiem no šī izmēra tiek piedāvāta saite.",
+  "setting.uploadFolder": "Augšupielādes mape",
+  "setting.uploadFolder.help": "Mape jūsu Nextcloud failiem, kas augšupielādēti no tīmekļa pasta. Tiek izveidota pēc vajadzības.",
+  "setting.folderLayout": "Mapju struktūra",
+  "setting.folderLayout.help": "Kā augšupielādes tiek kārtotas augšupielādes mapē.",
+  "date": "Viena mape katrai dienai",
+  "flat": "Viss augšupielādes mapē"
 }

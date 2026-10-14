@@ -119,5 +119,19 @@
   "files.cantDownload": "La messagerie ne télécharge pas ce type de fichier. Ouvrez-le plutôt dans Nextcloud.",
   "files.preparing": "Récupération de {name}…",
   "error.mail_rate_limited": "Le serveur de messagerie reçoit trop de requêtes en ce moment. Attendez une minute et réessayez.",
-  "error.mail_upload": "Le serveur de messagerie n'a pas accepté le fichier."
+  "error.mail_upload": "Le serveur de messagerie n'a pas accepté le fichier.",
+  "setting.passwordProtect": "Protéger les liens de partage par un mot de passe",
+  "setting.passwordProtect.help": "Les nouveaux liens de partage démarrent avec un mot de passe. Vous pouvez le changer à chaque fois.",
+  "setting.expiryDays": "Les liens de partage expirent après (jours)",
+  "setting.expiryDays.help": "Expiration par défaut des nouveaux liens de partage. 0 signifie qu'ils n'expirent pas.",
+  "setting.offerLargeUpload": "Proposer d'envoyer les grosses pièces jointes sous forme de lien Nextcloud",
+  "setting.offerLargeUpload.help": "Quand vous joignez un fichier qui atteint la taille des grosses pièces jointes, proposer de l'envoyer plutôt sur Nextcloud et d'ajouter un lien.",
+  "setting.largeFileMb": "Taille des grosses pièces jointes (Mo)",
+  "setting.largeFileMb.help": "Les fichiers à partir de cette taille déclenchent la proposition.",
+  "setting.uploadFolder": "Dossier d'envoi",
+  "setting.uploadFolder.help": "Dossier de votre Nextcloud pour les fichiers envoyés depuis la messagerie. Créé si besoin.",
+  "setting.folderLayout": "Organisation des dossiers",
+  "setting.folderLayout.help": "Comment les fichiers envoyés sont rangés dans le dossier d'envoi.",
+  "date": "Un dossier par jour",
+  "flat": "Tout dans le dossier d'envoi"
 }
