@@ -18,6 +18,33 @@ offers to sign in again.
 ![Settings, not connected](screenshots/settings-disconnected-light.png)
 ![Settings, connected](screenshots/settings-connected-dark.png)
 
+## Attach from Nextcloud
+
+In the composer, the **Nextcloud** button (in the row under the message)
+opens a file picker. Browse your folders, look at **Recent** files or search
+by name, and pick one or more files. Then:
+
+- **Attach copies** downloads the files through the proxy and attaches them
+  like any other attachment.
+- **Share as link…** creates a public, read-only Nextcloud link for each file.
+  You can protect the links with a password (the plugin suggests one that
+  meets your server's password rules) and set an expiry date. The links show
+  as chips next to the button and are added at the end of the message when
+  you send it. The password is only written into the message if you tick
+  **Put the password in the message**; otherwise send it some other way.
+  Links picked for a message you then discard are dropped.
+
+![File picker](screenshots/picker-light.png)
+![Share options](screenshots/share-options-dark.png)
+![Links waiting in the composer](screenshots/composer-links-light.png)
+
+User settings (Settings > Plugins > Nextcloud):
+
+| Setting | Default |
+| --- | --- |
+| Protect share links with a password | off |
+| Share links expire after (days), 0 = never | 14 |
+
 ## For administrators
 
 | Setting | What it does |
@@ -35,6 +62,10 @@ Nextcloud needs no CORS setup.
 | `http:proxy` | All requests to Nextcloud go through the webmail's secret proxy with the user's app password. |
 | `admin:config` | Read the server address the administrator set. Users can't change admin settings with it; the server only lets admins write them. |
 | `ui:settings-section` | The connect / disconnect section in Settings. |
+| `ui:composer-toolbar` | The Nextcloud button in the composer (`composer-attachment-source`). |
+| `email:blob-write` | Upload a file picked in Nextcloud to the mail server to attach it. |
+| `email:send` | Add the picked share links to the message when it is sent (`onTransformOutgoingEmail`). |
+| `email:read` | Drop links picked for a discarded message (`onComposerClose`). |
 
 The `nextcloud` credential is a user credential with Basic auth: the user
 name and app password come from Nextcloud's Login Flow v2.
@@ -42,7 +73,8 @@ name and app password come from Nextcloud's Login Flow v2.
 ## What is sent where
 
 Nothing goes to Nextcloud until you connect it. The plugin then only sends
-what you ask it to.
+what you ask it to: folder listings and searches while the picker is open,
+and a share request for each file you share as a link.
 
 ## Moving from "Nextcloud Attachments"
 

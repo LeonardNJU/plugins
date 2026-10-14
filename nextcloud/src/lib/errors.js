@@ -18,7 +18,7 @@ export class NcError extends Error {
 export const ERROR_CODES = [
   'not_connected', 'auth', 'forbidden', 'share_forbidden', 'not_found', 'exists', 'quota', 'too_large',
   'locked', 'rate_limited', 'timeout', 'unreachable', 'blocked', 'maintenance', 'server', 'cancelled',
-  'wrong_server', 'login_expired', 'bad_answer', 'rejected', 'unknown',
+  'wrong_server', 'login_expired', 'bad_answer', 'rejected', 'attach_refused', 'unknown',
 ];
 
 // The proxy marks its own refusals with x-bulwark-proxy-error.

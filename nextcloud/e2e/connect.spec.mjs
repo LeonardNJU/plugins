@@ -22,7 +22,7 @@ test.describe.serial('connect', () => {
       await waitForPlugin(page, PLUGIN);
       await forgetAccount(page);
 
-      const frame = await openSettings(page);
+      const frame = await openSettings(page, theme);
       await expect(frame.getByRole('button', { name: 'Connect Nextcloud' })).toBeVisible();
       await expect(frame.getByText('Server: localhost:18080')).toBeVisible();
       await shoot(page, PLUGIN, 'settings-disconnected', theme);

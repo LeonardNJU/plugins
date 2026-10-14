@@ -37,10 +37,16 @@ export function davPath(p) {
 }
 
 /** Open the plugin's page in Settings and return its frame. */
-export async function openSettings(page) {
+export async function openSettings(page, theme) {
   await waitForPlugin(page, PLUGIN);
   // A client-side navigation keeps the running plugins.
   await page.getByRole('link', { name: 'Settings' }).click();
+  if (theme) {
+    // The theme syncs through the server, so another run (or another
+    // plugin's test as alice) may have changed it: pick it here.
+    await page.getByRole('button', { name: 'Appearance', exact: true }).click();
+    await page.getByRole('button', { name: theme === 'dark' ? 'Dark' : 'Light', exact: true }).click();
+  }
   await page.getByRole('button', { name: 'Nextcloud', exact: true }).click();
   return pluginFrame(page, 'text=Nextcloud account');
 }
@@ -121,4 +127,64 @@ export async function admin() {
       await new Promise((r) => setTimeout(r, 20_000));
     }
   }
+}
+
+/** Connect Nextcloud through Settings if it isn't yet, then go back to mail. */
+export async function ensureConnected(page, theme) {
+  const frame = await openSettings(page, theme);
+  const connect = frame.getByRole('button', { name: 'Connect Nextcloud' });
+  const connected = frame.getByText(/Connected to localhost:18080/);
+  await expect(connect.or(connected)).toBeVisible({ timeout: 30_000 });
+  if (await connect.isVisible()) {
+    await connectThroughLoginFlow(page, frame);
+    await expect(connected).toBeVisible({ timeout: 30_000 });
+  }
+  await page.getByRole('button', { name: 'Back to Mail' }).click();
+}
+
+const JMAP = process.env.STALWART_URL || 'http://localhost:18025';
+const MAIL_AUTH = `Basic ${Buffer.from('alice@example.org:test-pass-123').toString('base64')}`;
+
+/** A message alice has, by exact subject, with its text and HTML body (Stalwart JMAP). */
+export async function findMail(subject, { timeout = 30_000 } = {}) {
+  const session = await (await fetch(`${JMAP}/.well-known/jmap`, { headers: { Authorization: MAIL_AUTH } })).json();
+  const accountId = session.primaryAccounts['urn:ietf:params:jmap:mail'];
+  const deadline = Date.now() + timeout;
+  for (;;) {
+    const res = await fetch(session.apiUrl.replace(/^https?:\/\/[^/]+/, JMAP), {
+      method: 'POST',
+      headers: { Authorization: MAIL_AUTH, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        using: ['urn:ietf:params:jmap:core', 'urn:ietf:params:jmap:mail'],
+        methodCalls: [
+          ['Email/query', { accountId, filter: { operator: 'AND', conditions: [{ subject }, { notKeyword: '$draft' }] } }, 'q'],
+          ['Email/get', { accountId, '#ids': { resultOf: 'q', name: 'Email/query', path: '/ids' }, properties: ['subject', 'textBody', 'htmlBody', 'bodyValues', 'attachments', 'mailboxIds'], fetchAllBodyValues: true }, 'g'],
+        ],
+      }),
+    });
+    const data = await res.json();
+    const list = data.methodResponses?.[1]?.[1]?.list ?? [];
+    const found = list.find((m) => m.subject === subject);
+    if (found) {
+      const text = Object.values(found.bodyValues ?? {}).map((v) => v.value).join('\n');
+      return { ...found, allText: text, accountId };
+    }
+    if (Date.now() > deadline) throw new Error(`No message with subject ${subject}`);
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+}
+
+/** Delete alice's public link shares of a path (cleanup). */
+export async function deleteShares(filePath) {
+  const res = await ncFetch(`/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json&path=${encodeURIComponent(filePath)}`);
+  const data = await res.json();
+  const shares = (data.ocs?.data ?? []).filter((s) => s.share_type === 3);
+  for (const s of shares) await ncFetch(`/ocs/v2.php/apps/files_sharing/api/v1/shares/${s.id}`, { method: 'DELETE' });
+  return shares;
+}
+
+/** Open a new message and return the Nextcloud button's frame. */
+export async function openComposer(page) {
+  await page.getByRole('button', { name: 'Compose' }).first().click();
+  return pluginFrame(page, 'button[title="Attach files from Nextcloud or share them as links"]');
 }
