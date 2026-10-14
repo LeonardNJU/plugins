@@ -273,3 +273,38 @@ for (const theme of ['light', 'dark']) {
     }
   });
 }
+
+// ─── Composer ────────────────────────────────────────────────
+
+for (const theme of ['light', 'dark']) {
+  test(`composer writes a time in several zones to paste into the message (${theme})`, async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: BASE });
+    await preparePage(page, { theme });
+    await signIn(page);
+    await waitForPlugin(page, ID);
+    await setUserSettings(page, { 'Favourite time zones': 'New York', 'Your time zone': 'Europe/Berlin' });
+    await useTheme(page, theme);
+    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await waitForPlugin(page, ID);
+    await page.getByRole('button', { name: /compose|new message/i }).first().click();
+
+    await slotFrame(page, 'composer-toolbar').getByRole('button', { name: 'Time zones' }).click();
+    const dialog = slotFrame(page, 'plugin-dialog');
+    await dialog.getByLabel('Date').fill('2026-10-14');
+    await dialog.getByLabel('Time in Berlin').fill('15:00');
+    await expect(dialog.getByLabel('Text to paste')).toHaveValue(/^3:00\sPM Berlin \/ 9:00\sAM New York$/);
+    await dialog.getByRole('button', { name: 'Copy' }).click();
+    await expect(dialog.getByRole('status')).toHaveText('Copied. Paste it into your message.');
+    await shootThemed(page, 'composer', theme);
+
+    // What the user does next: close the dialog and paste into the message.
+    await dialog.getByRole('button', { name: 'Close' }).click();
+    const body = page.locator('[contenteditable="true"]').first();
+    await body.click();
+    await page.keyboard.press('Control+V');
+    await expect(body).toContainText(/3:00\sPM Berlin \/ 9:00\sAM New York/);
+    await page.getByRole('button', { name: 'Discard' }).click();
+    const confirm = page.getByRole('button', { name: /^(Discard|Delete)$/ }).last();
+    if (await confirm.isVisible().catch(() => false)) await confirm.click();
+  });
+}

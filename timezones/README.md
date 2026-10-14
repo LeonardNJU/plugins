@@ -61,6 +61,22 @@ it. Headers with an unknown zone (`-0000`) show nothing.
 ![Reader](screenshots/reader-light.png)
 ![Reader, dark](screenshots/reader-dark.png)
 
+## Composer
+
+The composer's plugin row gets a **Time zones** button. It opens a dialog
+where you pick a date and a time (in your zone) and the zones to show; your
+zone and your favourites are ticked, and you can add others. It writes one
+line such as `3:00 PM Berlin / 9:00 AM New York` (with weekdays when the
+zones are on different dates) and copies it, so you paste it into the
+message.
+
+Plugins can't type into the message yet, so the text goes through the
+clipboard. Where the browser doesn't let the plugin frame copy, the dialog
+selects the text and asks you to press Ctrl+C.
+
+![Composer](screenshots/composer-light.png)
+![Composer, dark](screenshots/composer-dark.png)
+
 ## Permissions
 
 | Permission | Why |
@@ -70,6 +86,7 @@ it. Headers with an unknown zone (`-0000`) show nothing.
 | `ui:email-banner` | The line under the sender of the open message. |
 | `ui:email-details` | The row in the message details. |
 | `email:read` | To read the open message's Date header and sender address. Nothing else of the message is used. |
+| `ui:composer-toolbar` | The button in the composer. The dialog it opens needs no permission of its own. |
 | `calendar:read` | To see the event in the form (times, participants) and add the working-hours warning (onCheckEventConflicts). |
 
 ## Data

@@ -6,6 +6,7 @@ import { loadAddressZones } from './lib/address-zones.js';
 import { eventZones, outsideHoursWarning } from './lib/event.js';
 import { senderTime, worthShowing } from './lib/sender.js';
 import { mirrorSettings, readSettings } from './lib/settings.js';
+import { ComposeButton, ComposeDialog } from './ui/compose-time.jsx';
 import { EventZones } from './ui/event-zones.jsx';
 import { SenderDetails, SenderLine } from './ui/sender-time.jsx';
 import { SettingsSection } from './ui/settings-section.jsx';
@@ -23,6 +24,8 @@ export const slots = {
       return worthShowing(senderTime(ctx?.email, { home }), home);
     },
   },
+  'composer-toolbar': { component: ComposeButton },
+  'plugin-dialog': { component: ComposeDialog },
   'email-details-section': {
     component: SenderDetails,
     // One row under "Recipients & routing", where the Sent date is.
