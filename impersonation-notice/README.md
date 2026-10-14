@@ -6,7 +6,7 @@ Persistent top-of-app banner shown while a Stalwart master-user impersonation se
 
 When the active session username contains `%` (Stalwart's master-user syntax `<target>%<master>`), the plugin renders a strip across the very top of the app, above the navigation rail, sidebar and content, showing the mailbox being viewed and an optional "Back to platform" button.
 
-Detection is automatic; admins only configure styling and the platform return URL.
+Detection is automatic; admins only configure the platform return URL and the banner text. The strip is the app's own one-line info bar in the warning tone, so it follows light, dark and custom themes. (The colour settings of 1.3 and older are gone; values saved for them are ignored.)
 
 ## How a platform hands users in
 
@@ -24,9 +24,6 @@ The cryptographic configuration (signing secret, master credentials) lives in th
 | ------------------ | ------------------- | -------------------------------------------------------------------------------------- |
 | `returnUrl`        | _empty_             | Opened in a new tab by "Back to platform", which also signs out of the impersonated session. Empty hides the button. |
 | `returnLabel`      | `Back to platform`  | Button label.                                                                          |
-| `bannerBackground` | `#3b82f6`           | Strip background colour in light mode.                                                 |
-| `bannerBackgroundDark` | `#1e40af`       | Strip background colour in dark mode.                                                  |
-| `bannerForeground` | `#ffffff`           | Strip text colour.                                                                     |
 | `actorRoleLabel`   | `as Platform Admin` | Suffix appended to the mailbox in the banner copy.                                     |
 
 All settings are organisation-wide (`api.admin.setConfig`). Per-user override is intentionally not exposed.
