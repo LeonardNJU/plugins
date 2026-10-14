@@ -188,7 +188,15 @@
       "composer.undo": "Undo",
       "composer.copy": "Copy and close",
       "composer.copied": "Copied. Paste it into your message.",
-      "composer.paste_hint": "The assistant can't change your message directly. Copy the text and paste it into the message."
+      "composer.paste_hint": "The assistant can't change your message directly. Copy the text and paste it into the message.",
+      "composer.result.grammar": "Checking spelling and grammar",
+      "grammar.check": "Check spelling and grammar",
+      "grammar.none": "No mistakes found.",
+      "grammar.count": "{open} of {total} suggestions left",
+      "grammar.accept_all": "Accept all",
+      "grammar.done": "Done",
+      "grammar.accept_label": "Accept: {from} → {to}",
+      "grammar.skip_label": "Keep: {from}"
     }
   }
 }

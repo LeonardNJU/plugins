@@ -11,6 +11,8 @@ import { createHistory, ownText } from '../lib/draft.js';
 import { REWRITE_STYLES } from '../lib/prompts.js';
 import { defaultTarget, languageOptions } from '../lib/languages.js';
 import { loadPrefs, savePrefs } from '../lib/assistant.js';
+import { diffSuggestions } from '../lib/grammar.js';
+import { GrammarReview, reviewStep } from './GrammarReview.jsx';
 
 export function ComposerButton() {
   return (
@@ -51,6 +53,8 @@ export function ComposerDialog({ onResult }) {
   const [target, setTarget] = useState(defaultTarget(locale));
   const languages = useMemo(() => languageOptions(locale), [locale]);
   const ids = { text: useId(), prompt: useId(), style: useId(), target: useId() };
+  // Grammar suggestions: { segments, states, order } while the user goes through them.
+  const [review, setReview] = useState(null);
 
   useEffect(() => {
     let live = true;
@@ -64,6 +68,44 @@ export function ComposerDialog({ onResult }) {
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (task.task !== 'grammar' || task.status !== 'done') return;
+    setReview({ segments: diffSuggestions(doc.text, task.text.replace(/^\s+|\s+$/g, '') || doc.text), states: {}, order: [] });
+    task.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [task.status, task.task]);
+
+  const decide = (id, state) => {
+    const step = reviewStep(review, id, state);
+    if (state === 'accepted') {
+      doc.apply(step.text);
+      setReview({ ...step.review, order: [...review.order, id] });
+    } else {
+      setReview({ ...step.review, order: review.order });
+    }
+  };
+  const acceptAll = () => {
+    let next = review;
+    let text = doc.text;
+    const ids = [];
+    for (const seg of review.segments) {
+      if (seg.kind !== 'change' || review.states[seg.id]) continue;
+      ({ review: next, text } = reviewStep(next, seg.id, 'accepted'));
+      ids.push(seg.id);
+    }
+    doc.apply(text);
+    setReview({ ...next, order: [...review.order, ids] });
+  };
+  const undo = () => {
+    if (review && review.order.length) {
+      const last = review.order[review.order.length - 1];
+      const states = { ...review.states };
+      for (const id of [].concat(last)) delete states[id];
+      setReview({ ...review, states, order: review.order.slice(0, -1) });
+    }
+    doc.undo();
+  };
 
   const running = task.status === 'running';
   const hasText = doc.text.trim().length > 0;
@@ -85,6 +127,7 @@ export function ComposerDialog({ onResult }) {
           className="ai-text"
           rows={8}
           value={doc.text}
+          readOnly={!!review}
           placeholder={t('composer.text_placeholder')}
           onChange={(e) => doc.set(e.target.value)}
         />
@@ -126,9 +169,21 @@ export function ComposerDialog({ onResult }) {
           </select>
           <button type="button" className="ai-btn" disabled={!hasText || running} onClick={() => start('translate', { text: doc.text, target })}>{t('composer.translate')}</button>
         </div>
+        <div className="ai-row">
+          <button type="button" className="ai-btn" disabled={!hasText || running || !!review} onClick={() => start('grammar', { text: doc.text })}>{t('grammar.check')}</button>
+        </div>
       </div>
 
       <ConsentPrompt consent={task.consent} />
+      {review && (
+        <GrammarReview
+          review={review}
+          onAccept={(id) => decide(id, 'accepted')}
+          onSkip={(id) => decide(id, 'skipped')}
+          onAcceptAll={acceptAll}
+          onDone={() => setReview(null)}
+        />
+      )}
       {showResult && !task.consent && (
         <div className="ai-card" data-testid="ai-result">
           <div className="ai-head">
@@ -148,7 +203,7 @@ export function ComposerDialog({ onResult }) {
       )}
 
       <div className="ai-row" style={{ justifyContent: 'space-between' }}>
-        <button type="button" className="ai-btn" disabled={!doc.canUndo || running} onClick={doc.undo}>{t('composer.undo')}</button>
+        <button type="button" className="ai-btn" disabled={!doc.canUndo || running} onClick={undo}>{t('composer.undo')}</button>
         <div className="ai-row">
           <button
             type="button"
