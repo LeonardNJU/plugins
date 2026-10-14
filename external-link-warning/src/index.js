@@ -6,8 +6,8 @@
  * Trusted-domain sources (merged, de-duplicated):
  *   1. Admin-managed list (api.admin.getConfig('trustedDomains'))
  *   2. Per-user list from plugin settings (trustedDomainsCsv)
- *   3. Locally-trusted domains added through the confirm dialog's
- *      "always trust" follow-up (kept in plugin storage)
+ *   3. Locally-trusted domains the user explicitly chose to always trust
+ *      (kept in plugin storage)
  *
  * Migrated to the sandboxed contract:
  *   - The custom CSS-in-JS modal is GONE — we now use api.ui.confirm.
@@ -15,13 +15,30 @@
  *   - All storage / admin lookups are awaited.
  *   - The hook is registered statically via the `hooks` export.
  *
- * v2 status: kept. The pre-sandbox plugin offered an inline "Always trust on
- * this device" checkbox in its custom modal; api.ui.confirm is binary so we
- * deliberately keep the simplification — the per-user `rememberLocalChoices`
- * setting still controls whether confirmed domains are remembered locally.
- * Showing a second confirm dialog after every "Continue" felt worse than
- * the binary trade-off.
+ * api.ui.confirm has two buttons, so trusting a domain is a second, explicit
+ * question: "Continue" in the first dialog opens the link once; only the
+ * "Always trust <domain>" button in the follow-up dialog remembers it. The
+ * follow-up is only asked when the `rememberLocalChoices` setting is on.
  */
+
+// English fallbacks; the manifest's locales carry the translations.
+const FALLBACK = {
+  'dialog.title': 'Open external link?',
+  'dialog.message': "You're about to visit {host}.\n\n{href}\n\nThis domain isn't on your trusted list. Only continue if you recognise it.",
+  'dialog.continue': 'Continue',
+  'dialog.cancel': 'Cancel',
+  'trust.title': 'Trust {host} from now on?',
+  'trust.message': 'Links to {host} and its subdomains will open without this warning on this device.',
+  'trust.confirm': 'Always trust {host}',
+  'trust.cancel': 'Just this once',
+  trustedAdded: '{host} added to your trusted domains',
+};
+
+function tr(key, vars) {
+  const i18n = pluginApi && pluginApi.i18n;
+  if (i18n && typeof i18n.has === 'function' && i18n.has(key)) return i18n.t(key, vars);
+  return String(FALLBACK[key] || key).replace(/\{(\w+)\}/g, (m, k) => (vars && k in vars ? String(vars[k]) : m));
+}
 
 function parseDomains(input) {
   if (!input) return [];
@@ -102,7 +119,30 @@ async function addLocalTrust(domain) {
   if (!domain || localTrusted.includes(domain)) return;
   localTrusted.push(domain);
   await pluginApi.storage.set('localTrusted', localTrusted);
-  pluginApi.toast.success(pluginApi.i18n?.t?.('trustedAdded') || 'Added to trusted domains');
+  pluginApi.toast.success(tr('trustedAdded', { host: domain }));
+}
+
+/** Ask about an untrusted link, then open it if the user agrees. */
+async function confirmAndOpen(href, hostname) {
+  const proceed = await pluginApi.ui.confirm({
+    title: tr('dialog.title'),
+    message: tr('dialog.message', { host: hostname, href }),
+    confirmLabel: tr('dialog.continue'),
+    cancelLabel: tr('dialog.cancel'),
+  });
+  if (!proceed) return;
+
+  if (pluginApi.plugin.settings.rememberLocalChoices !== false) {
+    const always = await pluginApi.ui.confirm({
+      title: tr('trust.title', { host: hostname }),
+      message: tr('trust.message', { host: hostname }),
+      confirmLabel: tr('trust.confirm', { host: hostname }),
+      cancelLabel: tr('trust.cancel'),
+    });
+    if (always) await addLocalTrust(hostname);
+  }
+
+  await pluginApi.ui.openExternalUrl(href, '_blank');
 }
 
 // ─── Activate ─────────────────────────────────────────────────
@@ -131,30 +171,12 @@ export const hooks = {
     const trusted = await getTrustedList();
     if (isTrusted(hostname, trusted)) return; // pass through
 
-    const proceed = await pluginApi.ui.confirm({
-      title: 'Open external link?',
-      message:
-        `You're about to visit ${hostname}.\n\n${ctx.href}\n\n` +
-        `This domain isn't on your trusted list — only continue if you recognise it.`,
-      confirmLabel: 'Continue',
-      cancelLabel: 'Cancel',
+    // Cancel the host's navigation right away and run the dialogs on our
+    // own. Awaiting them here would let the host's hook timeout open the
+    // link behind the user's back while they are still deciding.
+    confirmAndOpen(ctx.href, hostname).catch((err) => {
+      pluginApi.log.warn('External link dialog failed', err);
     });
-
-    if (!proceed) return false; // cancel the navigation
-
-    // We accepted, so re-open in a fresh tab; the host already cancelled the
-    // native click because we asynchronously awaited the confirm.
-    await pluginApi.ui.openExternalUrl(ctx.href, ctx.target || '_blank');
-
-    // If the user wants to remember this domain, the host-side confirm can't
-    // round-trip an extra checkbox today. We optimistically add the domain
-    // when the setting allows it — users who don't want this can disable
-    // `rememberLocalChoices` in plugin settings. This is a UX simplification
-    // relative to the pre-sandbox plugin.
-    if (pluginApi.plugin.settings.rememberLocalChoices !== false) {
-      await addLocalTrust(hostname);
-    }
-
-    return false; // suppress the host's own navigation (we already opened it)
+    return false;
   },
 };

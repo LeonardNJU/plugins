@@ -1,7 +1,7 @@
 {
   "id": "external-link-warning",
   "name": "External Link Warning",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "author": "Bulwark Mail Community",
   "description": "Warns before opening external links to unknown domains. Admins can pre-populate a trusted domain list.",
   "type": "hook",
@@ -28,17 +28,35 @@
       "description": "Comma- or newline-separated list of trusted domains (e.g. example.com, github.com). Subdomains are matched automatically.",
       "default": ""
     },
-    "warnOnSameDomainEmail": {
-      "type": "boolean",
-      "label": "Warn even when sender domain matches",
-      "description": "If enabled, warn even when the link domain matches the sender's email domain.",
-      "default": false
-    },
     "rememberLocalChoices": {
       "type": "boolean",
-      "label": "Allow \u201cAlways trust\u201d checkbox",
-      "description": "When enabled, the warning dialog includes a checkbox that permanently trusts the domain on this device.",
+      "label": "Offer “Always trust”",
+      "description": "After you continue to an unknown domain, ask whether to always trust it on this device. Only the “Always trust” button remembers the domain.",
       "default": true
+    }
+  },
+  "locales": {
+    "en": {
+      "dialog.title": "Open external link?",
+      "dialog.message": "You're about to visit {host}.\n\n{href}\n\nThis domain isn't on your trusted list. Only continue if you recognise it.",
+      "dialog.continue": "Continue",
+      "dialog.cancel": "Cancel",
+      "trust.title": "Trust {host} from now on?",
+      "trust.message": "Links to {host} and its subdomains will open without this warning on this device.",
+      "trust.confirm": "Always trust {host}",
+      "trust.cancel": "Just this once",
+      "trustedAdded": "{host} added to your trusted domains"
+    },
+    "de": {
+      "dialog.title": "Externen Link öffnen?",
+      "dialog.message": "Du bist dabei, {host} zu besuchen.\n\n{href}\n\nDiese Domain steht nicht auf deiner Liste vertrauenswürdiger Domains. Fahre nur fort, wenn du sie kennst.",
+      "dialog.continue": "Fortfahren",
+      "dialog.cancel": "Abbrechen",
+      "trust.title": "{host} ab jetzt vertrauen?",
+      "trust.message": "Links zu {host} und seinen Subdomains öffnen sich auf diesem Gerät dann ohne diese Warnung.",
+      "trust.confirm": "{host} immer vertrauen",
+      "trust.cancel": "Nur dieses Mal",
+      "trustedAdded": "{host} zu deinen vertrauenswürdigen Domains hinzugefügt"
     }
   }
 }

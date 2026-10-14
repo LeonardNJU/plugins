@@ -15,8 +15,11 @@ The plugin merges three sources (de-duplicated):
    ```
    Accepts a comma/newline-separated string or a JSON array.
 2. **Per-user list** — `Trusted domains` field in the plugin's settings panel.
-3. **Local "Always trust" choices** — added through the dialog checkbox,
-   stored in plugin storage on the user's device.
+3. **Local "Always trust" choices** — stored in plugin storage on the
+   user's device. After you click Continue on an unknown domain, a second
+   dialog asks whether to always trust it. Continue alone opens the link
+   once; only the "Always trust" button remembers the domain. Turn the
+   `Offer "Always trust"` setting off to skip that question.
 
 Subdomains are matched automatically: trusting `example.com` also trusts
 `docs.example.com`.
@@ -29,8 +32,8 @@ Subdomains are matched automatically: trusting `example.com` also trusts
 ## Hooks used
 
 - `onBeforeExternalLink` — intercept hook, returns `false` to cancel the
-  native navigation; the plugin re-opens the link via `window.open` after
-  the user confirms.
+  native navigation; the plugin opens the link with
+  `api.ui.openExternalUrl` after the user confirms.
 
 ## Build & install
 
@@ -45,8 +48,10 @@ Upload `external-link-warning.zip` via Admin -> Plugins.
 
 ## Notes
 
-- `onBeforeExternalLink` has a 5-second timeout, so the plugin cannot
-  await user input inside the hook. It cancels the navigation
-  immediately and re-opens the URL manually after confirmation.
-- The dialog is plain DOM (no React) so the plugin has zero runtime
-  dependencies and the bundle stays tiny.
+- The hook does not wait for the dialog: it cancels the navigation
+  immediately and opens the URL itself after confirmation, so a hook
+  timeout can never open the link while the user is still deciding.
+- The dialogs are the host's `api.ui.confirm`, so the plugin has no
+  runtime dependencies and the bundle stays tiny.
+- Dialog and toast text is translated through `locales` in the manifest
+  (English and German).
