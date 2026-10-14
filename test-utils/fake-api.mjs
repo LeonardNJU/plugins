@@ -12,7 +12,7 @@
 // the call and returns what `handlers['anything.method']` returns (undefined
 // without a handler). storage, i18n and plugin.settings work for real.
 
-export function fakeApi({ id = 'test-plugin', permissions = [], settings = {}, locale = 'en', translations = {}, handlers = {} } = {}) {
+export function fakeApi({ id = 'test-plugin', version = '1.0.0', settings = {}, locale = 'en', translations = {}, handlers = {} } = {}) {
   const log = [];
   const store = new Map();
   const settingsListeners = [];
@@ -36,9 +36,10 @@ export function fakeApi({ id = 'test-plugin', permissions = [], settings = {}, l
 
   const known = {
     plugin: {
+      // Same shape as the real api.plugin: no permission list.
       id,
+      version,
       settings: { ...settings },
-      permissions,
       onSettingsChange(fn) { settingsListeners.push(fn); return () => {}; },
     },
     storage: {
