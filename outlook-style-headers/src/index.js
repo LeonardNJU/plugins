@@ -84,8 +84,12 @@ function buildOutlookHtml(ctx, opts) {
   const row = (label, value) =>
     value ? `<div>${labelOpen}${label}:${labelClose} ${escapeHtml(value)}</div>` : '';
 
+  // This HTML goes out in the sent mail, so the rule colour has to read on
+  // light and dark backgrounds in any client. A mid grey does; #ccc all but
+  // vanished in dark mode, and currentColor/opacity is not honoured by
+  // Outlook's Word renderer.
   const rule = opts.thinRuleAbove
-    ? '<hr style="border:none;border-top:1px solid #ccc;margin:12px 0">'
+    ? '<hr style="border:none;border-top:1px solid #999999;margin:12px 0">'
     : '';
 
   // Header block ends with a blank line. The composer appends the quoted body
