@@ -11,7 +11,9 @@ export function createBackground(api, { now = () => Date.now() } = {}) {
   const state = { configured: false, showInReader: true, checkedAt: 0 };
 
   async function refresh(force = false) {
-    if (!force && state.checkedAt && now() - state.checkedAt < REFRESH_EVERY_MS) return state;
+    // Look again at once while nothing is set up (or the last look failed);
+    // once a service is known, at most every 30 s.
+    if (!force && state.configured && now() - state.checkedAt < REFRESH_EVERY_MS) return state;
     state.checkedAt = now();
     try {
       const setup = await loadSetup(api);

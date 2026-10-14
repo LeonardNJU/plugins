@@ -102,19 +102,24 @@ describe('background', () => {
     expect(on.shouldShow.composer()).toBe(true);
   });
 
-  it('notices a newly set up service when the composer opens, at most every 30 s', async () => {
+  it('notices a newly set up service at once, and a removed one within 30 s', async () => {
     let config = {};
     let now = 1_000_000;
     const api = fakeApi({ handlers: { 'admin.getAllConfig': async () => config } });
     const bg = createBackground(api, { now: () => now });
     await bg.activate();
     config = { anthropicBaseUrl: 'https://api.anthropic.com/v1' };
-    now += 5_000;
-    await bg.hooks.onComposerOpen();
-    expect(bg.shouldShow.composer()).toBe(false);
-    now += 30_000;
+    now += 1_000;
     await bg.hooks.onComposerOpen();
     expect(bg.shouldShow.composer()).toBe(true);
+    config = {};
+    now += 5_000;
+    await bg.hooks.onComposerOpen();
+    expect(bg.shouldShow.composer()).toBe(true);
+    expect(api.calls('admin.getAllConfig')).toHaveLength(2);
+    now += 30_000;
+    await bg.hooks.onComposerOpen();
+    expect(bg.shouldShow.composer()).toBe(false);
   });
 });
 

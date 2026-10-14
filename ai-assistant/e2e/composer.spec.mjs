@@ -75,7 +75,9 @@ for (const service of SERVICES) {
       await expect(page.getByRole('dialog').filter({ hasText: 'Writing assistant' })).toHaveCount(0);
       // Reading the clipboard needs a focused document.
       await page.locator('[contenteditable="true"]').first().focus();
-      expect((await page.evaluate(() => navigator.clipboard.readText())).trim()).toBe(translated);
+      // Windows adds \r; innerText drops trailing spaces of lines.
+      const norm = (s) => s.replace(/\r/g, '').split('\n').map((l) => l.trimEnd()).join('\n').trim();
+      expect(norm(await page.evaluate(() => navigator.clipboard.readText()))).toBe(norm(translated));
     } finally {
       await uninstallPlugin(api, ID);
     }
