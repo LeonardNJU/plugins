@@ -112,28 +112,6 @@ async function uploadDirect(bytes, name, title) {
   throw new Error('consume timed out');
 }
 
-/**
- * Does this Paperless take a streamed (chunked) upload? The webmail's proxy
- * streams request bodies without Content-Length; Paperless (Django) reads
- * such a multipart body as empty unless a buffering proxy (nginx) sits in
- * front. The test container has none, so the plugin must show a clear error
- * there; behind nginx the file is filed.
- */
-let chunkedOk = null;
-async function chunkedUploadsWork() {
-  if (chunkedOk !== null) return chunkedOk;
-  const boundary = 'probe' + Date.now();
-  const body = `--${boundary}\r\nContent-Disposition: form-data; name="document"; filename="probe.unknown"\r\nContent-Type: application/x-bulwark-probe\r\n\r\nx\r\n--${boundary}--\r\n`;
-  const stream = new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode(body)); c.close(); } });
-  const res = await fetch(`${PAPERLESS}/api/documents/post_document/`, {
-    method: 'POST', body: stream, duplex: 'half',
-    headers: { Authorization: `Token ${TOKEN}`, 'Content-Type': `multipart/form-data; boundary=${boundary}` },
-  });
-  const text = await res.text();
-  chunkedOk = !/No file was submitted/.test(text);
-  return chunkedOk;
-}
-
 /** Open a message by subject, reloading once if push hasn't brought it yet. */
 async function openMessage(page, subject) {
   const row = page.getByText(subject, { exact: true }).first();
@@ -178,14 +156,10 @@ async function start(page, { token = true, theme = 'light' } = {}) {
   return admin;
 }
 
-/** What the user sees after pressing Send: filed, or the proxy's streamed upload refused. */
+/** After pressing Send: the document is filed (the proxy sends uploads with a Content-Length). */
 async function expectSendOutcome(page, run) {
-  if (await chunkedUploadsWork()) {
-    await expect(page.getByText('Filed in Paperless').first()).toBeVisible({ timeout: 90_000 });
-    return findDocs(run);
-  }
-  await expect(page.getByText('Paperless refused the request: document: No file was submitted.').first()).toBeVisible({ timeout: 30_000 });
-  return null;
+  await expect(page.getByText('Filed in Paperless').first()).toBeVisible({ timeout: 90_000 });
+  return findDocs(run);
 }
 
 test.describe('paperless plugin', () => {
@@ -263,13 +237,11 @@ test.describe('paperless plugin', () => {
       await dialog.getByRole('button', { name: 'Send', exact: true }).click();
 
       const docs = await expectSendOutcome(page, run);
-      if (docs) {
-        expect(docs).toHaveLength(1);
-        expect(docs[0].title).toBe(`acme-${run}`);
-        expect(docs[0].correspondent).toBe(1);
-        expect(docs[0].document_type).toBe(1);
-        expect(docs[0].tags).toContain(1);
-      }
+      expect(docs).toHaveLength(1);
+      expect(docs[0].title).toBe(`acme-${run}`);
+      expect(docs[0].correspondent).toBe(1);
+      expect(docs[0].document_type).toBe(1);
+      expect(docs[0].tags).toContain(1);
     } finally {
       await uninstallPlugin(admin, PLUGIN);
       await deleteDocs((await findDocs(run).catch(() => [])).map((d) => d.id));
@@ -353,14 +325,10 @@ test.describe('paperless plugin', () => {
       await page.getByRole('button', { name: 'Back to Mail' }).click();
       sendMail({ from: 'Rules Test <billing@rules-test.example>', subject: `Monthly ${run}`, pdfText: `Rule ${run}`, pdfName: `rule-${run}.pdf` });
       // No dialog: the rule sends on its own.
-      if (await chunkedUploadsWork()) {
-        await expect(page.getByText('Filed in Paperless').first()).toBeVisible({ timeout: 120_000 });
-        const docs = await findDocs(run);
-        expect(docs).toHaveLength(1);
-        expect(docs[0].tags).toContain(5);
-      } else {
-        await expect(page.getByText('Paperless refused the request: document: No file was submitted.').first()).toBeVisible({ timeout: 120_000 });
-      }
+      await expect(page.getByText('Filed in Paperless').first()).toBeVisible({ timeout: 120_000 });
+      const docs = await findDocs(run);
+      expect(docs).toHaveLength(1);
+      expect(docs[0].tags).toContain(5);
     } finally {
       await uninstallPlugin(admin, PLUGIN);
       await deleteDocs((await findDocs(run).catch(() => [])).map((d) => d.id));
