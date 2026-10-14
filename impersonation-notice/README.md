@@ -22,9 +22,10 @@ The cryptographic configuration (signing secret, master credentials) lives in th
 
 | Key                | Default             | Notes                                                                                  |
 | ------------------ | ------------------- | -------------------------------------------------------------------------------------- |
-| `returnUrl`        | _empty_             | Where "Back to platform" navigates after clearing the session. Empty hides the button. |
+| `returnUrl`        | _empty_             | Opened in a new tab by "Back to platform", which also signs out of the impersonated session. Empty hides the button. |
 | `returnLabel`      | `Back to platform`  | Button label.                                                                          |
-| `bannerBackground` | `#1f4e3d`           | Strip background colour.                                                               |
+| `bannerBackground` | `#3b82f6`           | Strip background colour in light mode.                                                 |
+| `bannerBackgroundDark` | `#1e40af`       | Strip background colour in dark mode.                                                  |
 | `bannerForeground` | `#ffffff`           | Strip text colour.                                                                     |
 | `actorRoleLabel`   | `as Platform Admin` | Suffix appended to the mailbox in the banner copy.                                     |
 
@@ -32,7 +33,8 @@ All settings are organisation-wide (`api.admin.setConfig`). Per-user override is
 
 ## Permissions
 
-- `auth:observe` — read session username to detect `%`
+- `account:read` — receive the session username (the banner slot's `username` prop) to detect `%`
+- `auth:emit` — sign out when "Back to platform" is clicked
 - `ui:app-top-banner` — render the strip
 - `ui:admin-page` — configuration UI
 - `admin:config` — read/write org-wide settings

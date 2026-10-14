@@ -1,12 +1,13 @@
 {
   "id": "impersonation-notice",
   "name": "Impersonation Notice",
-  "version": "1.2.5",
+  "version": "1.3.0",
   "author": "Bulwark Mail Community",
   "description": "Shows a persistent top-of-app banner when the active session is a Stalwart master-user impersonation (username contains '%'), with a configurable 'Return to platform' button. Detection is automatic; admins configure the platform return URL and banner styling.",
   "type": "hook",
   "permissions": [
-    "auth:observe",
+    "account:read",
+    "auth:emit",
     "ui:app-top-banner",
     "admin:config"
   ],

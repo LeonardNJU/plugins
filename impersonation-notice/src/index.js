@@ -10,7 +10,12 @@
  *   - The banner reads admin-managed config (returnUrl, returnLabel, colours,
  *     actorRoleLabel) directly via api.admin.getConfig at mount time.
  *   - The "Back to platform" button uses api.ui.openExternalUrl instead of
- *     window.open.
+ *     window.open, and signs out through api.user.logout (auth:emit): the
+ *     sandbox cannot call /api/auth/session itself.
+ *   - The username comes from the app-top-banner slot props, which the host
+ *     only passes with account:read.
+ *   - bannerBackgroundDark is used while the app is in dark mode (the host
+ *     mirrors it into the slot iframe as html.dark).
  *   - The admin page is still NOT exported, because the host hasn't mounted
  *     the 'admin-plugin-page' slot type yet. Admins configure via the
  *     existing plugin-config table (configSchema in the manifest).
@@ -22,6 +27,7 @@ const slotApi = require('@plugin-host');
 const DEFAULT_RETURN_LABEL = 'Back to platform';
 const DEFAULT_ACTOR_ROLE_LABEL = 'as Platform Admin';
 const DEFAULT_BG_LIGHT = '#3b82f6';
+const DEFAULT_BG_DARK = '#1e40af';
 const DEFAULT_FG = '#ffffff';
 
 function looksLikeImpersonation(username) {
@@ -39,17 +45,36 @@ function pickString(value, fallback) {
   return trimmed.length ? trimmed : fallback;
 }
 
+function isDarkDocument() {
+  return typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+}
+
+// Follows the `dark` class the host puts on the slot iframe's <html> and
+// updates when the user switches theme.
+function useDarkMode() {
+  const [dark, setDark] = useState(isDarkDocument);
+  useEffect(() => {
+    if (typeof MutationObserver === 'undefined') return undefined;
+    const observer = new MutationObserver(() => setDark(isDarkDocument()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+  return dark;
+}
+
 // ─── Banner slot component ────────────────────────────────────
 
 function ImpersonationBanner(props) {
   const username = props?.username;
   const mailbox = parseImpersonatedMailbox(username);
   const [busy, setBusy] = useState(false);
+  const dark = useDarkMode();
   const [cfg, setCfg] = useState({
     returnUrl: pickString(props?.returnUrl, ''),
     returnLabel: DEFAULT_RETURN_LABEL,
     actorRoleLabel: DEFAULT_ACTOR_ROLE_LABEL,
     bg: DEFAULT_BG_LIGHT,
+    bgDark: DEFAULT_BG_DARK,
     fg: DEFAULT_FG,
   });
 
@@ -68,6 +93,7 @@ function ImpersonationBanner(props) {
             returnLabel: pickString(all.returnLabel, DEFAULT_RETURN_LABEL),
             actorRoleLabel: pickString(all.actorRoleLabel, DEFAULT_ACTOR_ROLE_LABEL),
             bg: pickString(all.bannerBackground, DEFAULT_BG_LIGHT),
+            bgDark: pickString(all.bannerBackgroundDark, DEFAULT_BG_DARK),
             fg: pickString(all.bannerForeground, DEFAULT_FG),
           }));
         }
@@ -78,42 +104,14 @@ function ImpersonationBanner(props) {
     return () => { cancelled = true; };
   }, []);
 
-  // Drop the impersonation session as soon as the tab is closed/refreshed.
-  // The fetch fires from the slot's null origin to the same-site host; it's
-  // best-effort and uses keepalive so the browser flushes it on unload.
-  useEffect(() => {
-    if (!mailbox) return;
-    const drop = () => {
-      try {
-        fetch('/api/auth/session?all=true', {
-          method: 'DELETE',
-          credentials: 'same-origin',
-          keepalive: true,
-        });
-      } catch { /* ignore */ }
-    };
-    window.addEventListener('pagehide', drop);
-    window.addEventListener('beforeunload', drop);
-    return () => {
-      window.removeEventListener('pagehide', drop);
-      window.removeEventListener('beforeunload', drop);
-    };
-  }, [mailbox]);
-
   if (!mailbox) return null;
 
   async function handleReturn() {
     if (busy) return;
     setBusy(true);
-    try {
-      await fetch('/api/auth/session?all=true', {
-        method: 'DELETE',
-        credentials: 'same-origin',
-        keepalive: true,
-      });
-    } catch {
-      /* ignore */
-    }
+    // Open the platform first, while the click still counts as a user
+    // gesture for the new tab, and before signing out tears this banner
+    // down along with the rest of the app.
     if (cfg.returnUrl) {
       try {
         await slotApi.ui.openExternalUrl(cfg.returnUrl, '_blank');
@@ -121,7 +119,12 @@ function ImpersonationBanner(props) {
         slotApi.log.warn('impersonation-notice: openExternalUrl failed', err);
       }
     }
-    setBusy(false);
+    try {
+      await slotApi.user.logout();
+    } catch (err) {
+      slotApi.log.warn('impersonation-notice: logout failed', err);
+      setBusy(false);
+    }
   }
 
   return h(
@@ -140,7 +143,7 @@ function ImpersonationBanner(props) {
         lineHeight: 1.4,
         width: '100%',
         boxSizing: 'border-box',
-        background: cfg.bg,
+        background: dark ? cfg.bgDark : cfg.bg,
         color: cfg.fg,
       },
     },
