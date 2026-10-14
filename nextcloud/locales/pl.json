@@ -80,5 +80,13 @@
   "composer.removeLink": "Usuń link do {name}",
   "links.title": "Pliki udostępnione przez Nextcloud",
   "links.password": "hasło: {password}",
-  "links.until": "dostępne do {date}"
+  "links.until": "dostępne do {date}",
+  "offload.title": "Duży załącznik",
+  "offload.intro": "{name} ma {size}. Przesłać go do Nextcloud i wstawić link do wiadomości? Odbiorcy pobiorą go wtedy z Nextcloud.",
+  "offload.folder": "Trafi do folderu {folder}.",
+  "offload.uploading": "Przesyłanie do Nextcloud: {loaded} z {total}",
+  "offload.paused": "Przesyłanie wstrzymane. Wznów, aby kontynuować od miejsca, w którym się zatrzymało.",
+  "offload.attachNormally": "Załącz normalnie",
+  "offload.upload": "Prześlij i dodaj link",
+  "offload.resume": "Wznów przesyłanie"
 }

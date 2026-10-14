@@ -80,5 +80,13 @@
   "composer.removeLink": "Quitar el enlace a {name}",
   "links.title": "Archivos compartidos mediante Nextcloud",
   "links.password": "contraseña: {password}",
-  "links.until": "disponible hasta el {date}"
+  "links.until": "disponible hasta el {date}",
+  "offload.title": "Archivo adjunto grande",
+  "offload.intro": "{name} ocupa {size}. ¿Lo subes a tu Nextcloud y pones un enlace en el mensaje? Así los destinatarios lo descargan desde Nextcloud.",
+  "offload.folder": "Se guarda en la carpeta {folder}.",
+  "offload.uploading": "Subiendo a Nextcloud: {loaded} de {total}",
+  "offload.paused": "Subida en pausa. Reanúdala para seguir donde se quedó.",
+  "offload.attachNormally": "Adjuntar como siempre",
+  "offload.upload": "Subir y añadir enlace",
+  "offload.resume": "Reanudar subida"
 }

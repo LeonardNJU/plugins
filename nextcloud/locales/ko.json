@@ -80,5 +80,13 @@
   "composer.removeLink": "{name} 링크 삭제",
   "links.title": "Nextcloud로 공유한 파일",
   "links.password": "비밀번호: {password}",
-  "links.until": "{date}까지 이용 가능"
+  "links.until": "{date}까지 이용 가능",
+  "offload.title": "큰 첨부파일",
+  "offload.intro": "{name}의 크기는 {size}입니다. 대신 Nextcloud에 업로드하고 메일에 링크를 넣을까요? 받는 사람은 Nextcloud에서 내려받게 됩니다.",
+  "offload.folder": "{folder} 폴더에 저장됩니다.",
+  "offload.uploading": "Nextcloud에 업로드 중: {loaded} / {total}",
+  "offload.paused": "업로드가 일시 중지되었습니다. 다시 시작하면 멈춘 곳부터 이어집니다.",
+  "offload.attachNormally": "평소처럼 첨부",
+  "offload.upload": "업로드하고 링크 추가",
+  "offload.resume": "업로드 다시 시작"
 }

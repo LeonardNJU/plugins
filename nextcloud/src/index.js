@@ -45,7 +45,39 @@ export async function addLinksToMessage(api, outgoing) {
   return next;
 }
 
+const MB = 1024 * 1024;
+
+/**
+ * A file the user attaches in the composer (onBeforeBlobUpload hands over
+ * its staged id). From the size in the settings on, offer to upload it to
+ * Nextcloud and put a link in the message instead. Returns the composer's
+ * ExternalAttachmentResult, or undefined to attach the file as usual.
+ */
+export async function offerLargeUpload(api, payload) {
+  const fileId = typeof payload === 'string' ? payload : payload?.fileId;
+  if (typeof fileId !== 'string' || !fileId) return undefined;
+  const settings = api.plugin.settings ?? {};
+  if (settings.offerLargeUpload === false) return undefined;
+  const account = await storedAccount(api);
+  if (!account?.connected) return undefined;
+  const file = await api.upfiles.get(fileId);
+  if (!file) return undefined;
+  const threshold = Math.max(1, Number(settings.largeFileMb) || 10) * MB;
+  if (file.size < threshold) return undefined;
+  const result = await api.ui.openDialog({
+    title: api.i18n.t('offload.title'),
+    slot: 'plugin-dialog',
+    extraProps: { view: 'offload', fileId, name: file.name, size: file.size },
+    width: 560,
+  });
+  if (result && result.externalAttachment === true && typeof result.html === 'string' && typeof result.text === 'string') {
+    return { externalAttachment: true, html: result.html, text: result.text, fileId };
+  }
+  return undefined;
+}
+
 export const hooks = {
+  onBeforeBlobUpload: (payload) => (bg ? offerLargeUpload(bg, payload) : undefined),
   onTransformOutgoingEmail: (outgoing) => (bg ? addLinksToMessage(bg, outgoing) : undefined),
   // Links picked for a message that was then discarded don't carry over to the next one.
   onComposerClose: () => (bg ? clearPending(bg.storage) : undefined),

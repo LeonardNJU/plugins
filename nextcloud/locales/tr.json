@@ -80,5 +80,13 @@
   "composer.removeLink": "{name} bağlantısını kaldır",
   "links.title": "Nextcloud ile paylaşılan dosyalar",
   "links.password": "parola: {password}",
-  "links.until": "{date} tarihine kadar kullanılabilir"
+  "links.until": "{date} tarihine kadar kullanılabilir",
+  "offload.title": "Büyük ek",
+  "offload.intro": "{name} {size} boyutunda. Bunun yerine Nextcloud'unuza yükleyip iletiye bir bağlantı eklensin mi? Alıcılar dosyayı Nextcloud'dan indirir.",
+  "offload.folder": "Dosya {folder} klasörüne gider.",
+  "offload.uploading": "Nextcloud'a yükleniyor: {loaded} / {total}",
+  "offload.paused": "Yükleme duraklatıldı. Kaldığı yerden devam etmek için sürdürün.",
+  "offload.attachNormally": "Normal şekilde ekle",
+  "offload.upload": "Yükle ve bağlantı ekle",
+  "offload.resume": "Yüklemeyi sürdür"
 }

@@ -38,12 +38,34 @@ by name, and pick one or more files. Then:
 ![Share options](screenshots/share-options-dark.png)
 ![Links waiting in the composer](screenshots/composer-links-light.png)
 
+## Large attachments
+
+When you attach a file of 10 MB or more (adjustable), the plugin asks whether
+to upload it to your Nextcloud and put a share link in the message instead.
+The same link options apply. Files larger than 10 MB go up in 10 MB chunks
+(Nextcloud's chunked upload v2) with a progress bar. **Cancel** pauses the
+upload; **Resume upload** continues with the chunks the server already has,
+also after a failed chunk. Short network errors are retried by themselves.
+**Attach as usual** (or closing the dialog) attaches the file normally.
+
+Uploads go to the upload folder, by default `Mail attachments/<date>`. A
+file with the same name gets " (2)" added.
+
+![Large attachment offer](screenshots/large-offer-light.png)
+![Link in the message](screenshots/large-link-light.png)
+
+## Settings
+
 User settings (Settings > Plugins > Nextcloud):
 
 | Setting | Default |
 | --- | --- |
 | Protect share links with a password | off |
 | Share links expire after (days), 0 = never | 14 |
+| Offer to send large attachments as a Nextcloud link | on |
+| Large attachment size (MB) | 10 |
+| Upload folder | Mail attachments |
+| Folder layout (`date`: a subfolder per day, `flat`) | date |
 
 ## For administrators
 
@@ -66,6 +88,11 @@ Nextcloud needs no CORS setup.
 | `email:blob-write` | Upload a file picked in Nextcloud to the mail server to attach it. |
 | `email:send` | Add the picked share links to the message when it is sent (`onTransformOutgoingEmail`). |
 | `email:read` | Drop links picked for a discarded message (`onComposerClose`). |
+| `email:blob-read` | Read a large file you just attached (`upfiles.get`) to upload it to Nextcloud. |
+
+`email:blob-write` also covers the `onBeforeBlobUpload` hook, which is how the
+large-attachment offer gets in before the file is uploaded to the mail
+server.
 
 The `nextcloud` credential is a user credential with Basic auth: the user
 name and app password come from Nextcloud's Login Flow v2.
@@ -74,7 +101,8 @@ name and app password come from Nextcloud's Login Flow v2.
 
 Nothing goes to Nextcloud until you connect it. The plugin then only sends
 what you ask it to: folder listings and searches while the picker is open,
-and a share request for each file you share as a link.
+a share request for each file you share as a link, and the large files you
+choose to upload.
 
 ## Moving from "Nextcloud Attachments"
 

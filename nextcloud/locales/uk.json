@@ -80,5 +80,13 @@
   "composer.removeLink": "Вилучити посилання на {name}",
   "links.title": "Файли, надіслані через Nextcloud",
   "links.password": "пароль: {password}",
-  "links.until": "доступно до {date}"
+  "links.until": "доступно до {date}",
+  "offload.title": "Велике вкладення",
+  "offload.intro": "{name} займає {size}. Завантажити його у ваш Nextcloud і додати в лист посилання? Тоді одержувачі завантажать файл із Nextcloud.",
+  "offload.folder": "Файл потрапить у папку {folder}.",
+  "offload.uploading": "Завантаження в Nextcloud: {loaded} з {total}",
+  "offload.paused": "Завантаження призупинено. Відновіть його, щоб продовжити з того місця, де воно зупинилося.",
+  "offload.attachNormally": "Прикріпити як зазвичай",
+  "offload.upload": "Завантажити й додати посилання",
+  "offload.resume": "Відновити завантаження"
 }

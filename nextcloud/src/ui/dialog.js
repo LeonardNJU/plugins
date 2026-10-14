@@ -7,9 +7,11 @@ import { createClient } from '../lib/client.js';
 import { ensureStyles } from './styles.js';
 import { ConnectionPanel, useConnection } from './connection-ui.js';
 import { PickerDialog } from './picker-dialog.js';
+import { OffloadDialog } from './offload-dialog.js';
 
 const VIEWS = {
   picker: PickerDialog,
+  offload: OffloadDialog,
 };
 
 export function registerView(name, component) {

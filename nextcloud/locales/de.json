@@ -80,5 +80,13 @@
   "composer.removeLink": "Link zu {name} entfernen",
   "links.title": "Über Nextcloud geteilte Dateien",
   "links.password": "Passwort: {password}",
-  "links.until": "verfügbar bis {date}"
+  "links.until": "verfügbar bis {date}",
+  "offload.title": "Großer Anhang",
+  "offload.intro": "{name} ist {size} groß. Stattdessen in Ihre Nextcloud hochladen und einen Link in die Nachricht setzen? Die Empfänger laden die Datei dann aus Nextcloud herunter.",
+  "offload.folder": "Die Datei kommt in den Ordner {folder}.",
+  "offload.uploading": "Wird in Nextcloud hochgeladen: {loaded} von {total}",
+  "offload.paused": "Hochladen pausiert. Setzen Sie es fort, um dort weiterzumachen, wo es aufgehört hat.",
+  "offload.attachNormally": "Normal anhängen",
+  "offload.upload": "Hochladen und Link einfügen",
+  "offload.resume": "Hochladen fortsetzen"
 }

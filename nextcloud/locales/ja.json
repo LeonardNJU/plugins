@@ -80,5 +80,13 @@
   "composer.removeLink": "{name} へのリンクを削除",
   "links.title": "Nextcloud で共有したファイル",
   "links.password": "パスワード: {password}",
-  "links.until": "{date} まで利用可能"
+  "links.until": "{date} まで利用可能",
+  "offload.title": "大きな添付ファイル",
+  "offload.intro": "{name} は {size} あります。代わりに Nextcloud にアップロードして、メッセージにリンクを入れますか? 受信者は Nextcloud からダウンロードします。",
+  "offload.folder": "保存先はフォルダー {folder} です。",
+  "offload.uploading": "Nextcloud にアップロード中: {loaded} / {total}",
+  "offload.paused": "アップロードを一時停止しました。再開すると、止まったところから続きます。",
+  "offload.attachNormally": "通常どおり添付",
+  "offload.upload": "アップロードしてリンクを追加",
+  "offload.resume": "アップロードを再開"
 }

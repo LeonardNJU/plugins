@@ -80,5 +80,13 @@
   "composer.removeLink": "Eliminați linkul către {name}",
   "links.title": "Fișiere partajate prin Nextcloud",
   "links.password": "parolă: {password}",
-  "links.until": "disponibil până la {date}"
+  "links.until": "disponibil până la {date}",
+  "offload.title": "Atașament mare",
+  "offload.intro": "{name} are {size}. Îl încărcați în Nextcloud și puneți un link în mesaj? Destinatarii îl vor descărca din Nextcloud.",
+  "offload.folder": "Ajunge în dosarul {folder}.",
+  "offload.uploading": "Se încarcă în Nextcloud: {loaded} din {total}",
+  "offload.paused": "Încărcare întreruptă. Reluați pentru a continua de unde a rămas.",
+  "offload.attachNormally": "Atașați normal",
+  "offload.upload": "Încărcați și adăugați linkul",
+  "offload.resume": "Reluați încărcarea"
 }

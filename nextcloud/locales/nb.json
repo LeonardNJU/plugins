@@ -80,5 +80,13 @@
   "composer.removeLink": "Fjern lenken til {name}",
   "links.title": "Filer delt via Nextcloud",
   "links.password": "passord: {password}",
-  "links.until": "tilgjengelig til {date}"
+  "links.until": "tilgjengelig til {date}",
+  "offload.title": "Stort vedlegg",
+  "offload.intro": "{name} er {size}. Vil du laste den opp til Nextcloud og legge en lenke i meldingen i stedet? Mottakerne laster den da ned fra Nextcloud.",
+  "offload.folder": "Den havner i mappen {folder}.",
+  "offload.uploading": "Laster opp til Nextcloud: {loaded} av {total}",
+  "offload.paused": "Opplastingen er satt på pause. Fortsett, så går den videre der den stoppet.",
+  "offload.attachNormally": "Legg ved som vanlig",
+  "offload.upload": "Last opp og legg til lenke",
+  "offload.resume": "Fortsett opplastingen"
 }

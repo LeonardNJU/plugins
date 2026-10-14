@@ -80,5 +80,13 @@
   "composer.removeLink": "Link naar {name} verwijderen",
   "links.title": "Bestanden gedeeld via Nextcloud",
   "links.password": "wachtwoord: {password}",
-  "links.until": "beschikbaar tot {date}"
+  "links.until": "beschikbaar tot {date}",
+  "offload.title": "Grote bijlage",
+  "offload.intro": "{name} is {size}. Uploaden naar je Nextcloud en een link in het bericht zetten? Ontvangers downloaden het dan uit Nextcloud.",
+  "offload.folder": "Het komt in de map {folder}.",
+  "offload.uploading": "Uploaden naar Nextcloud: {loaded} van {total}",
+  "offload.paused": "Upload gepauzeerd. Hervat om verder te gaan waar hij stopte.",
+  "offload.attachNormally": "Gewoon bijvoegen",
+  "offload.upload": "Uploaden en link toevoegen",
+  "offload.resume": "Upload hervatten"
 }

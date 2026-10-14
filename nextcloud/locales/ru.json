@@ -80,5 +80,13 @@
   "composer.removeLink": "Удалить ссылку на {name}",
   "links.title": "Файлы, переданные через Nextcloud",
   "links.password": "пароль: {password}",
-  "links.until": "доступно до {date}"
+  "links.until": "доступно до {date}",
+  "offload.title": "Большое вложение",
+  "offload.intro": "{name} занимает {size}. Загрузить его в Nextcloud и вставить в письмо ссылку? Тогда получатели скачают файл из Nextcloud.",
+  "offload.folder": "Файл попадёт в папку {folder}.",
+  "offload.uploading": "Загрузка в Nextcloud: {loaded} из {total}",
+  "offload.paused": "Загрузка приостановлена. Продолжите, и она пойдёт с того места, где остановилась.",
+  "offload.attachNormally": "Прикрепить как обычно",
+  "offload.upload": "Загрузить и добавить ссылку",
+  "offload.resume": "Продолжить загрузку"
 }

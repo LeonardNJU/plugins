@@ -80,5 +80,13 @@
   "composer.removeLink": "הסרת הקישור אל {name}",
   "links.title": "קבצים ששותפו דרך Nextcloud",
   "links.password": "סיסמה: {password}",
-  "links.until": "זמין עד {date}"
+  "links.until": "זמין עד {date}",
+  "offload.title": "קובץ מצורף גדול",
+  "offload.intro": "הגודל של {name} הוא {size}. להעלות אותו ל-Nextcloud ולשים קישור בהודעה במקום? הנמענים יורידו אותו מ-Nextcloud.",
+  "offload.folder": "הקובץ יישמר בתיקיה {folder}.",
+  "offload.uploading": "מעלה ל-Nextcloud: {loaded} מתוך {total}",
+  "offload.paused": "ההעלאה הושהתה. המשיכו כדי להמשיך מהמקום שבו נעצרה.",
+  "offload.attachNormally": "צירוף כרגיל",
+  "offload.upload": "העלאה והוספת קישור",
+  "offload.resume": "המשך ההעלאה"
 }

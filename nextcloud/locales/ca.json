@@ -80,5 +80,13 @@
   "composer.removeLink": "Elimina l'enllaç a {name}",
   "links.title": "Fitxers compartits mitjançant Nextcloud",
   "links.password": "contrasenya: {password}",
-  "links.until": "disponible fins al {date}"
+  "links.until": "disponible fins al {date}",
+  "offload.title": "Fitxer adjunt gran",
+  "offload.intro": "{name} ocupa {size}. Voleu pujar-lo al vostre Nextcloud i posar-ne un enllaç al missatge? Així els destinataris el baixen de Nextcloud.",
+  "offload.folder": "Es desa a la carpeta {folder}.",
+  "offload.uploading": "S'està pujant a Nextcloud: {loaded} de {total}",
+  "offload.paused": "Pujada en pausa. Reprendeu-la per continuar on s'ha aturat.",
+  "offload.attachNormally": "Adjunta com sempre",
+  "offload.upload": "Puja i afegeix l'enllaç",
+  "offload.resume": "Reprèn la pujada"
 }

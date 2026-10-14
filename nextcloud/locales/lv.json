@@ -80,5 +80,13 @@
   "composer.removeLink": "Noņemt saiti uz {name}",
   "links.title": "Faili, kopīgoti, izmantojot Nextcloud",
   "links.password": "parole: {password}",
-  "links.until": "pieejams līdz {date}"
+  "links.until": "pieejams līdz {date}",
+  "offload.title": "Liels pielikums",
+  "offload.intro": "{name} izmērs ir {size}. Augšupielādēt to jūsu Nextcloud un ievietot vēstulē saiti? Tad adresāti to lejupielādēs no Nextcloud.",
+  "offload.folder": "Tas tiks ievietots mapē {folder}.",
+  "offload.uploading": "Augšupielādē uz Nextcloud: {loaded} no {total}",
+  "offload.paused": "Augšupielāde pauzēta. Atsāciet, lai turpinātu no vietas, kur tā apstājās.",
+  "offload.attachNormally": "Pievienot kā parasti",
+  "offload.upload": "Augšupielādēt un pievienot saiti",
+  "offload.resume": "Atsākt augšupielādi"
 }

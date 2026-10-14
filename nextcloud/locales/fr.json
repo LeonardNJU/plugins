@@ -80,5 +80,13 @@
   "composer.removeLink": "Retirer le lien vers {name}",
   "links.title": "Fichiers partagés via Nextcloud",
   "links.password": "mot de passe : {password}",
-  "links.until": "disponible jusqu'au {date}"
+  "links.until": "disponible jusqu'au {date}",
+  "offload.title": "Pièce jointe volumineuse",
+  "offload.intro": "{name} fait {size}. L'envoyer plutôt sur votre Nextcloud et mettre un lien dans le message ? Les destinataires le téléchargeront depuis Nextcloud.",
+  "offload.folder": "Il sera placé dans le dossier {folder}.",
+  "offload.uploading": "Envoi vers Nextcloud : {loaded} sur {total}",
+  "offload.paused": "Envoi en pause. Reprenez-le pour continuer là où il s'est arrêté.",
+  "offload.attachNormally": "Joindre normalement",
+  "offload.upload": "Envoyer et ajouter le lien",
+  "offload.resume": "Reprendre l'envoi"
 }

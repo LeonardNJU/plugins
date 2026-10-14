@@ -80,5 +80,13 @@
   "composer.removeLink": "Odstrániť odkaz na {name}",
   "links.title": "Súbory zdieľané cez Nextcloud",
   "links.password": "heslo: {password}",
-  "links.until": "k dispozícii do {date}"
+  "links.until": "k dispozícii do {date}",
+  "offload.title": "Veľká príloha",
+  "offload.intro": "{name} má {size}. Nahrať ju namiesto toho do Nextcloudu a vložiť do správy odkaz? Príjemcovia si ju potom stiahnu z Nextcloudu.",
+  "offload.folder": "Uloží sa do priečinka {folder}.",
+  "offload.uploading": "Nahrávanie do Nextcloudu: {loaded} z {total}",
+  "offload.paused": "Nahrávanie je pozastavené. Pokračujte tam, kde sa zastavilo.",
+  "offload.attachNormally": "Priložiť normálne",
+  "offload.upload": "Nahrať a pridať odkaz",
+  "offload.resume": "Pokračovať v nahrávaní"
 }

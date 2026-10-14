@@ -80,5 +80,13 @@
   "composer.removeLink": "Remove the link to {name}",
   "links.title": "Files shared with Nextcloud",
   "links.password": "password: {password}",
-  "links.until": "available until {date}"
+  "links.until": "available until {date}",
+  "offload.title": "Large attachment",
+  "offload.intro": "{name} is {size}. Upload it to your Nextcloud and put a link in the message instead? Recipients then download it from Nextcloud.",
+  "offload.folder": "It goes to the folder {folder}.",
+  "offload.uploading": "Uploading to Nextcloud: {loaded} of {total}",
+  "offload.paused": "Upload paused. Resume to continue where it stopped.",
+  "offload.attachNormally": "Attach as usual",
+  "offload.upload": "Upload and add link",
+  "offload.resume": "Resume upload"
 }

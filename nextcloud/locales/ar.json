@@ -80,5 +80,13 @@
   "composer.removeLink": "إزالة الرابط إلى {name}",
   "links.title": "ملفات مشتركة عبر Nextcloud",
   "links.password": "كلمة المرور: {password}",
-  "links.until": "متاح حتى {date}"
+  "links.until": "متاح حتى {date}",
+  "offload.title": "مرفق كبير",
+  "offload.intro": "حجم {name} هو {size}. هل تريد رفعه إلى Nextcloud ووضع رابط في الرسالة بدلًا منه؟ سيُنزّله المستلمون عندها من Nextcloud.",
+  "offload.folder": "سيُحفظ في المجلد {folder}.",
+  "offload.uploading": "جارٍ الرفع إلى Nextcloud: {loaded} من {total}",
+  "offload.paused": "توقف الرفع مؤقتًا. استأنفه ليكمل من حيث توقف.",
+  "offload.attachNormally": "إرفاق كالمعتاد",
+  "offload.upload": "رفع وإضافة رابط",
+  "offload.resume": "استئناف الرفع"
 }

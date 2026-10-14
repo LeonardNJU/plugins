@@ -12,7 +12,8 @@
     "ui:composer-toolbar",
     "email:read",
     "email:send",
-    "email:blob-write"
+    "email:blob-write",
+    "email:blob-read"
   ],
   "entrypoint": "index.js",
   "minAppVersion": "1.7.0",
@@ -48,6 +49,36 @@
       "default": 14,
       "min": 0,
       "max": 365
+    },
+    "offerLargeUpload": {
+      "type": "boolean",
+      "label": "Offer to send large attachments as a Nextcloud link",
+      "description": "When you attach a file larger than the size below, ask whether to upload it to Nextcloud and add a link instead.",
+      "default": true
+    },
+    "largeFileMb": {
+      "type": "number",
+      "label": "Large attachment size (MB)",
+      "description": "Files from this size on get the offer.",
+      "default": 10,
+      "min": 1,
+      "max": 10240
+    },
+    "uploadFolder": {
+      "type": "string",
+      "label": "Upload folder",
+      "description": "Folder in your Nextcloud for files uploaded from the webmail. Created when needed.",
+      "default": "Mail attachments"
+    },
+    "folderLayout": {
+      "type": "select",
+      "label": "Folder layout",
+      "description": "date: one subfolder per day. flat: everything in the upload folder.",
+      "default": "date",
+      "options": [
+        "date",
+        "flat"
+      ]
     }
   },
   "locales": {
@@ -133,7 +164,15 @@
       "composer.removeLink": "إزالة الرابط إلى {name}",
       "links.title": "ملفات مشتركة عبر Nextcloud",
       "links.password": "كلمة المرور: {password}",
-      "links.until": "متاح حتى {date}"
+      "links.until": "متاح حتى {date}",
+      "offload.title": "مرفق كبير",
+      "offload.intro": "حجم {name} هو {size}. هل تريد رفعه إلى Nextcloud ووضع رابط في الرسالة بدلًا منه؟ سيُنزّله المستلمون عندها من Nextcloud.",
+      "offload.folder": "سيُحفظ في المجلد {folder}.",
+      "offload.uploading": "جارٍ الرفع إلى Nextcloud: {loaded} من {total}",
+      "offload.paused": "توقف الرفع مؤقتًا. استأنفه ليكمل من حيث توقف.",
+      "offload.attachNormally": "إرفاق كالمعتاد",
+      "offload.upload": "رفع وإضافة رابط",
+      "offload.resume": "استئناف الرفع"
     },
     "ca": {
       "common.cancel": "Cancel·la",
@@ -217,7 +256,15 @@
       "composer.removeLink": "Elimina l'enllaç a {name}",
       "links.title": "Fitxers compartits mitjançant Nextcloud",
       "links.password": "contrasenya: {password}",
-      "links.until": "disponible fins al {date}"
+      "links.until": "disponible fins al {date}",
+      "offload.title": "Fitxer adjunt gran",
+      "offload.intro": "{name} ocupa {size}. Voleu pujar-lo al vostre Nextcloud i posar-ne un enllaç al missatge? Així els destinataris el baixen de Nextcloud.",
+      "offload.folder": "Es desa a la carpeta {folder}.",
+      "offload.uploading": "S'està pujant a Nextcloud: {loaded} de {total}",
+      "offload.paused": "Pujada en pausa. Reprendeu-la per continuar on s'ha aturat.",
+      "offload.attachNormally": "Adjunta com sempre",
+      "offload.upload": "Puja i afegeix l'enllaç",
+      "offload.resume": "Reprèn la pujada"
     },
     "cs": {
       "common.cancel": "Zrušit",
@@ -301,7 +348,15 @@
       "composer.removeLink": "Odebrat odkaz na {name}",
       "links.title": "Soubory sdílené přes Nextcloud",
       "links.password": "heslo: {password}",
-      "links.until": "k dispozici do {date}"
+      "links.until": "k dispozici do {date}",
+      "offload.title": "Velká příloha",
+      "offload.intro": "{name} má {size}. Nahrát ji místo toho do Nextcloudu a vložit do zprávy odkaz? Příjemci si ji pak stáhnou z Nextcloudu.",
+      "offload.folder": "Uloží se do složky {folder}.",
+      "offload.uploading": "Nahrávání do Nextcloudu: {loaded} z {total}",
+      "offload.paused": "Nahrávání je pozastavené. Pokračujte tam, kde se zastavilo.",
+      "offload.attachNormally": "Připojit normálně",
+      "offload.upload": "Nahrát a přidat odkaz",
+      "offload.resume": "Pokračovat v nahrávání"
     },
     "da": {
       "common.cancel": "Annuller",
@@ -385,7 +440,15 @@
       "composer.removeLink": "Fjern linket til {name}",
       "links.title": "Filer delt via Nextcloud",
       "links.password": "adgangskode: {password}",
-      "links.until": "tilgængelig indtil {date}"
+      "links.until": "tilgængelig indtil {date}",
+      "offload.title": "Stor vedhæftning",
+      "offload.intro": "{name} fylder {size}. Vil du uploade den til din Nextcloud og sætte et link i beskeden i stedet? Modtagerne henter den så fra Nextcloud.",
+      "offload.folder": "Den lægges i mappen {folder}.",
+      "offload.uploading": "Uploader til Nextcloud: {loaded} af {total}",
+      "offload.paused": "Upload sat på pause. Genoptag for at fortsætte, hvor den stoppede.",
+      "offload.attachNormally": "Vedhæft som normalt",
+      "offload.upload": "Upload og tilføj link",
+      "offload.resume": "Genoptag upload"
     },
     "de": {
       "common.cancel": "Abbrechen",
@@ -469,7 +532,15 @@
       "composer.removeLink": "Link zu {name} entfernen",
       "links.title": "Über Nextcloud geteilte Dateien",
       "links.password": "Passwort: {password}",
-      "links.until": "verfügbar bis {date}"
+      "links.until": "verfügbar bis {date}",
+      "offload.title": "Großer Anhang",
+      "offload.intro": "{name} ist {size} groß. Stattdessen in Ihre Nextcloud hochladen und einen Link in die Nachricht setzen? Die Empfänger laden die Datei dann aus Nextcloud herunter.",
+      "offload.folder": "Die Datei kommt in den Ordner {folder}.",
+      "offload.uploading": "Wird in Nextcloud hochgeladen: {loaded} von {total}",
+      "offload.paused": "Hochladen pausiert. Setzen Sie es fort, um dort weiterzumachen, wo es aufgehört hat.",
+      "offload.attachNormally": "Normal anhängen",
+      "offload.upload": "Hochladen und Link einfügen",
+      "offload.resume": "Hochladen fortsetzen"
     },
     "en": {
       "common.cancel": "Cancel",
@@ -553,7 +624,15 @@
       "composer.removeLink": "Remove the link to {name}",
       "links.title": "Files shared with Nextcloud",
       "links.password": "password: {password}",
-      "links.until": "available until {date}"
+      "links.until": "available until {date}",
+      "offload.title": "Large attachment",
+      "offload.intro": "{name} is {size}. Upload it to your Nextcloud and put a link in the message instead? Recipients then download it from Nextcloud.",
+      "offload.folder": "It goes to the folder {folder}.",
+      "offload.uploading": "Uploading to Nextcloud: {loaded} of {total}",
+      "offload.paused": "Upload paused. Resume to continue where it stopped.",
+      "offload.attachNormally": "Attach as usual",
+      "offload.upload": "Upload and add link",
+      "offload.resume": "Resume upload"
     },
     "es": {
       "common.cancel": "Cancelar",
@@ -637,7 +716,15 @@
       "composer.removeLink": "Quitar el enlace a {name}",
       "links.title": "Archivos compartidos mediante Nextcloud",
       "links.password": "contraseña: {password}",
-      "links.until": "disponible hasta el {date}"
+      "links.until": "disponible hasta el {date}",
+      "offload.title": "Archivo adjunto grande",
+      "offload.intro": "{name} ocupa {size}. ¿Lo subes a tu Nextcloud y pones un enlace en el mensaje? Así los destinatarios lo descargan desde Nextcloud.",
+      "offload.folder": "Se guarda en la carpeta {folder}.",
+      "offload.uploading": "Subiendo a Nextcloud: {loaded} de {total}",
+      "offload.paused": "Subida en pausa. Reanúdala para seguir donde se quedó.",
+      "offload.attachNormally": "Adjuntar como siempre",
+      "offload.upload": "Subir y añadir enlace",
+      "offload.resume": "Reanudar subida"
     },
     "fa": {
       "common.cancel": "انصراف",
@@ -721,7 +808,15 @@
       "composer.removeLink": "حذف لینک {name}",
       "links.title": "فایل‌های به اشتراک گذاشته‌شده از طریق Nextcloud",
       "links.password": "رمز عبور: {password}",
-      "links.until": "در دسترس تا {date}"
+      "links.until": "در دسترس تا {date}",
+      "offload.title": "پیوست بزرگ",
+      "offload.intro": "حجم {name} برابر {size} است. به جای آن در Nextcloud بارگذاری شود و لینکش در پیام قرار گیرد؟ گیرندگان آن را از Nextcloud دانلود می‌کنند.",
+      "offload.folder": "در پوشه {folder} ذخیره می‌شود.",
+      "offload.uploading": "در حال بارگذاری در Nextcloud: {loaded} از {total}",
+      "offload.paused": "بارگذاری متوقف شد. ادامه دهید تا از همان جایی که ماند ادامه پیدا کند.",
+      "offload.attachNormally": "پیوست به روش معمول",
+      "offload.upload": "بارگذاری و افزودن لینک",
+      "offload.resume": "ادامه بارگذاری"
     },
     "fr": {
       "common.cancel": "Annuler",
@@ -805,7 +900,15 @@
       "composer.removeLink": "Retirer le lien vers {name}",
       "links.title": "Fichiers partagés via Nextcloud",
       "links.password": "mot de passe : {password}",
-      "links.until": "disponible jusqu'au {date}"
+      "links.until": "disponible jusqu'au {date}",
+      "offload.title": "Pièce jointe volumineuse",
+      "offload.intro": "{name} fait {size}. L'envoyer plutôt sur votre Nextcloud et mettre un lien dans le message ? Les destinataires le téléchargeront depuis Nextcloud.",
+      "offload.folder": "Il sera placé dans le dossier {folder}.",
+      "offload.uploading": "Envoi vers Nextcloud : {loaded} sur {total}",
+      "offload.paused": "Envoi en pause. Reprenez-le pour continuer là où il s'est arrêté.",
+      "offload.attachNormally": "Joindre normalement",
+      "offload.upload": "Envoyer et ajouter le lien",
+      "offload.resume": "Reprendre l'envoi"
     },
     "he": {
       "common.cancel": "ביטול",
@@ -889,7 +992,15 @@
       "composer.removeLink": "הסרת הקישור אל {name}",
       "links.title": "קבצים ששותפו דרך Nextcloud",
       "links.password": "סיסמה: {password}",
-      "links.until": "זמין עד {date}"
+      "links.until": "זמין עד {date}",
+      "offload.title": "קובץ מצורף גדול",
+      "offload.intro": "הגודל של {name} הוא {size}. להעלות אותו ל-Nextcloud ולשים קישור בהודעה במקום? הנמענים יורידו אותו מ-Nextcloud.",
+      "offload.folder": "הקובץ יישמר בתיקיה {folder}.",
+      "offload.uploading": "מעלה ל-Nextcloud: {loaded} מתוך {total}",
+      "offload.paused": "ההעלאה הושהתה. המשיכו כדי להמשיך מהמקום שבו נעצרה.",
+      "offload.attachNormally": "צירוף כרגיל",
+      "offload.upload": "העלאה והוספת קישור",
+      "offload.resume": "המשך ההעלאה"
     },
     "hu": {
       "common.cancel": "Mégse",
@@ -973,7 +1084,15 @@
       "composer.removeLink": "{name} linkjének eltávolítása",
       "links.title": "Nextcloudon keresztül megosztott fájlok",
       "links.password": "jelszó: {password}",
-      "links.until": "elérhető eddig: {date}"
+      "links.until": "elérhető eddig: {date}",
+      "offload.title": "Nagy csatolmány",
+      "offload.intro": "{name} mérete {size}. Inkább feltöltöd a Nextcloudodba, és linket teszel az üzenetbe? A címzettek így a Nextcloudból töltik le.",
+      "offload.folder": "A(z) {folder} mappába kerül.",
+      "offload.uploading": "Feltöltés a Nextcloudba: {loaded} / {total}",
+      "offload.paused": "A feltöltés szünetel. Folytasd, és ott halad tovább, ahol abbamaradt.",
+      "offload.attachNormally": "Csatolás a szokásos módon",
+      "offload.upload": "Feltöltés és link hozzáadása",
+      "offload.resume": "Feltöltés folytatása"
     },
     "it": {
       "common.cancel": "Annulla",
@@ -1057,7 +1176,15 @@
       "composer.removeLink": "Rimuovi il link a {name}",
       "links.title": "File condivisi tramite Nextcloud",
       "links.password": "password: {password}",
-      "links.until": "disponibile fino al {date}"
+      "links.until": "disponibile fino al {date}",
+      "offload.title": "Allegato grande",
+      "offload.intro": "{name} pesa {size}. Vuoi caricarlo sul tuo Nextcloud e mettere un link nel messaggio? I destinatari lo scaricheranno da Nextcloud.",
+      "offload.folder": "Verrà salvato nella cartella {folder}.",
+      "offload.uploading": "Caricamento su Nextcloud: {loaded} di {total}",
+      "offload.paused": "Caricamento in pausa. Riprendilo per continuare da dove si è fermato.",
+      "offload.attachNormally": "Allega normalmente",
+      "offload.upload": "Carica e aggiungi il link",
+      "offload.resume": "Riprendi il caricamento"
     },
     "ja": {
       "common.cancel": "キャンセル",
@@ -1141,7 +1268,15 @@
       "composer.removeLink": "{name} へのリンクを削除",
       "links.title": "Nextcloud で共有したファイル",
       "links.password": "パスワード: {password}",
-      "links.until": "{date} まで利用可能"
+      "links.until": "{date} まで利用可能",
+      "offload.title": "大きな添付ファイル",
+      "offload.intro": "{name} は {size} あります。代わりに Nextcloud にアップロードして、メッセージにリンクを入れますか? 受信者は Nextcloud からダウンロードします。",
+      "offload.folder": "保存先はフォルダー {folder} です。",
+      "offload.uploading": "Nextcloud にアップロード中: {loaded} / {total}",
+      "offload.paused": "アップロードを一時停止しました。再開すると、止まったところから続きます。",
+      "offload.attachNormally": "通常どおり添付",
+      "offload.upload": "アップロードしてリンクを追加",
+      "offload.resume": "アップロードを再開"
     },
     "ko": {
       "common.cancel": "취소",
@@ -1225,7 +1360,15 @@
       "composer.removeLink": "{name} 링크 삭제",
       "links.title": "Nextcloud로 공유한 파일",
       "links.password": "비밀번호: {password}",
-      "links.until": "{date}까지 이용 가능"
+      "links.until": "{date}까지 이용 가능",
+      "offload.title": "큰 첨부파일",
+      "offload.intro": "{name}의 크기는 {size}입니다. 대신 Nextcloud에 업로드하고 메일에 링크를 넣을까요? 받는 사람은 Nextcloud에서 내려받게 됩니다.",
+      "offload.folder": "{folder} 폴더에 저장됩니다.",
+      "offload.uploading": "Nextcloud에 업로드 중: {loaded} / {total}",
+      "offload.paused": "업로드가 일시 중지되었습니다. 다시 시작하면 멈춘 곳부터 이어집니다.",
+      "offload.attachNormally": "평소처럼 첨부",
+      "offload.upload": "업로드하고 링크 추가",
+      "offload.resume": "업로드 다시 시작"
     },
     "lv": {
       "common.cancel": "Atcelt",
@@ -1309,7 +1452,15 @@
       "composer.removeLink": "Noņemt saiti uz {name}",
       "links.title": "Faili, kopīgoti, izmantojot Nextcloud",
       "links.password": "parole: {password}",
-      "links.until": "pieejams līdz {date}"
+      "links.until": "pieejams līdz {date}",
+      "offload.title": "Liels pielikums",
+      "offload.intro": "{name} izmērs ir {size}. Augšupielādēt to jūsu Nextcloud un ievietot vēstulē saiti? Tad adresāti to lejupielādēs no Nextcloud.",
+      "offload.folder": "Tas tiks ievietots mapē {folder}.",
+      "offload.uploading": "Augšupielādē uz Nextcloud: {loaded} no {total}",
+      "offload.paused": "Augšupielāde pauzēta. Atsāciet, lai turpinātu no vietas, kur tā apstājās.",
+      "offload.attachNormally": "Pievienot kā parasti",
+      "offload.upload": "Augšupielādēt un pievienot saiti",
+      "offload.resume": "Atsākt augšupielādi"
     },
     "mn": {
       "common.cancel": "Цуцлах",
@@ -1393,7 +1544,15 @@
       "composer.removeLink": "{name} руу чиглэсэн холбоосыг хасах",
       "links.title": "Nextcloud-оор хуваалцсан файлууд",
       "links.password": "нууц үг: {password}",
-      "links.until": "{date} хүртэл ашиглах боломжтой"
+      "links.until": "{date} хүртэл ашиглах боломжтой",
+      "offload.title": "Том хавсралт",
+      "offload.intro": "{name} нь {size} хэмжээтэй. Оронд нь Nextcloud руу байршуулж, захидалд холбоос оруулах уу? Хүлээн авагчид Nextcloud-оос татаж авна.",
+      "offload.folder": "{folder} хавтаст хадгалагдана.",
+      "offload.uploading": "Nextcloud руу байршуулж байна: {loaded} / {total}",
+      "offload.paused": "Байршуулалт түр зогссон. Үргэлжлүүлбэл зогссон газраасаа цааш явна.",
+      "offload.attachNormally": "Ердийнхөөр хавсаргах",
+      "offload.upload": "Байршуулаад холбоос нэмэх",
+      "offload.resume": "Байршуулалтыг үргэлжлүүлэх"
     },
     "nb": {
       "common.cancel": "Avbryt",
@@ -1477,7 +1636,15 @@
       "composer.removeLink": "Fjern lenken til {name}",
       "links.title": "Filer delt via Nextcloud",
       "links.password": "passord: {password}",
-      "links.until": "tilgjengelig til {date}"
+      "links.until": "tilgjengelig til {date}",
+      "offload.title": "Stort vedlegg",
+      "offload.intro": "{name} er {size}. Vil du laste den opp til Nextcloud og legge en lenke i meldingen i stedet? Mottakerne laster den da ned fra Nextcloud.",
+      "offload.folder": "Den havner i mappen {folder}.",
+      "offload.uploading": "Laster opp til Nextcloud: {loaded} av {total}",
+      "offload.paused": "Opplastingen er satt på pause. Fortsett, så går den videre der den stoppet.",
+      "offload.attachNormally": "Legg ved som vanlig",
+      "offload.upload": "Last opp og legg til lenke",
+      "offload.resume": "Fortsett opplastingen"
     },
     "nl": {
       "common.cancel": "Annuleren",
@@ -1561,7 +1728,15 @@
       "composer.removeLink": "Link naar {name} verwijderen",
       "links.title": "Bestanden gedeeld via Nextcloud",
       "links.password": "wachtwoord: {password}",
-      "links.until": "beschikbaar tot {date}"
+      "links.until": "beschikbaar tot {date}",
+      "offload.title": "Grote bijlage",
+      "offload.intro": "{name} is {size}. Uploaden naar je Nextcloud en een link in het bericht zetten? Ontvangers downloaden het dan uit Nextcloud.",
+      "offload.folder": "Het komt in de map {folder}.",
+      "offload.uploading": "Uploaden naar Nextcloud: {loaded} van {total}",
+      "offload.paused": "Upload gepauzeerd. Hervat om verder te gaan waar hij stopte.",
+      "offload.attachNormally": "Gewoon bijvoegen",
+      "offload.upload": "Uploaden en link toevoegen",
+      "offload.resume": "Upload hervatten"
     },
     "pl": {
       "common.cancel": "Anuluj",
@@ -1645,7 +1820,15 @@
       "composer.removeLink": "Usuń link do {name}",
       "links.title": "Pliki udostępnione przez Nextcloud",
       "links.password": "hasło: {password}",
-      "links.until": "dostępne do {date}"
+      "links.until": "dostępne do {date}",
+      "offload.title": "Duży załącznik",
+      "offload.intro": "{name} ma {size}. Przesłać go do Nextcloud i wstawić link do wiadomości? Odbiorcy pobiorą go wtedy z Nextcloud.",
+      "offload.folder": "Trafi do folderu {folder}.",
+      "offload.uploading": "Przesyłanie do Nextcloud: {loaded} z {total}",
+      "offload.paused": "Przesyłanie wstrzymane. Wznów, aby kontynuować od miejsca, w którym się zatrzymało.",
+      "offload.attachNormally": "Załącz normalnie",
+      "offload.upload": "Prześlij i dodaj link",
+      "offload.resume": "Wznów przesyłanie"
     },
     "pt": {
       "common.cancel": "Cancelar",
@@ -1729,7 +1912,15 @@
       "composer.removeLink": "Remover o link para {name}",
       "links.title": "Arquivos compartilhados pelo Nextcloud",
       "links.password": "senha: {password}",
-      "links.until": "disponível até {date}"
+      "links.until": "disponível até {date}",
+      "offload.title": "Anexo grande",
+      "offload.intro": "{name} tem {size}. Enviar para o seu Nextcloud e colocar um link na mensagem? Os destinatários baixam o arquivo do Nextcloud.",
+      "offload.folder": "Ele vai para a pasta {folder}.",
+      "offload.uploading": "Enviando para o Nextcloud: {loaded} de {total}",
+      "offload.paused": "Envio pausado. Retome para continuar de onde parou.",
+      "offload.attachNormally": "Anexar normalmente",
+      "offload.upload": "Enviar e adicionar link",
+      "offload.resume": "Retomar envio"
     },
     "ro": {
       "common.cancel": "Anulează",
@@ -1813,7 +2004,15 @@
       "composer.removeLink": "Eliminați linkul către {name}",
       "links.title": "Fișiere partajate prin Nextcloud",
       "links.password": "parolă: {password}",
-      "links.until": "disponibil până la {date}"
+      "links.until": "disponibil până la {date}",
+      "offload.title": "Atașament mare",
+      "offload.intro": "{name} are {size}. Îl încărcați în Nextcloud și puneți un link în mesaj? Destinatarii îl vor descărca din Nextcloud.",
+      "offload.folder": "Ajunge în dosarul {folder}.",
+      "offload.uploading": "Se încarcă în Nextcloud: {loaded} din {total}",
+      "offload.paused": "Încărcare întreruptă. Reluați pentru a continua de unde a rămas.",
+      "offload.attachNormally": "Atașați normal",
+      "offload.upload": "Încărcați și adăugați linkul",
+      "offload.resume": "Reluați încărcarea"
     },
     "ru": {
       "common.cancel": "Отмена",
@@ -1897,7 +2096,15 @@
       "composer.removeLink": "Удалить ссылку на {name}",
       "links.title": "Файлы, переданные через Nextcloud",
       "links.password": "пароль: {password}",
-      "links.until": "доступно до {date}"
+      "links.until": "доступно до {date}",
+      "offload.title": "Большое вложение",
+      "offload.intro": "{name} занимает {size}. Загрузить его в Nextcloud и вставить в письмо ссылку? Тогда получатели скачают файл из Nextcloud.",
+      "offload.folder": "Файл попадёт в папку {folder}.",
+      "offload.uploading": "Загрузка в Nextcloud: {loaded} из {total}",
+      "offload.paused": "Загрузка приостановлена. Продолжите, и она пойдёт с того места, где остановилась.",
+      "offload.attachNormally": "Прикрепить как обычно",
+      "offload.upload": "Загрузить и добавить ссылку",
+      "offload.resume": "Продолжить загрузку"
     },
     "sk": {
       "common.cancel": "Zrušiť",
@@ -1981,7 +2188,15 @@
       "composer.removeLink": "Odstrániť odkaz na {name}",
       "links.title": "Súbory zdieľané cez Nextcloud",
       "links.password": "heslo: {password}",
-      "links.until": "k dispozícii do {date}"
+      "links.until": "k dispozícii do {date}",
+      "offload.title": "Veľká príloha",
+      "offload.intro": "{name} má {size}. Nahrať ju namiesto toho do Nextcloudu a vložiť do správy odkaz? Príjemcovia si ju potom stiahnu z Nextcloudu.",
+      "offload.folder": "Uloží sa do priečinka {folder}.",
+      "offload.uploading": "Nahrávanie do Nextcloudu: {loaded} z {total}",
+      "offload.paused": "Nahrávanie je pozastavené. Pokračujte tam, kde sa zastavilo.",
+      "offload.attachNormally": "Priložiť normálne",
+      "offload.upload": "Nahrať a pridať odkaz",
+      "offload.resume": "Pokračovať v nahrávaní"
     },
     "tr": {
       "common.cancel": "İptal",
@@ -2065,7 +2280,15 @@
       "composer.removeLink": "{name} bağlantısını kaldır",
       "links.title": "Nextcloud ile paylaşılan dosyalar",
       "links.password": "parola: {password}",
-      "links.until": "{date} tarihine kadar kullanılabilir"
+      "links.until": "{date} tarihine kadar kullanılabilir",
+      "offload.title": "Büyük ek",
+      "offload.intro": "{name} {size} boyutunda. Bunun yerine Nextcloud'unuza yükleyip iletiye bir bağlantı eklensin mi? Alıcılar dosyayı Nextcloud'dan indirir.",
+      "offload.folder": "Dosya {folder} klasörüne gider.",
+      "offload.uploading": "Nextcloud'a yükleniyor: {loaded} / {total}",
+      "offload.paused": "Yükleme duraklatıldı. Kaldığı yerden devam etmek için sürdürün.",
+      "offload.attachNormally": "Normal şekilde ekle",
+      "offload.upload": "Yükle ve bağlantı ekle",
+      "offload.resume": "Yüklemeyi sürdür"
     },
     "uk": {
       "common.cancel": "Скасувати",
@@ -2149,7 +2372,15 @@
       "composer.removeLink": "Вилучити посилання на {name}",
       "links.title": "Файли, надіслані через Nextcloud",
       "links.password": "пароль: {password}",
-      "links.until": "доступно до {date}"
+      "links.until": "доступно до {date}",
+      "offload.title": "Велике вкладення",
+      "offload.intro": "{name} займає {size}. Завантажити його у ваш Nextcloud і додати в лист посилання? Тоді одержувачі завантажать файл із Nextcloud.",
+      "offload.folder": "Файл потрапить у папку {folder}.",
+      "offload.uploading": "Завантаження в Nextcloud: {loaded} з {total}",
+      "offload.paused": "Завантаження призупинено. Відновіть його, щоб продовжити з того місця, де воно зупинилося.",
+      "offload.attachNormally": "Прикріпити як зазвичай",
+      "offload.upload": "Завантажити й додати посилання",
+      "offload.resume": "Відновити завантаження"
     },
     "zh-TW": {
       "common.cancel": "取消",
@@ -2233,7 +2464,15 @@
       "composer.removeLink": "移除指向 {name} 的連結",
       "links.title": "透過 Nextcloud 分享的檔案",
       "links.password": "密碼：{password}",
-      "links.until": "有效期限至 {date}"
+      "links.until": "有效期限至 {date}",
+      "offload.title": "大型附件",
+      "offload.intro": "{name} 大小為 {size}。要改為上傳到你的 Nextcloud，並在郵件中放入連結嗎？收件者會從 Nextcloud 下載。",
+      "offload.folder": "檔案會存放在資料夾 {folder} 中。",
+      "offload.uploading": "正在上傳到 Nextcloud：{loaded} / {total}",
+      "offload.paused": "上傳已暫停。繼續後會從中斷處接著上傳。",
+      "offload.attachNormally": "照常附加",
+      "offload.upload": "上傳並加入連結",
+      "offload.resume": "繼續上傳"
     },
     "zh": {
       "common.cancel": "取消",
@@ -2317,7 +2556,15 @@
       "composer.removeLink": "移除指向 {name} 的链接",
       "links.title": "通过 Nextcloud 分享的文件",
       "links.password": "密码：{password}",
-      "links.until": "有效期至 {date}"
+      "links.until": "有效期至 {date}",
+      "offload.title": "大附件",
+      "offload.intro": "{name} 大小为 {size}。要改为上传到你的 Nextcloud，并在邮件中放入链接吗？收件人将从 Nextcloud 下载。",
+      "offload.folder": "文件将存放在文件夹 {folder} 中。",
+      "offload.uploading": "正在上传到 Nextcloud：{loaded} / {total}",
+      "offload.paused": "上传已暂停。继续后会从中断处接着上传。",
+      "offload.attachNormally": "照常添加附件",
+      "offload.upload": "上传并添加链接",
+      "offload.resume": "继续上传"
     }
   }
 }

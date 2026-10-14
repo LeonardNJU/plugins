@@ -80,5 +80,13 @@
   "composer.removeLink": "{name} руу чиглэсэн холбоосыг хасах",
   "links.title": "Nextcloud-оор хуваалцсан файлууд",
   "links.password": "нууц үг: {password}",
-  "links.until": "{date} хүртэл ашиглах боломжтой"
+  "links.until": "{date} хүртэл ашиглах боломжтой",
+  "offload.title": "Том хавсралт",
+  "offload.intro": "{name} нь {size} хэмжээтэй. Оронд нь Nextcloud руу байршуулж, захидалд холбоос оруулах уу? Хүлээн авагчид Nextcloud-оос татаж авна.",
+  "offload.folder": "{folder} хавтаст хадгалагдана.",
+  "offload.uploading": "Nextcloud руу байршуулж байна: {loaded} / {total}",
+  "offload.paused": "Байршуулалт түр зогссон. Үргэлжлүүлбэл зогссон газраасаа цааш явна.",
+  "offload.attachNormally": "Ердийнхөөр хавсаргах",
+  "offload.upload": "Байршуулаад холбоос нэмэх",
+  "offload.resume": "Байршуулалтыг үргэлжлүүлэх"
 }

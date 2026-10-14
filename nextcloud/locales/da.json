@@ -80,5 +80,13 @@
   "composer.removeLink": "Fjern linket til {name}",
   "links.title": "Filer delt via Nextcloud",
   "links.password": "adgangskode: {password}",
-  "links.until": "tilgængelig indtil {date}"
+  "links.until": "tilgængelig indtil {date}",
+  "offload.title": "Stor vedhæftning",
+  "offload.intro": "{name} fylder {size}. Vil du uploade den til din Nextcloud og sætte et link i beskeden i stedet? Modtagerne henter den så fra Nextcloud.",
+  "offload.folder": "Den lægges i mappen {folder}.",
+  "offload.uploading": "Uploader til Nextcloud: {loaded} af {total}",
+  "offload.paused": "Upload sat på pause. Genoptag for at fortsætte, hvor den stoppede.",
+  "offload.attachNormally": "Vedhæft som normalt",
+  "offload.upload": "Upload og tilføj link",
+  "offload.resume": "Genoptag upload"
 }

@@ -80,5 +80,13 @@
   "composer.removeLink": "移除指向 {name} 的連結",
   "links.title": "透過 Nextcloud 分享的檔案",
   "links.password": "密碼：{password}",
-  "links.until": "有效期限至 {date}"
+  "links.until": "有效期限至 {date}",
+  "offload.title": "大型附件",
+  "offload.intro": "{name} 大小為 {size}。要改為上傳到你的 Nextcloud，並在郵件中放入連結嗎？收件者會從 Nextcloud 下載。",
+  "offload.folder": "檔案會存放在資料夾 {folder} 中。",
+  "offload.uploading": "正在上傳到 Nextcloud：{loaded} / {total}",
+  "offload.paused": "上傳已暫停。繼續後會從中斷處接著上傳。",
+  "offload.attachNormally": "照常附加",
+  "offload.upload": "上傳並加入連結",
+  "offload.resume": "繼續上傳"
 }

@@ -80,5 +80,13 @@
   "composer.removeLink": "حذف لینک {name}",
   "links.title": "فایل‌های به اشتراک گذاشته‌شده از طریق Nextcloud",
   "links.password": "رمز عبور: {password}",
-  "links.until": "در دسترس تا {date}"
+  "links.until": "در دسترس تا {date}",
+  "offload.title": "پیوست بزرگ",
+  "offload.intro": "حجم {name} برابر {size} است. به جای آن در Nextcloud بارگذاری شود و لینکش در پیام قرار گیرد؟ گیرندگان آن را از Nextcloud دانلود می‌کنند.",
+  "offload.folder": "در پوشه {folder} ذخیره می‌شود.",
+  "offload.uploading": "در حال بارگذاری در Nextcloud: {loaded} از {total}",
+  "offload.paused": "بارگذاری متوقف شد. ادامه دهید تا از همان جایی که ماند ادامه پیدا کند.",
+  "offload.attachNormally": "پیوست به روش معمول",
+  "offload.upload": "بارگذاری و افزودن لینک",
+  "offload.resume": "ادامه بارگذاری"
 }

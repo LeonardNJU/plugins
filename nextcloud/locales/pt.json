@@ -80,5 +80,13 @@
   "composer.removeLink": "Remover o link para {name}",
   "links.title": "Arquivos compartilhados pelo Nextcloud",
   "links.password": "senha: {password}",
-  "links.until": "disponível até {date}"
+  "links.until": "disponível até {date}",
+  "offload.title": "Anexo grande",
+  "offload.intro": "{name} tem {size}. Enviar para o seu Nextcloud e colocar um link na mensagem? Os destinatários baixam o arquivo do Nextcloud.",
+  "offload.folder": "Ele vai para a pasta {folder}.",
+  "offload.uploading": "Enviando para o Nextcloud: {loaded} de {total}",
+  "offload.paused": "Envio pausado. Retome para continuar de onde parou.",
+  "offload.attachNormally": "Anexar normalmente",
+  "offload.upload": "Enviar e adicionar link",
+  "offload.resume": "Retomar envio"
 }

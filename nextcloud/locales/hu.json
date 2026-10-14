@@ -80,5 +80,13 @@
   "composer.removeLink": "{name} linkjének eltávolítása",
   "links.title": "Nextcloudon keresztül megosztott fájlok",
   "links.password": "jelszó: {password}",
-  "links.until": "elérhető eddig: {date}"
+  "links.until": "elérhető eddig: {date}",
+  "offload.title": "Nagy csatolmány",
+  "offload.intro": "{name} mérete {size}. Inkább feltöltöd a Nextcloudodba, és linket teszel az üzenetbe? A címzettek így a Nextcloudból töltik le.",
+  "offload.folder": "A(z) {folder} mappába kerül.",
+  "offload.uploading": "Feltöltés a Nextcloudba: {loaded} / {total}",
+  "offload.paused": "A feltöltés szünetel. Folytasd, és ott halad tovább, ahol abbamaradt.",
+  "offload.attachNormally": "Csatolás a szokásos módon",
+  "offload.upload": "Feltöltés és link hozzáadása",
+  "offload.resume": "Feltöltés folytatása"
 }
