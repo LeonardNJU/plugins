@@ -12,6 +12,7 @@ import { appendLinks, clearPending, getPending, linkBlock } from './lib/links.js
 import { SettingsSection } from './ui/settings-section.js';
 import { ComposerSource } from './ui/composer-source.js';
 import { PluginDialog } from './ui/dialog.js';
+import { FilesPage } from './ui/files-page.js';
 
 const FIRST_RUN_KEY = 'firstRunOffered';
 
@@ -36,6 +37,7 @@ export async function registerActions(api) {
   const t = api.i18n.t;
   await api.ui.setActions('attachment-menu', [{ id: 'save-attachment', label: t('save.attachmentAction'), icon: 'cloud-upload' }]);
   await api.ui.setActions('reader-actions', [{ id: 'save-message', label: t('save.messageAction'), icon: 'cloud-upload', order: 200 }]);
+  await api.ui.setPages([{ id: 'files', title: t('page.title'), icon: 'cloud' }]);
 }
 
 export async function activate(api) {
@@ -117,4 +119,5 @@ export const slots = {
   'settings-section': { component: SettingsSection },
   'composer-attachment-source': { component: ComposerSource, order: 50 },
   'plugin-dialog': { component: PluginDialog },
+  'app-page': { component: FilesPage },
 };

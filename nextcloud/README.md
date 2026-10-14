@@ -65,6 +65,21 @@ file with the same name gets " (2)" added. Attachments and messages of up to
 
 ![Choosing a folder](screenshots/save-folder-dark.png)
 
+## The Nextcloud page
+
+**Nextcloud** in the navigation opens your files in the webmail. Browse,
+search and look at recent files; **Upload** (or drop files onto the page)
+with progress, cancel, resume and remove; **New folder**. Select a file to
+**Download** it, create a **Share link**, **Attach to new message** (opens the
+composer with the file attached) or **Open in Nextcloud**. The webmail
+refuses to hand out some file types from a plugin (HTML, SVG, programs);
+for those only "Open in Nextcloud" is offered. A file can't be dragged from
+this page into a composer: the page and the composer are separate frames,
+so "Attach to new message" does that job.
+
+![The Nextcloud page](screenshots/files-page-light.png)
+![The Nextcloud page on a phone](screenshots/files-page-phone-dark.png)
+
 ## Settings
 
 User settings (Settings > Plugins > Nextcloud):
@@ -101,6 +116,9 @@ Nextcloud needs no CORS setup.
 | `email:read` | Drop links picked for a discarded message (`onComposerClose`). |
 | `email:blob-read` | Read a large file you just attached (`upfiles.get`), and an attachment or the message source you save (`email.getAttachment`, `email.getRaw`). |
 | `ui:toolbar` | The "Save message to Nextcloud" button in the reader (`reader-actions`). |
+| `ui:app-page` | The Nextcloud page and its entry in the navigation. |
+| `compose:open` | "Attach to new message" on the Nextcloud page. |
+| `ui:download-file` | "Download" on the Nextcloud page. |
 
 `email:read` also covers the "Save to Nextcloud" entry in the attachment menu
 (`attachment-menu`) and reading the subject of a message you save.
