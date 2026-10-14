@@ -1,0 +1,179 @@
+// The background side: buttons on the mail surfaces, the send flow, the
+// task follow-up. index.js wires it to the host.
+
+import { createClient } from './client.js';
+import { clientFor, connectPersonal, resolveConnection } from './connection.js';
+import { errorText, toPaperlessError } from './errors.js';
+import { collectAttachment, collectMessage, collectMessages, forDialog, plannedUploads } from './send.js';
+import { rememberChoice } from './suggest.js';
+import { createPoller, createTaskTracker } from './tasks.js';
+
+export const REMEMBERED_KEY = 'remembered';
+export const LINKS_KEY = 'links';
+
+export const ACTION_ATTACHMENT = 'send-attachment';
+export const ACTION_MESSAGE = 'send-message';
+export const ACTION_BULK = 'send-bulk';
+
+export function createBackground(api, { setTimer = setTimeout } = {}) {
+  const t = (key, vars) => api.i18n.t(key, vars);
+  const toastError = (err) => api.toast.error(errorText(t, err));
+
+  const tracker = createTaskTracker({
+    storage: api.storage,
+    clientFor: async (entry) => createClient({ proxyFetch: (...a) => api.proxy.fetch(...a), credentialId: entry.credentialId, base: entry.base }),
+    onDone: (entry, outcome) => { void reportDone(entry, outcome); },
+  });
+  const poller = createPoller(tracker, { setTimer });
+
+  async function tell({ title, body, tag, error }) {
+    if (api.plugin.settings?.notify !== false) {
+      try {
+        await api.notifications.show({ title: title.slice(0, 120), body: (body || '').slice(0, 300), ...(tag ? { tag } : {}) });
+        return;
+      } catch { /* no permission or rate limited: fall back to a toast */ }
+    }
+    const text = body ? `${title}: ${body}` : title;
+    if (error) api.toast.error(text); else api.toast.success(text);
+  }
+
+  async function reportDone(entry, outcome) {
+    const name = entry.name || entry.fileName || '';
+    if (outcome.state === 'success') {
+      const tag = outcome.documentId != null ? `doc-${outcome.documentId}` : undefined;
+      if (tag) {
+        const links = (await api.storage.get(LINKS_KEY).catch(() => null)) || {};
+        const keys = Object.keys(links);
+        for (const k of keys.slice(0, Math.max(0, keys.length - 50))) delete links[k];
+        links[tag] = `${entry.base}/documents/${outcome.documentId}/details`;
+        await api.storage.set(LINKS_KEY, links).catch(() => {});
+      }
+      await tell({ title: t('done.title'), body: t('done.body', { name }), tag });
+    } else if (outcome.state === 'failure') {
+      const body = outcome.duplicateOf != null || /duplicate/i.test(outcome.error || '')
+        ? t('failed.duplicate', { name })
+        : t('failed.body', { name, error: outcome.error || t('failed.unknown') });
+      await tell({ title: t('failed.title'), body, error: true });
+    } else if (outcome.state === 'timeout') {
+      await tell({ title: t('failed.title'), body: t('failed.timeout', { name }), error: true });
+    } else {
+      await tell({ title: t('failed.title'), body: `${name}: ${t(outcome.errorKey || 'error.unexpected', {})}`, error: true });
+    }
+  }
+
+  /** A connected state, asking the user to connect when there is none. */
+  async function ensureConnection() {
+    const connection = await resolveConnection(api);
+    if (connection.state === 'connected') return connection;
+    if (connection.state === 'error') throw connection.error;
+    const go = await api.ui.confirm({ title: t('connect.title'), message: t('connect.needed'), confirmLabel: t('connect.button'), cancelLabel: t('common.cancel') });
+    if (!go) return null;
+    const result = await connectPersonal(api, connection.suggestedServer);
+    if (!result.connected) {
+      if (result.error) throw result.error;
+      return null;
+    }
+    return result.connection;
+  }
+
+  /** Upload what the user picked and follow the tasks. */
+  async function upload(connection, groups, choice) {
+    const client = clientFor(api, connection);
+    const plan = plannedUploads(groups, choice);
+    let sent = 0;
+    let firstError = null;
+    for (const { item, doc } of plan) {
+      try {
+        const taskId = await client.upload(doc);
+        await tracker.add({ taskId, name: doc.title || item.name, base: connection.base, credentialId: connection.credentialId });
+        sent++;
+      } catch (err) {
+        firstError ||= err;
+        // A bad token or a full disk won't get better for the next file.
+        const key = toPaperlessError(err).key;
+        if (['error.token', 'error.full', 'error.forbidden', 'error.not_connected', 'error.rate_limit'].includes(key)) break;
+      }
+    }
+    if (sent) {
+      poller.start();
+      api.toast.info(t('send.queued', { count: sent }));
+    }
+    if (firstError) toastError(firstError);
+    return { sent, failed: plan.length - sent };
+  }
+
+  async function sendFlow(collect) {
+    let connection;
+    try {
+      connection = await ensureConnection();
+      if (!connection) return null;
+    } catch (err) {
+      toastError(err);
+      return null;
+    }
+    let groups;
+    try {
+      groups = await collect();
+    } catch (err) {
+      toastError(err);
+      return null;
+    }
+    if (!groups.length || !groups.some((g) => g.items.length)) {
+      api.toast.info(t('send.nothing'));
+      return null;
+    }
+    const choice = await api.ui.openDialog({
+      title: t('dialog.title'),
+      slot: 'plugin-dialog',
+      extraProps: { view: 'send', groups: forDialog(groups), connection },
+      width: 640,
+    });
+    if (!choice || !Array.isArray(choice.selected) || choice.selected.length === 0) return null;
+    if (choice.remember && choice.senderEmail) {
+      const remembered = (await api.storage.get(REMEMBERED_KEY).catch(() => null)) || {};
+      await api.storage.set(REMEMBERED_KEY, rememberChoice(remembered, choice.senderEmail, choice)).catch(() => {});
+    }
+    return upload(connection, groups, choice);
+  }
+
+  /** onAction: start the flow and return at once (the host times hooks out). */
+  function onAction({ surface, actionId, context } = {}) {
+    const ctx = context || {};
+    if (actionId === ACTION_ATTACHMENT && ctx.emailId && ctx.blobId) {
+      return sendFlow(() => collectAttachment(api, ctx));
+    }
+    if (actionId === ACTION_MESSAGE && ctx.emailId) {
+      return sendFlow(async () => [await collectMessage(api, ctx.emailId)]);
+    }
+    if (actionId === ACTION_BULK && Array.isArray(ctx.emailIds) && ctx.emailIds.length) {
+      if (ctx.emailIds.length > 25) api.toast.warning(t('send.bulk_limit', { count: 25 }));
+      return sendFlow(() => collectMessages(api, ctx.emailIds));
+    }
+    void surface;
+    return null;
+  }
+
+  async function onNotificationClick({ tag } = {}) {
+    if (typeof tag !== 'string' || !tag.startsWith('doc-')) return;
+    const links = (await api.storage.get(LINKS_KEY).catch(() => null)) || {};
+    if (links[tag]) await api.ui.openExternalUrl(links[tag]);
+  }
+
+  /** The buttons, in the current language. */
+  async function registerUi() {
+    const label = t('action.send');
+    const calls = [
+      api.ui.setActions('attachment-menu', [{ id: ACTION_ATTACHMENT, label, icon: 'archive' }]),
+      api.ui.setActions('reader-actions', [{ id: ACTION_MESSAGE, label, icon: 'archive' }]),
+      api.ui.setActions('message-bulk-actions', [{ id: ACTION_BULK, label, icon: 'archive' }]),
+    ];
+    await Promise.all(calls.map((p) => Promise.resolve(p).catch((err) => api.log?.warn?.('setup failed', err?.message))));
+  }
+
+  async function resume() {
+    const open = await tracker.pending().catch(() => []);
+    if (open.length) poller.start();
+  }
+
+  return { onAction, onNotificationClick, registerUi, resume, tracker, poller, sendFlow, upload, reportDone };
+}
