@@ -16,9 +16,13 @@
  *   - Storage / admin reads are awaited.
  */
 
+// The bare, lowercased address from "Name <addr>" (how the host formats
+// outgoing recipients) or a plain "addr".
 function normaliseEmail(addr) {
   if (!addr) return '';
-  return String(addr).trim().toLowerCase();
+  const s = String(addr).trim();
+  const m = s.match(/<([^<>]*)>\s*$/);
+  return (m ? m[1] : s).trim().toLowerCase();
 }
 
 function collectOutgoingRecipients(email, excludeAddresses) {
@@ -66,6 +70,53 @@ function collectReplyAllRecipients(originalEmail, excludeAddresses) {
 
 let pluginApi = null;
 let myAddresses = new Set();
+
+// Reply-alls the user already confirmed, so the send-time check doesn't ask
+// a second time for the same message. Each entry holds the recipients the
+// user agreed to and the original's Message-ID, and expires after a while.
+const CONFIRMED_TTL_MS = 15 * 60_000;
+let confirmedReplyAlls = [];
+
+function headerValue(email, name) {
+  const headers = email && email.headers;
+  if (!Array.isArray(headers)) return '';
+  const wanted = name.toLowerCase();
+  const h = headers.find((x) => x && String(x.name || '').toLowerCase() === wanted);
+  return h ? String(h.value || '').trim() : '';
+}
+
+function stripAngles(id) {
+  return String(id || '').trim().replace(/^<|>$/g, '');
+}
+
+function rememberConfirmedReplyAll(originalEmail, recipients) {
+  const now = Date.now();
+  confirmedReplyAlls = confirmedReplyAlls.filter((c) => now - c.at < CONFIRMED_TTL_MS);
+  confirmedReplyAlls.push({
+    at: now,
+    messageId: stripAngles(headerValue(originalEmail, 'Message-ID')),
+    recipients: new Set(recipients.map((r) => normaliseEmail(r.address))),
+  });
+}
+
+/**
+ * Whether this send is a reply-all the user already confirmed: it goes to
+ * no one outside the confirmed recipients and, when both Message-IDs are
+ * known, answers the confirmed message. Recipients added in the composer
+ * after confirming still trigger the warning. A match is used up, so a
+ * later send to the same people asks again.
+ */
+function takeConfirmedReplyAll(email, recipients) {
+  const now = Date.now();
+  confirmedReplyAlls = confirmedReplyAlls.filter((c) => now - c.at < CONFIRMED_TTL_MS);
+  const inReplyTo = stripAngles(email.inReplyTo);
+  const idx = confirmedReplyAlls.findIndex((c) =>
+    (!inReplyTo || !c.messageId || c.messageId === inReplyTo)
+    && recipients.every((r) => c.recipients.has(normaliseEmail(r.address))));
+  if (idx < 0) return false;
+  confirmedReplyAlls.splice(idx, 1);
+  return true;
+}
 
 const ADMIN_TTL_MS = 30_000;
 let cachedAdminThreshold = null;
@@ -153,6 +204,7 @@ export const hooks = {
       pluginApi.toast.info('Send cancelled');
       return false;
     }
+    rememberConfirmedReplyAll(ctx.originalEmail, recipients);
   },
 
   async onBeforeEmailSend(email) {
@@ -168,6 +220,8 @@ export const hooks = {
     const recipients = collectOutgoingRecipients(email, excludeSet());
     const threshold = effectiveThreshold();
     if (recipients.length < threshold) return;
+    // Already confirmed when the user clicked reply-all.
+    if (takeConfirmedReplyAll(email, recipients)) return;
 
     const ok = await promptForRecipients(recipients, 'send');
     if (!ok) {

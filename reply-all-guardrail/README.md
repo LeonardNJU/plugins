@@ -51,12 +51,13 @@ The host enforces a 5 s timeout on intercept hooks. The dialog therefore
 auto-cancels at 4.5 s if the user does not respond, which is fail-closed behavior
 appropriate for a guardrail. The user can simply click Reply All / Send again.
 
-When `warnOnSend` is on alongside the reply-all gate, a fresh reply-all that
-exceeds the threshold may show **two** dialogs (one before the composer,
-one before send). This is intentional: the first prompt protects against
-accidental reply-all on a large thread, the second protects against
-recipients added inside the composer. Disable `warnOnSend` if you only want
-the first.
+When `warnOnSend` is on alongside the reply-all gate, a reply-all you
+already confirmed is not asked about again at send time, as long as it goes
+to no one outside the recipients you confirmed (within 15 minutes). If you
+add recipients in the composer, the send-time dialog still appears.
+
+Recipients are compared by address only, case-insensitively, so
+`Alice <Alice@Example.com>` and `alice@example.com` count as one person.
 
 ## Build & install
 
