@@ -88,5 +88,16 @@
   "offload.paused": "Upload paused. Resume to continue where it stopped.",
   "offload.attachNormally": "Attach as usual",
   "offload.upload": "Upload and add link",
-  "offload.resume": "Resume upload"
+  "offload.resume": "Resume upload",
+  "save.attachmentAction": "Save to Nextcloud",
+  "save.messageAction": "Save message to Nextcloud",
+  "save.titleAttachment": "Save {name} to Nextcloud",
+  "save.titleMessage": "Save the message to Nextcloud",
+  "save.choose": "Choose a folder for {name}.",
+  "save.here": "Save here",
+  "save.newFolder": "New folder",
+  "save.folderName": "Folder name",
+  "save.create": "Create",
+  "save.saving": "Saving…",
+  "save.saved": "Saved to Nextcloud: {path}"
 }

@@ -6,15 +6,9 @@ import { uploadFile } from '../lib/chunked.js';
 import { NcError, errorText } from '../lib/errors.js';
 import { formatSize } from '../lib/format.js';
 import { linkBlock } from '../lib/links.js';
-import { joinPath, sanitizeFileName, uniqueName, uploadFolder } from '../lib/paths.js';
+import { uploadFolder } from '../lib/paths.js';
+import { planUpload } from '../lib/save.js';
 import { ShareOptions, defaultShareOptions } from './picker-dialog.js';
-
-/** Where an upload goes: the folder (made if missing) and a free name in it. */
-export async function planUpload(client, folder, name) {
-  await client.mkdirp(folder);
-  const taken = await client.names(folder);
-  return joinPath(folder, uniqueName(sanitizeFileName(name), taken));
-}
 
 /** Upload, share and build the link block. Exported for tests. */
 export async function offloadFile(api, client, file, { share, onProgress, signal, folder }) {

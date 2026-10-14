@@ -7,6 +7,7 @@
 
 import { setApi } from './lib/host.js';
 import { storedAccount } from './lib/connection.js';
+import { emlName } from './lib/save.js';
 import { appendLinks, clearPending, getPending, linkBlock } from './lib/links.js';
 import { SettingsSection } from './ui/settings-section.js';
 import { ComposerSource } from './ui/composer-source.js';
@@ -30,10 +31,38 @@ export async function offerFirstRun(api) {
 
 let bg = null;
 
+/** The buttons and menu entries the host draws for the plugin. */
+export async function registerActions(api) {
+  const t = api.i18n.t;
+  await api.ui.setActions('attachment-menu', [{ id: 'save-attachment', label: t('save.attachmentAction'), icon: 'cloud-upload' }]);
+  await api.ui.setActions('reader-actions', [{ id: 'save-message', label: t('save.messageAction'), icon: 'cloud-upload', order: 200 }]);
+}
+
 export async function activate(api) {
   bg = api;
   setApi(api);
+  await registerActions(api).catch((err) => api.log.warn('setActions failed', err));
+  api.i18n.onLocaleChange(() => { void registerActions(api).catch(() => {}); });
   await offerFirstRun(api).catch(() => {});
+}
+
+/** "Save to Nextcloud" on an attachment or a message: ask for a folder, save, say where. */
+export async function onAction(api, { surface, actionId, context } = {}) {
+  const t = api.i18n.t;
+  let props;
+  if (surface === 'attachment-menu' && actionId === 'save-attachment') {
+    if (!context?.emailId || !context?.blobId) return;
+    props = { kind: 'attachment', emailId: context.emailId, blobId: context.blobId, name: context.name || 'attachment', size: Number(context.size) || 0 };
+  } else if (surface === 'reader-actions' && actionId === 'save-message') {
+    if (!context?.emailId) return;
+    const email = await api.email.get(context.emailId).catch(() => null);
+    props = { kind: 'message', emailId: context.emailId, name: emlName(email?.subject), size: 0 };
+  } else {
+    return;
+  }
+  const title = props.kind === 'message' ? t('save.titleMessage') : t('save.titleAttachment', { name: props.name });
+  const result = await api.ui.openDialog({ title, slot: 'plugin-dialog', extraProps: { view: 'save', ...props }, width: 640 });
+  if (result && typeof result.path === 'string') api.toast.success(t('save.saved', { path: result.path }));
 }
 
 /** Add the share links picked in the composer to the message being sent. */
@@ -77,6 +106,7 @@ export async function offerLargeUpload(api, payload) {
 }
 
 export const hooks = {
+  onAction: (payload) => (bg ? onAction(bg, payload) : undefined),
   onBeforeBlobUpload: (payload) => (bg ? offerLargeUpload(bg, payload) : undefined),
   onTransformOutgoingEmail: (outgoing) => (bg ? addLinksToMessage(bg, outgoing) : undefined),
   // Links picked for a message that was then discarded don't carry over to the next one.

@@ -88,5 +88,16 @@
   "offload.paused": "上传已暂停。继续后会从中断处接着上传。",
   "offload.attachNormally": "照常添加附件",
   "offload.upload": "上传并添加链接",
-  "offload.resume": "继续上传"
+  "offload.resume": "继续上传",
+  "save.attachmentAction": "保存到 Nextcloud",
+  "save.messageAction": "将邮件保存到 Nextcloud",
+  "save.titleAttachment": "将 {name} 保存到 Nextcloud",
+  "save.titleMessage": "将邮件保存到 Nextcloud",
+  "save.choose": "为 {name} 选择一个文件夹。",
+  "save.here": "保存到这里",
+  "save.newFolder": "新建文件夹",
+  "save.folderName": "文件夹名称",
+  "save.create": "创建",
+  "save.saving": "正在保存…",
+  "save.saved": "已保存到 Nextcloud：{path}"
 }

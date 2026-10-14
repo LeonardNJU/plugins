@@ -88,5 +88,16 @@
   "offload.paused": "업로드가 일시 중지되었습니다. 다시 시작하면 멈춘 곳부터 이어집니다.",
   "offload.attachNormally": "평소처럼 첨부",
   "offload.upload": "업로드하고 링크 추가",
-  "offload.resume": "업로드 다시 시작"
+  "offload.resume": "업로드 다시 시작",
+  "save.attachmentAction": "Nextcloud에 저장",
+  "save.messageAction": "메일을 Nextcloud에 저장",
+  "save.titleAttachment": "{name}을(를) Nextcloud에 저장",
+  "save.titleMessage": "메일을 Nextcloud에 저장",
+  "save.choose": "{name}을(를) 저장할 폴더를 선택하세요.",
+  "save.here": "여기에 저장",
+  "save.newFolder": "새 폴더",
+  "save.folderName": "폴더 이름",
+  "save.create": "만들기",
+  "save.saving": "저장 중…",
+  "save.saved": "Nextcloud에 저장됨: {path}"
 }

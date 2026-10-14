@@ -88,5 +88,16 @@
   "offload.paused": "توقف الرفع مؤقتًا. استأنفه ليكمل من حيث توقف.",
   "offload.attachNormally": "إرفاق كالمعتاد",
   "offload.upload": "رفع وإضافة رابط",
-  "offload.resume": "استئناف الرفع"
+  "offload.resume": "استئناف الرفع",
+  "save.attachmentAction": "حفظ في Nextcloud",
+  "save.messageAction": "حفظ الرسالة في Nextcloud",
+  "save.titleAttachment": "حفظ {name} في Nextcloud",
+  "save.titleMessage": "حفظ الرسالة في Nextcloud",
+  "save.choose": "اختر مجلدًا لـ {name}.",
+  "save.here": "حفظ هنا",
+  "save.newFolder": "مجلد جديد",
+  "save.folderName": "اسم المجلد",
+  "save.create": "إنشاء",
+  "save.saving": "جارٍ الحفظ…",
+  "save.saved": "تم الحفظ في Nextcloud: {path}"
 }

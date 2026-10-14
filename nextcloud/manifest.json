@@ -13,7 +13,8 @@
     "email:read",
     "email:send",
     "email:blob-write",
-    "email:blob-read"
+    "email:blob-read",
+    "ui:toolbar"
   ],
   "entrypoint": "index.js",
   "minAppVersion": "1.7.0",
@@ -172,7 +173,18 @@
       "offload.paused": "توقف الرفع مؤقتًا. استأنفه ليكمل من حيث توقف.",
       "offload.attachNormally": "إرفاق كالمعتاد",
       "offload.upload": "رفع وإضافة رابط",
-      "offload.resume": "استئناف الرفع"
+      "offload.resume": "استئناف الرفع",
+      "save.attachmentAction": "حفظ في Nextcloud",
+      "save.messageAction": "حفظ الرسالة في Nextcloud",
+      "save.titleAttachment": "حفظ {name} في Nextcloud",
+      "save.titleMessage": "حفظ الرسالة في Nextcloud",
+      "save.choose": "اختر مجلدًا لـ {name}.",
+      "save.here": "حفظ هنا",
+      "save.newFolder": "مجلد جديد",
+      "save.folderName": "اسم المجلد",
+      "save.create": "إنشاء",
+      "save.saving": "جارٍ الحفظ…",
+      "save.saved": "تم الحفظ في Nextcloud: {path}"
     },
     "ca": {
       "common.cancel": "Cancel·la",
@@ -264,7 +276,18 @@
       "offload.paused": "Pujada en pausa. Reprendeu-la per continuar on s'ha aturat.",
       "offload.attachNormally": "Adjunta com sempre",
       "offload.upload": "Puja i afegeix l'enllaç",
-      "offload.resume": "Reprèn la pujada"
+      "offload.resume": "Reprèn la pujada",
+      "save.attachmentAction": "Desa a Nextcloud",
+      "save.messageAction": "Desa el missatge a Nextcloud",
+      "save.titleAttachment": "Desa {name} a Nextcloud",
+      "save.titleMessage": "Desa el missatge a Nextcloud",
+      "save.choose": "Trieu una carpeta per a {name}.",
+      "save.here": "Desa aquí",
+      "save.newFolder": "Carpeta nova",
+      "save.folderName": "Nom de la carpeta",
+      "save.create": "Crea",
+      "save.saving": "S'està desant…",
+      "save.saved": "Desat a Nextcloud: {path}"
     },
     "cs": {
       "common.cancel": "Zrušit",
@@ -356,7 +379,18 @@
       "offload.paused": "Nahrávání je pozastavené. Pokračujte tam, kde se zastavilo.",
       "offload.attachNormally": "Připojit normálně",
       "offload.upload": "Nahrát a přidat odkaz",
-      "offload.resume": "Pokračovat v nahrávání"
+      "offload.resume": "Pokračovat v nahrávání",
+      "save.attachmentAction": "Uložit do Nextcloudu",
+      "save.messageAction": "Uložit zprávu do Nextcloudu",
+      "save.titleAttachment": "Uložit {name} do Nextcloudu",
+      "save.titleMessage": "Uložit zprávu do Nextcloudu",
+      "save.choose": "Vyberte složku pro {name}.",
+      "save.here": "Uložit sem",
+      "save.newFolder": "Nová složka",
+      "save.folderName": "Název složky",
+      "save.create": "Vytvořit",
+      "save.saving": "Ukládání…",
+      "save.saved": "Uloženo do Nextcloudu: {path}"
     },
     "da": {
       "common.cancel": "Annuller",
@@ -448,7 +482,18 @@
       "offload.paused": "Upload sat på pause. Genoptag for at fortsætte, hvor den stoppede.",
       "offload.attachNormally": "Vedhæft som normalt",
       "offload.upload": "Upload og tilføj link",
-      "offload.resume": "Genoptag upload"
+      "offload.resume": "Genoptag upload",
+      "save.attachmentAction": "Gem i Nextcloud",
+      "save.messageAction": "Gem besked i Nextcloud",
+      "save.titleAttachment": "Gem {name} i Nextcloud",
+      "save.titleMessage": "Gem beskeden i Nextcloud",
+      "save.choose": "Vælg en mappe til {name}.",
+      "save.here": "Gem her",
+      "save.newFolder": "Ny mappe",
+      "save.folderName": "Mappenavn",
+      "save.create": "Opret",
+      "save.saving": "Gemmer…",
+      "save.saved": "Gemt i Nextcloud: {path}"
     },
     "de": {
       "common.cancel": "Abbrechen",
@@ -540,7 +585,18 @@
       "offload.paused": "Hochladen pausiert. Setzen Sie es fort, um dort weiterzumachen, wo es aufgehört hat.",
       "offload.attachNormally": "Normal anhängen",
       "offload.upload": "Hochladen und Link einfügen",
-      "offload.resume": "Hochladen fortsetzen"
+      "offload.resume": "Hochladen fortsetzen",
+      "save.attachmentAction": "In Nextcloud speichern",
+      "save.messageAction": "Nachricht in Nextcloud speichern",
+      "save.titleAttachment": "{name} in Nextcloud speichern",
+      "save.titleMessage": "Nachricht in Nextcloud speichern",
+      "save.choose": "Wählen Sie einen Ordner für {name}.",
+      "save.here": "Hier speichern",
+      "save.newFolder": "Neuer Ordner",
+      "save.folderName": "Ordnername",
+      "save.create": "Erstellen",
+      "save.saving": "Wird gespeichert…",
+      "save.saved": "In Nextcloud gespeichert: {path}"
     },
     "en": {
       "common.cancel": "Cancel",
@@ -632,7 +688,18 @@
       "offload.paused": "Upload paused. Resume to continue where it stopped.",
       "offload.attachNormally": "Attach as usual",
       "offload.upload": "Upload and add link",
-      "offload.resume": "Resume upload"
+      "offload.resume": "Resume upload",
+      "save.attachmentAction": "Save to Nextcloud",
+      "save.messageAction": "Save message to Nextcloud",
+      "save.titleAttachment": "Save {name} to Nextcloud",
+      "save.titleMessage": "Save the message to Nextcloud",
+      "save.choose": "Choose a folder for {name}.",
+      "save.here": "Save here",
+      "save.newFolder": "New folder",
+      "save.folderName": "Folder name",
+      "save.create": "Create",
+      "save.saving": "Saving…",
+      "save.saved": "Saved to Nextcloud: {path}"
     },
     "es": {
       "common.cancel": "Cancelar",
@@ -724,7 +791,18 @@
       "offload.paused": "Subida en pausa. Reanúdala para seguir donde se quedó.",
       "offload.attachNormally": "Adjuntar como siempre",
       "offload.upload": "Subir y añadir enlace",
-      "offload.resume": "Reanudar subida"
+      "offload.resume": "Reanudar subida",
+      "save.attachmentAction": "Guardar en Nextcloud",
+      "save.messageAction": "Guardar mensaje en Nextcloud",
+      "save.titleAttachment": "Guardar {name} en Nextcloud",
+      "save.titleMessage": "Guardar el mensaje en Nextcloud",
+      "save.choose": "Elige una carpeta para {name}.",
+      "save.here": "Guardar aquí",
+      "save.newFolder": "Nueva carpeta",
+      "save.folderName": "Nombre de la carpeta",
+      "save.create": "Crear",
+      "save.saving": "Guardando…",
+      "save.saved": "Guardado en Nextcloud: {path}"
     },
     "fa": {
       "common.cancel": "انصراف",
@@ -816,7 +894,18 @@
       "offload.paused": "بارگذاری متوقف شد. ادامه دهید تا از همان جایی که ماند ادامه پیدا کند.",
       "offload.attachNormally": "پیوست به روش معمول",
       "offload.upload": "بارگذاری و افزودن لینک",
-      "offload.resume": "ادامه بارگذاری"
+      "offload.resume": "ادامه بارگذاری",
+      "save.attachmentAction": "ذخیره در Nextcloud",
+      "save.messageAction": "ذخیره پیام در Nextcloud",
+      "save.titleAttachment": "ذخیره {name} در Nextcloud",
+      "save.titleMessage": "ذخیره پیام در Nextcloud",
+      "save.choose": "یک پوشه برای {name} انتخاب کنید.",
+      "save.here": "ذخیره در اینجا",
+      "save.newFolder": "پوشه جدید",
+      "save.folderName": "نام پوشه",
+      "save.create": "ایجاد",
+      "save.saving": "در حال ذخیره…",
+      "save.saved": "در Nextcloud ذخیره شد: {path}"
     },
     "fr": {
       "common.cancel": "Annuler",
@@ -908,7 +997,18 @@
       "offload.paused": "Envoi en pause. Reprenez-le pour continuer là où il s'est arrêté.",
       "offload.attachNormally": "Joindre normalement",
       "offload.upload": "Envoyer et ajouter le lien",
-      "offload.resume": "Reprendre l'envoi"
+      "offload.resume": "Reprendre l'envoi",
+      "save.attachmentAction": "Enregistrer dans Nextcloud",
+      "save.messageAction": "Enregistrer le message dans Nextcloud",
+      "save.titleAttachment": "Enregistrer {name} dans Nextcloud",
+      "save.titleMessage": "Enregistrer le message dans Nextcloud",
+      "save.choose": "Choisissez un dossier pour {name}.",
+      "save.here": "Enregistrer ici",
+      "save.newFolder": "Nouveau dossier",
+      "save.folderName": "Nom du dossier",
+      "save.create": "Créer",
+      "save.saving": "Enregistrement…",
+      "save.saved": "Enregistré dans Nextcloud : {path}"
     },
     "he": {
       "common.cancel": "ביטול",
@@ -1000,7 +1100,18 @@
       "offload.paused": "ההעלאה הושהתה. המשיכו כדי להמשיך מהמקום שבו נעצרה.",
       "offload.attachNormally": "צירוף כרגיל",
       "offload.upload": "העלאה והוספת קישור",
-      "offload.resume": "המשך ההעלאה"
+      "offload.resume": "המשך ההעלאה",
+      "save.attachmentAction": "שמירה ב-Nextcloud",
+      "save.messageAction": "שמירת ההודעה ב-Nextcloud",
+      "save.titleAttachment": "שמירת {name} ב-Nextcloud",
+      "save.titleMessage": "שמירת ההודעה ב-Nextcloud",
+      "save.choose": "בחרו תיקיה עבור {name}.",
+      "save.here": "שמירה כאן",
+      "save.newFolder": "תיקיה חדשה",
+      "save.folderName": "שם התיקיה",
+      "save.create": "יצירה",
+      "save.saving": "שומר…",
+      "save.saved": "נשמר ב-Nextcloud: {path}"
     },
     "hu": {
       "common.cancel": "Mégse",
@@ -1092,7 +1203,18 @@
       "offload.paused": "A feltöltés szünetel. Folytasd, és ott halad tovább, ahol abbamaradt.",
       "offload.attachNormally": "Csatolás a szokásos módon",
       "offload.upload": "Feltöltés és link hozzáadása",
-      "offload.resume": "Feltöltés folytatása"
+      "offload.resume": "Feltöltés folytatása",
+      "save.attachmentAction": "Mentés a Nextcloudba",
+      "save.messageAction": "Üzenet mentése a Nextcloudba",
+      "save.titleAttachment": "{name} mentése a Nextcloudba",
+      "save.titleMessage": "Az üzenet mentése a Nextcloudba",
+      "save.choose": "Válassz mappát ehhez: {name}.",
+      "save.here": "Mentés ide",
+      "save.newFolder": "Új mappa",
+      "save.folderName": "Mappa neve",
+      "save.create": "Létrehozás",
+      "save.saving": "Mentés…",
+      "save.saved": "Mentve a Nextcloudba: {path}"
     },
     "it": {
       "common.cancel": "Annulla",
@@ -1184,7 +1306,18 @@
       "offload.paused": "Caricamento in pausa. Riprendilo per continuare da dove si è fermato.",
       "offload.attachNormally": "Allega normalmente",
       "offload.upload": "Carica e aggiungi il link",
-      "offload.resume": "Riprendi il caricamento"
+      "offload.resume": "Riprendi il caricamento",
+      "save.attachmentAction": "Salva su Nextcloud",
+      "save.messageAction": "Salva il messaggio su Nextcloud",
+      "save.titleAttachment": "Salva {name} su Nextcloud",
+      "save.titleMessage": "Salva il messaggio su Nextcloud",
+      "save.choose": "Scegli una cartella per {name}.",
+      "save.here": "Salva qui",
+      "save.newFolder": "Nuova cartella",
+      "save.folderName": "Nome della cartella",
+      "save.create": "Crea",
+      "save.saving": "Salvataggio…",
+      "save.saved": "Salvato su Nextcloud: {path}"
     },
     "ja": {
       "common.cancel": "キャンセル",
@@ -1276,7 +1409,18 @@
       "offload.paused": "アップロードを一時停止しました。再開すると、止まったところから続きます。",
       "offload.attachNormally": "通常どおり添付",
       "offload.upload": "アップロードしてリンクを追加",
-      "offload.resume": "アップロードを再開"
+      "offload.resume": "アップロードを再開",
+      "save.attachmentAction": "Nextcloud に保存",
+      "save.messageAction": "メッセージを Nextcloud に保存",
+      "save.titleAttachment": "{name} を Nextcloud に保存",
+      "save.titleMessage": "メッセージを Nextcloud に保存",
+      "save.choose": "{name} の保存先フォルダーを選んでください。",
+      "save.here": "ここに保存",
+      "save.newFolder": "新しいフォルダー",
+      "save.folderName": "フォルダー名",
+      "save.create": "作成",
+      "save.saving": "保存中…",
+      "save.saved": "Nextcloud に保存しました: {path}"
     },
     "ko": {
       "common.cancel": "취소",
@@ -1368,7 +1512,18 @@
       "offload.paused": "업로드가 일시 중지되었습니다. 다시 시작하면 멈춘 곳부터 이어집니다.",
       "offload.attachNormally": "평소처럼 첨부",
       "offload.upload": "업로드하고 링크 추가",
-      "offload.resume": "업로드 다시 시작"
+      "offload.resume": "업로드 다시 시작",
+      "save.attachmentAction": "Nextcloud에 저장",
+      "save.messageAction": "메일을 Nextcloud에 저장",
+      "save.titleAttachment": "{name}을(를) Nextcloud에 저장",
+      "save.titleMessage": "메일을 Nextcloud에 저장",
+      "save.choose": "{name}을(를) 저장할 폴더를 선택하세요.",
+      "save.here": "여기에 저장",
+      "save.newFolder": "새 폴더",
+      "save.folderName": "폴더 이름",
+      "save.create": "만들기",
+      "save.saving": "저장 중…",
+      "save.saved": "Nextcloud에 저장됨: {path}"
     },
     "lv": {
       "common.cancel": "Atcelt",
@@ -1460,7 +1615,18 @@
       "offload.paused": "Augšupielāde pauzēta. Atsāciet, lai turpinātu no vietas, kur tā apstājās.",
       "offload.attachNormally": "Pievienot kā parasti",
       "offload.upload": "Augšupielādēt un pievienot saiti",
-      "offload.resume": "Atsākt augšupielādi"
+      "offload.resume": "Atsākt augšupielādi",
+      "save.attachmentAction": "Saglabāt Nextcloud",
+      "save.messageAction": "Saglabāt vēstuli Nextcloud",
+      "save.titleAttachment": "Saglabāt {name} Nextcloud",
+      "save.titleMessage": "Saglabāt vēstuli Nextcloud",
+      "save.choose": "Izvēlieties mapi failam {name}.",
+      "save.here": "Saglabāt šeit",
+      "save.newFolder": "Jauna mape",
+      "save.folderName": "Mapes nosaukums",
+      "save.create": "Izveidot",
+      "save.saving": "Saglabā…",
+      "save.saved": "Saglabāts Nextcloud: {path}"
     },
     "mn": {
       "common.cancel": "Цуцлах",
@@ -1552,7 +1718,18 @@
       "offload.paused": "Байршуулалт түр зогссон. Үргэлжлүүлбэл зогссон газраасаа цааш явна.",
       "offload.attachNormally": "Ердийнхөөр хавсаргах",
       "offload.upload": "Байршуулаад холбоос нэмэх",
-      "offload.resume": "Байршуулалтыг үргэлжлүүлэх"
+      "offload.resume": "Байршуулалтыг үргэлжлүүлэх",
+      "save.attachmentAction": "Nextcloud-д хадгалах",
+      "save.messageAction": "Захидлыг Nextcloud-д хадгалах",
+      "save.titleAttachment": "{name}-г Nextcloud-д хадгалах",
+      "save.titleMessage": "Захидлыг Nextcloud-д хадгалах",
+      "save.choose": "{name}-д хавтас сонгоно уу.",
+      "save.here": "Энд хадгалах",
+      "save.newFolder": "Шинэ хавтас",
+      "save.folderName": "Хавтасны нэр",
+      "save.create": "Үүсгэх",
+      "save.saving": "Хадгалж байна…",
+      "save.saved": "Nextcloud-д хадгаллаа: {path}"
     },
     "nb": {
       "common.cancel": "Avbryt",
@@ -1644,7 +1821,18 @@
       "offload.paused": "Opplastingen er satt på pause. Fortsett, så går den videre der den stoppet.",
       "offload.attachNormally": "Legg ved som vanlig",
       "offload.upload": "Last opp og legg til lenke",
-      "offload.resume": "Fortsett opplastingen"
+      "offload.resume": "Fortsett opplastingen",
+      "save.attachmentAction": "Lagre i Nextcloud",
+      "save.messageAction": "Lagre meldingen i Nextcloud",
+      "save.titleAttachment": "Lagre {name} i Nextcloud",
+      "save.titleMessage": "Lagre meldingen i Nextcloud",
+      "save.choose": "Velg en mappe for {name}.",
+      "save.here": "Lagre her",
+      "save.newFolder": "Ny mappe",
+      "save.folderName": "Mappenavn",
+      "save.create": "Opprett",
+      "save.saving": "Lagrer…",
+      "save.saved": "Lagret i Nextcloud: {path}"
     },
     "nl": {
       "common.cancel": "Annuleren",
@@ -1736,7 +1924,18 @@
       "offload.paused": "Upload gepauzeerd. Hervat om verder te gaan waar hij stopte.",
       "offload.attachNormally": "Gewoon bijvoegen",
       "offload.upload": "Uploaden en link toevoegen",
-      "offload.resume": "Upload hervatten"
+      "offload.resume": "Upload hervatten",
+      "save.attachmentAction": "Opslaan in Nextcloud",
+      "save.messageAction": "Bericht opslaan in Nextcloud",
+      "save.titleAttachment": "{name} opslaan in Nextcloud",
+      "save.titleMessage": "Het bericht opslaan in Nextcloud",
+      "save.choose": "Kies een map voor {name}.",
+      "save.here": "Hier opslaan",
+      "save.newFolder": "Nieuwe map",
+      "save.folderName": "Mapnaam",
+      "save.create": "Aanmaken",
+      "save.saving": "Opslaan…",
+      "save.saved": "Opgeslagen in Nextcloud: {path}"
     },
     "pl": {
       "common.cancel": "Anuluj",
@@ -1828,7 +2027,18 @@
       "offload.paused": "Przesyłanie wstrzymane. Wznów, aby kontynuować od miejsca, w którym się zatrzymało.",
       "offload.attachNormally": "Załącz normalnie",
       "offload.upload": "Prześlij i dodaj link",
-      "offload.resume": "Wznów przesyłanie"
+      "offload.resume": "Wznów przesyłanie",
+      "save.attachmentAction": "Zapisz w Nextcloud",
+      "save.messageAction": "Zapisz wiadomość w Nextcloud",
+      "save.titleAttachment": "Zapisz {name} w Nextcloud",
+      "save.titleMessage": "Zapisz wiadomość w Nextcloud",
+      "save.choose": "Wybierz folder dla {name}.",
+      "save.here": "Zapisz tutaj",
+      "save.newFolder": "Nowy folder",
+      "save.folderName": "Nazwa folderu",
+      "save.create": "Utwórz",
+      "save.saving": "Zapisywanie…",
+      "save.saved": "Zapisano w Nextcloud: {path}"
     },
     "pt": {
       "common.cancel": "Cancelar",
@@ -1920,7 +2130,18 @@
       "offload.paused": "Envio pausado. Retome para continuar de onde parou.",
       "offload.attachNormally": "Anexar normalmente",
       "offload.upload": "Enviar e adicionar link",
-      "offload.resume": "Retomar envio"
+      "offload.resume": "Retomar envio",
+      "save.attachmentAction": "Salvar no Nextcloud",
+      "save.messageAction": "Salvar mensagem no Nextcloud",
+      "save.titleAttachment": "Salvar {name} no Nextcloud",
+      "save.titleMessage": "Salvar a mensagem no Nextcloud",
+      "save.choose": "Escolha uma pasta para {name}.",
+      "save.here": "Salvar aqui",
+      "save.newFolder": "Nova pasta",
+      "save.folderName": "Nome da pasta",
+      "save.create": "Criar",
+      "save.saving": "Salvando…",
+      "save.saved": "Salvo no Nextcloud: {path}"
     },
     "ro": {
       "common.cancel": "Anulează",
@@ -2012,7 +2233,18 @@
       "offload.paused": "Încărcare întreruptă. Reluați pentru a continua de unde a rămas.",
       "offload.attachNormally": "Atașați normal",
       "offload.upload": "Încărcați și adăugați linkul",
-      "offload.resume": "Reluați încărcarea"
+      "offload.resume": "Reluați încărcarea",
+      "save.attachmentAction": "Salvare în Nextcloud",
+      "save.messageAction": "Salvare mesaj în Nextcloud",
+      "save.titleAttachment": "Salvați {name} în Nextcloud",
+      "save.titleMessage": "Salvați mesajul în Nextcloud",
+      "save.choose": "Alegeți un dosar pentru {name}.",
+      "save.here": "Salvare aici",
+      "save.newFolder": "Dosar nou",
+      "save.folderName": "Numele dosarului",
+      "save.create": "Creați",
+      "save.saving": "Se salvează…",
+      "save.saved": "Salvat în Nextcloud: {path}"
     },
     "ru": {
       "common.cancel": "Отмена",
@@ -2104,7 +2336,18 @@
       "offload.paused": "Загрузка приостановлена. Продолжите, и она пойдёт с того места, где остановилась.",
       "offload.attachNormally": "Прикрепить как обычно",
       "offload.upload": "Загрузить и добавить ссылку",
-      "offload.resume": "Продолжить загрузку"
+      "offload.resume": "Продолжить загрузку",
+      "save.attachmentAction": "Сохранить в Nextcloud",
+      "save.messageAction": "Сохранить письмо в Nextcloud",
+      "save.titleAttachment": "Сохранить {name} в Nextcloud",
+      "save.titleMessage": "Сохранить письмо в Nextcloud",
+      "save.choose": "Выберите папку для {name}.",
+      "save.here": "Сохранить сюда",
+      "save.newFolder": "Новая папка",
+      "save.folderName": "Имя папки",
+      "save.create": "Создать",
+      "save.saving": "Сохранение…",
+      "save.saved": "Сохранено в Nextcloud: {path}"
     },
     "sk": {
       "common.cancel": "Zrušiť",
@@ -2196,7 +2439,18 @@
       "offload.paused": "Nahrávanie je pozastavené. Pokračujte tam, kde sa zastavilo.",
       "offload.attachNormally": "Priložiť normálne",
       "offload.upload": "Nahrať a pridať odkaz",
-      "offload.resume": "Pokračovať v nahrávaní"
+      "offload.resume": "Pokračovať v nahrávaní",
+      "save.attachmentAction": "Uložiť do Nextcloudu",
+      "save.messageAction": "Uložiť správu do Nextcloudu",
+      "save.titleAttachment": "Uložiť {name} do Nextcloudu",
+      "save.titleMessage": "Uložiť správu do Nextcloudu",
+      "save.choose": "Vyberte priečinok pre {name}.",
+      "save.here": "Uložiť sem",
+      "save.newFolder": "Nový priečinok",
+      "save.folderName": "Názov priečinka",
+      "save.create": "Vytvoriť",
+      "save.saving": "Ukladá sa…",
+      "save.saved": "Uložené do Nextcloudu: {path}"
     },
     "tr": {
       "common.cancel": "İptal",
@@ -2288,7 +2542,18 @@
       "offload.paused": "Yükleme duraklatıldı. Kaldığı yerden devam etmek için sürdürün.",
       "offload.attachNormally": "Normal şekilde ekle",
       "offload.upload": "Yükle ve bağlantı ekle",
-      "offload.resume": "Yüklemeyi sürdür"
+      "offload.resume": "Yüklemeyi sürdür",
+      "save.attachmentAction": "Nextcloud'a kaydet",
+      "save.messageAction": "İletiyi Nextcloud'a kaydet",
+      "save.titleAttachment": "{name} dosyasını Nextcloud'a kaydet",
+      "save.titleMessage": "İletiyi Nextcloud'a kaydet",
+      "save.choose": "{name} için bir klasör seçin.",
+      "save.here": "Buraya kaydet",
+      "save.newFolder": "Yeni klasör",
+      "save.folderName": "Klasör adı",
+      "save.create": "Oluştur",
+      "save.saving": "Kaydediliyor…",
+      "save.saved": "Nextcloud'a kaydedildi: {path}"
     },
     "uk": {
       "common.cancel": "Скасувати",
@@ -2380,7 +2645,18 @@
       "offload.paused": "Завантаження призупинено. Відновіть його, щоб продовжити з того місця, де воно зупинилося.",
       "offload.attachNormally": "Прикріпити як зазвичай",
       "offload.upload": "Завантажити й додати посилання",
-      "offload.resume": "Відновити завантаження"
+      "offload.resume": "Відновити завантаження",
+      "save.attachmentAction": "Зберегти в Nextcloud",
+      "save.messageAction": "Зберегти лист у Nextcloud",
+      "save.titleAttachment": "Зберегти {name} у Nextcloud",
+      "save.titleMessage": "Зберегти лист у Nextcloud",
+      "save.choose": "Виберіть папку для {name}.",
+      "save.here": "Зберегти сюди",
+      "save.newFolder": "Нова папка",
+      "save.folderName": "Назва папки",
+      "save.create": "Створити",
+      "save.saving": "Збереження…",
+      "save.saved": "Збережено в Nextcloud: {path}"
     },
     "zh-TW": {
       "common.cancel": "取消",
@@ -2472,7 +2748,18 @@
       "offload.paused": "上傳已暫停。繼續後會從中斷處接著上傳。",
       "offload.attachNormally": "照常附加",
       "offload.upload": "上傳並加入連結",
-      "offload.resume": "繼續上傳"
+      "offload.resume": "繼續上傳",
+      "save.attachmentAction": "儲存到 Nextcloud",
+      "save.messageAction": "將郵件儲存到 Nextcloud",
+      "save.titleAttachment": "將 {name} 儲存到 Nextcloud",
+      "save.titleMessage": "將郵件儲存到 Nextcloud",
+      "save.choose": "為 {name} 選擇資料夾。",
+      "save.here": "儲存到這裡",
+      "save.newFolder": "新增資料夾",
+      "save.folderName": "資料夾名稱",
+      "save.create": "建立",
+      "save.saving": "正在儲存…",
+      "save.saved": "已儲存到 Nextcloud：{path}"
     },
     "zh": {
       "common.cancel": "取消",
@@ -2564,7 +2851,18 @@
       "offload.paused": "上传已暂停。继续后会从中断处接着上传。",
       "offload.attachNormally": "照常添加附件",
       "offload.upload": "上传并添加链接",
-      "offload.resume": "继续上传"
+      "offload.resume": "继续上传",
+      "save.attachmentAction": "保存到 Nextcloud",
+      "save.messageAction": "将邮件保存到 Nextcloud",
+      "save.titleAttachment": "将 {name} 保存到 Nextcloud",
+      "save.titleMessage": "将邮件保存到 Nextcloud",
+      "save.choose": "为 {name} 选择一个文件夹。",
+      "save.here": "保存到这里",
+      "save.newFolder": "新建文件夹",
+      "save.folderName": "文件夹名称",
+      "save.create": "创建",
+      "save.saving": "正在保存…",
+      "save.saved": "已保存到 Nextcloud：{path}"
     }
   }
 }

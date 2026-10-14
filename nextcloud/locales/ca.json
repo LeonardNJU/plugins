@@ -88,5 +88,16 @@
   "offload.paused": "Pujada en pausa. Reprendeu-la per continuar on s'ha aturat.",
   "offload.attachNormally": "Adjunta com sempre",
   "offload.upload": "Puja i afegeix l'enllaç",
-  "offload.resume": "Reprèn la pujada"
+  "offload.resume": "Reprèn la pujada",
+  "save.attachmentAction": "Desa a Nextcloud",
+  "save.messageAction": "Desa el missatge a Nextcloud",
+  "save.titleAttachment": "Desa {name} a Nextcloud",
+  "save.titleMessage": "Desa el missatge a Nextcloud",
+  "save.choose": "Trieu una carpeta per a {name}.",
+  "save.here": "Desa aquí",
+  "save.newFolder": "Carpeta nova",
+  "save.folderName": "Nom de la carpeta",
+  "save.create": "Crea",
+  "save.saving": "S'està desant…",
+  "save.saved": "Desat a Nextcloud: {path}"
 }

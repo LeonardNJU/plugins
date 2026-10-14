@@ -88,5 +88,16 @@
   "offload.paused": "Завантаження призупинено. Відновіть його, щоб продовжити з того місця, де воно зупинилося.",
   "offload.attachNormally": "Прикріпити як зазвичай",
   "offload.upload": "Завантажити й додати посилання",
-  "offload.resume": "Відновити завантаження"
+  "offload.resume": "Відновити завантаження",
+  "save.attachmentAction": "Зберегти в Nextcloud",
+  "save.messageAction": "Зберегти лист у Nextcloud",
+  "save.titleAttachment": "Зберегти {name} у Nextcloud",
+  "save.titleMessage": "Зберегти лист у Nextcloud",
+  "save.choose": "Виберіть папку для {name}.",
+  "save.here": "Зберегти сюди",
+  "save.newFolder": "Нова папка",
+  "save.folderName": "Назва папки",
+  "save.create": "Створити",
+  "save.saving": "Збереження…",
+  "save.saved": "Збережено в Nextcloud: {path}"
 }

@@ -54,6 +54,17 @@ file with the same name gets " (2)" added.
 ![Large attachment offer](screenshots/large-offer-light.png)
 ![Link in the message](screenshots/large-link-light.png)
 
+## Save attachments and messages
+
+Each attachment's menu (the "…" button) has **Save to Nextcloud**, and the
+toolbar of an open message has **Save message to Nextcloud**, which saves
+the whole message as an `.eml` file named after its subject. A folder picker
+opens on the folder you used last; **New folder** creates one in place. A
+file with the same name gets " (2)" added. Attachments and messages of up to
+25 MB can be saved (the webmail's limit for plugins).
+
+![Choosing a folder](screenshots/save-folder-dark.png)
+
 ## Settings
 
 User settings (Settings > Plugins > Nextcloud):
@@ -88,7 +99,11 @@ Nextcloud needs no CORS setup.
 | `email:blob-write` | Upload a file picked in Nextcloud to the mail server to attach it. |
 | `email:send` | Add the picked share links to the message when it is sent (`onTransformOutgoingEmail`). |
 | `email:read` | Drop links picked for a discarded message (`onComposerClose`). |
-| `email:blob-read` | Read a large file you just attached (`upfiles.get`) to upload it to Nextcloud. |
+| `email:blob-read` | Read a large file you just attached (`upfiles.get`), and an attachment or the message source you save (`email.getAttachment`, `email.getRaw`). |
+| `ui:toolbar` | The "Save message to Nextcloud" button in the reader (`reader-actions`). |
+
+`email:read` also covers the "Save to Nextcloud" entry in the attachment menu
+(`attachment-menu`) and reading the subject of a message you save.
 
 `email:blob-write` also covers the `onBeforeBlobUpload` hook, which is how the
 large-attachment offer gets in before the file is uploaded to the mail
@@ -102,7 +117,7 @@ name and app password come from Nextcloud's Login Flow v2.
 Nothing goes to Nextcloud until you connect it. The plugin then only sends
 what you ask it to: folder listings and searches while the picker is open,
 a share request for each file you share as a link, and the large files you
-choose to upload.
+choose to upload, and the attachments and messages you save.
 
 ## Moving from "Nextcloud Attachments"
 

@@ -88,5 +88,16 @@
   "offload.paused": "Yükleme duraklatıldı. Kaldığı yerden devam etmek için sürdürün.",
   "offload.attachNormally": "Normal şekilde ekle",
   "offload.upload": "Yükle ve bağlantı ekle",
-  "offload.resume": "Yüklemeyi sürdür"
+  "offload.resume": "Yüklemeyi sürdür",
+  "save.attachmentAction": "Nextcloud'a kaydet",
+  "save.messageAction": "İletiyi Nextcloud'a kaydet",
+  "save.titleAttachment": "{name} dosyasını Nextcloud'a kaydet",
+  "save.titleMessage": "İletiyi Nextcloud'a kaydet",
+  "save.choose": "{name} için bir klasör seçin.",
+  "save.here": "Buraya kaydet",
+  "save.newFolder": "Yeni klasör",
+  "save.folderName": "Klasör adı",
+  "save.create": "Oluştur",
+  "save.saving": "Kaydediliyor…",
+  "save.saved": "Nextcloud'a kaydedildi: {path}"
 }

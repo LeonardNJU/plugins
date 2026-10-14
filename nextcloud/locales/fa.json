@@ -88,5 +88,16 @@
   "offload.paused": "بارگذاری متوقف شد. ادامه دهید تا از همان جایی که ماند ادامه پیدا کند.",
   "offload.attachNormally": "پیوست به روش معمول",
   "offload.upload": "بارگذاری و افزودن لینک",
-  "offload.resume": "ادامه بارگذاری"
+  "offload.resume": "ادامه بارگذاری",
+  "save.attachmentAction": "ذخیره در Nextcloud",
+  "save.messageAction": "ذخیره پیام در Nextcloud",
+  "save.titleAttachment": "ذخیره {name} در Nextcloud",
+  "save.titleMessage": "ذخیره پیام در Nextcloud",
+  "save.choose": "یک پوشه برای {name} انتخاب کنید.",
+  "save.here": "ذخیره در اینجا",
+  "save.newFolder": "پوشه جدید",
+  "save.folderName": "نام پوشه",
+  "save.create": "ایجاد",
+  "save.saving": "در حال ذخیره…",
+  "save.saved": "در Nextcloud ذخیره شد: {path}"
 }

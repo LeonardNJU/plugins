@@ -88,5 +88,16 @@
   "offload.paused": "Байршуулалт түр зогссон. Үргэлжлүүлбэл зогссон газраасаа цааш явна.",
   "offload.attachNormally": "Ердийнхөөр хавсаргах",
   "offload.upload": "Байршуулаад холбоос нэмэх",
-  "offload.resume": "Байршуулалтыг үргэлжлүүлэх"
+  "offload.resume": "Байршуулалтыг үргэлжлүүлэх",
+  "save.attachmentAction": "Nextcloud-д хадгалах",
+  "save.messageAction": "Захидлыг Nextcloud-д хадгалах",
+  "save.titleAttachment": "{name}-г Nextcloud-д хадгалах",
+  "save.titleMessage": "Захидлыг Nextcloud-д хадгалах",
+  "save.choose": "{name}-д хавтас сонгоно уу.",
+  "save.here": "Энд хадгалах",
+  "save.newFolder": "Шинэ хавтас",
+  "save.folderName": "Хавтасны нэр",
+  "save.create": "Үүсгэх",
+  "save.saving": "Хадгалж байна…",
+  "save.saved": "Nextcloud-д хадгаллаа: {path}"
 }

@@ -88,5 +88,16 @@
   "offload.paused": "Nahrávanie je pozastavené. Pokračujte tam, kde sa zastavilo.",
   "offload.attachNormally": "Priložiť normálne",
   "offload.upload": "Nahrať a pridať odkaz",
-  "offload.resume": "Pokračovať v nahrávaní"
+  "offload.resume": "Pokračovať v nahrávaní",
+  "save.attachmentAction": "Uložiť do Nextcloudu",
+  "save.messageAction": "Uložiť správu do Nextcloudu",
+  "save.titleAttachment": "Uložiť {name} do Nextcloudu",
+  "save.titleMessage": "Uložiť správu do Nextcloudu",
+  "save.choose": "Vyberte priečinok pre {name}.",
+  "save.here": "Uložiť sem",
+  "save.newFolder": "Nový priečinok",
+  "save.folderName": "Názov priečinka",
+  "save.create": "Vytvoriť",
+  "save.saving": "Ukladá sa…",
+  "save.saved": "Uložené do Nextcloudu: {path}"
 }

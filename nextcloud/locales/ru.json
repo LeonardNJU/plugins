@@ -88,5 +88,16 @@
   "offload.paused": "Загрузка приостановлена. Продолжите, и она пойдёт с того места, где остановилась.",
   "offload.attachNormally": "Прикрепить как обычно",
   "offload.upload": "Загрузить и добавить ссылку",
-  "offload.resume": "Продолжить загрузку"
+  "offload.resume": "Продолжить загрузку",
+  "save.attachmentAction": "Сохранить в Nextcloud",
+  "save.messageAction": "Сохранить письмо в Nextcloud",
+  "save.titleAttachment": "Сохранить {name} в Nextcloud",
+  "save.titleMessage": "Сохранить письмо в Nextcloud",
+  "save.choose": "Выберите папку для {name}.",
+  "save.here": "Сохранить сюда",
+  "save.newFolder": "Новая папка",
+  "save.folderName": "Имя папки",
+  "save.create": "Создать",
+  "save.saving": "Сохранение…",
+  "save.saved": "Сохранено в Nextcloud: {path}"
 }

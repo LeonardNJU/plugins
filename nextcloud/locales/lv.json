@@ -88,5 +88,16 @@
   "offload.paused": "Augšupielāde pauzēta. Atsāciet, lai turpinātu no vietas, kur tā apstājās.",
   "offload.attachNormally": "Pievienot kā parasti",
   "offload.upload": "Augšupielādēt un pievienot saiti",
-  "offload.resume": "Atsākt augšupielādi"
+  "offload.resume": "Atsākt augšupielādi",
+  "save.attachmentAction": "Saglabāt Nextcloud",
+  "save.messageAction": "Saglabāt vēstuli Nextcloud",
+  "save.titleAttachment": "Saglabāt {name} Nextcloud",
+  "save.titleMessage": "Saglabāt vēstuli Nextcloud",
+  "save.choose": "Izvēlieties mapi failam {name}.",
+  "save.here": "Saglabāt šeit",
+  "save.newFolder": "Jauna mape",
+  "save.folderName": "Mapes nosaukums",
+  "save.create": "Izveidot",
+  "save.saving": "Saglabā…",
+  "save.saved": "Saglabāts Nextcloud: {path}"
 }

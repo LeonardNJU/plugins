@@ -88,5 +88,16 @@
   "offload.paused": "Opplastingen er satt på pause. Fortsett, så går den videre der den stoppet.",
   "offload.attachNormally": "Legg ved som vanlig",
   "offload.upload": "Last opp og legg til lenke",
-  "offload.resume": "Fortsett opplastingen"
+  "offload.resume": "Fortsett opplastingen",
+  "save.attachmentAction": "Lagre i Nextcloud",
+  "save.messageAction": "Lagre meldingen i Nextcloud",
+  "save.titleAttachment": "Lagre {name} i Nextcloud",
+  "save.titleMessage": "Lagre meldingen i Nextcloud",
+  "save.choose": "Velg en mappe for {name}.",
+  "save.here": "Lagre her",
+  "save.newFolder": "Ny mappe",
+  "save.folderName": "Mappenavn",
+  "save.create": "Opprett",
+  "save.saving": "Lagrer…",
+  "save.saved": "Lagret i Nextcloud: {path}"
 }

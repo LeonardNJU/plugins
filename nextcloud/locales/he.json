@@ -88,5 +88,16 @@
   "offload.paused": "ההעלאה הושהתה. המשיכו כדי להמשיך מהמקום שבו נעצרה.",
   "offload.attachNormally": "צירוף כרגיל",
   "offload.upload": "העלאה והוספת קישור",
-  "offload.resume": "המשך ההעלאה"
+  "offload.resume": "המשך ההעלאה",
+  "save.attachmentAction": "שמירה ב-Nextcloud",
+  "save.messageAction": "שמירת ההודעה ב-Nextcloud",
+  "save.titleAttachment": "שמירת {name} ב-Nextcloud",
+  "save.titleMessage": "שמירת ההודעה ב-Nextcloud",
+  "save.choose": "בחרו תיקיה עבור {name}.",
+  "save.here": "שמירה כאן",
+  "save.newFolder": "תיקיה חדשה",
+  "save.folderName": "שם התיקיה",
+  "save.create": "יצירה",
+  "save.saving": "שומר…",
+  "save.saved": "נשמר ב-Nextcloud: {path}"
 }

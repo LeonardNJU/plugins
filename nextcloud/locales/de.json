@@ -88,5 +88,16 @@
   "offload.paused": "Hochladen pausiert. Setzen Sie es fort, um dort weiterzumachen, wo es aufgehört hat.",
   "offload.attachNormally": "Normal anhängen",
   "offload.upload": "Hochladen und Link einfügen",
-  "offload.resume": "Hochladen fortsetzen"
+  "offload.resume": "Hochladen fortsetzen",
+  "save.attachmentAction": "In Nextcloud speichern",
+  "save.messageAction": "Nachricht in Nextcloud speichern",
+  "save.titleAttachment": "{name} in Nextcloud speichern",
+  "save.titleMessage": "Nachricht in Nextcloud speichern",
+  "save.choose": "Wählen Sie einen Ordner für {name}.",
+  "save.here": "Hier speichern",
+  "save.newFolder": "Neuer Ordner",
+  "save.folderName": "Ordnername",
+  "save.create": "Erstellen",
+  "save.saving": "Wird gespeichert…",
+  "save.saved": "In Nextcloud gespeichert: {path}"
 }

@@ -88,5 +88,16 @@
   "offload.paused": "Upload sat på pause. Genoptag for at fortsætte, hvor den stoppede.",
   "offload.attachNormally": "Vedhæft som normalt",
   "offload.upload": "Upload og tilføj link",
-  "offload.resume": "Genoptag upload"
+  "offload.resume": "Genoptag upload",
+  "save.attachmentAction": "Gem i Nextcloud",
+  "save.messageAction": "Gem besked i Nextcloud",
+  "save.titleAttachment": "Gem {name} i Nextcloud",
+  "save.titleMessage": "Gem beskeden i Nextcloud",
+  "save.choose": "Vælg en mappe til {name}.",
+  "save.here": "Gem her",
+  "save.newFolder": "Ny mappe",
+  "save.folderName": "Mappenavn",
+  "save.create": "Opret",
+  "save.saving": "Gemmer…",
+  "save.saved": "Gemt i Nextcloud: {path}"
 }

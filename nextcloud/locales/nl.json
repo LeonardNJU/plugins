@@ -88,5 +88,16 @@
   "offload.paused": "Upload gepauzeerd. Hervat om verder te gaan waar hij stopte.",
   "offload.attachNormally": "Gewoon bijvoegen",
   "offload.upload": "Uploaden en link toevoegen",
-  "offload.resume": "Upload hervatten"
+  "offload.resume": "Upload hervatten",
+  "save.attachmentAction": "Opslaan in Nextcloud",
+  "save.messageAction": "Bericht opslaan in Nextcloud",
+  "save.titleAttachment": "{name} opslaan in Nextcloud",
+  "save.titleMessage": "Het bericht opslaan in Nextcloud",
+  "save.choose": "Kies een map voor {name}.",
+  "save.here": "Hier opslaan",
+  "save.newFolder": "Nieuwe map",
+  "save.folderName": "Mapnaam",
+  "save.create": "Aanmaken",
+  "save.saving": "Opslaan…",
+  "save.saved": "Opgeslagen in Nextcloud: {path}"
 }

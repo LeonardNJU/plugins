@@ -88,5 +88,16 @@
   "offload.paused": "Przesyłanie wstrzymane. Wznów, aby kontynuować od miejsca, w którym się zatrzymało.",
   "offload.attachNormally": "Załącz normalnie",
   "offload.upload": "Prześlij i dodaj link",
-  "offload.resume": "Wznów przesyłanie"
+  "offload.resume": "Wznów przesyłanie",
+  "save.attachmentAction": "Zapisz w Nextcloud",
+  "save.messageAction": "Zapisz wiadomość w Nextcloud",
+  "save.titleAttachment": "Zapisz {name} w Nextcloud",
+  "save.titleMessage": "Zapisz wiadomość w Nextcloud",
+  "save.choose": "Wybierz folder dla {name}.",
+  "save.here": "Zapisz tutaj",
+  "save.newFolder": "Nowy folder",
+  "save.folderName": "Nazwa folderu",
+  "save.create": "Utwórz",
+  "save.saving": "Zapisywanie…",
+  "save.saved": "Zapisano w Nextcloud: {path}"
 }

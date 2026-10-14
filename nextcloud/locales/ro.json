@@ -88,5 +88,16 @@
   "offload.paused": "Încărcare întreruptă. Reluați pentru a continua de unde a rămas.",
   "offload.attachNormally": "Atașați normal",
   "offload.upload": "Încărcați și adăugați linkul",
-  "offload.resume": "Reluați încărcarea"
+  "offload.resume": "Reluați încărcarea",
+  "save.attachmentAction": "Salvare în Nextcloud",
+  "save.messageAction": "Salvare mesaj în Nextcloud",
+  "save.titleAttachment": "Salvați {name} în Nextcloud",
+  "save.titleMessage": "Salvați mesajul în Nextcloud",
+  "save.choose": "Alegeți un dosar pentru {name}.",
+  "save.here": "Salvare aici",
+  "save.newFolder": "Dosar nou",
+  "save.folderName": "Numele dosarului",
+  "save.create": "Creați",
+  "save.saving": "Se salvează…",
+  "save.saved": "Salvat în Nextcloud: {path}"
 }

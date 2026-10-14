@@ -8,10 +8,12 @@ import { ensureStyles } from './styles.js';
 import { ConnectionPanel, useConnection } from './connection-ui.js';
 import { PickerDialog } from './picker-dialog.js';
 import { OffloadDialog } from './offload-dialog.js';
+import { SaveDialog } from './save-dialog.js';
 
 const VIEWS = {
   picker: PickerDialog,
   offload: OffloadDialog,
+  save: SaveDialog,
 };
 
 export function registerView(name, component) {

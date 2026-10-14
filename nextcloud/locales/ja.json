@@ -88,5 +88,16 @@
   "offload.paused": "アップロードを一時停止しました。再開すると、止まったところから続きます。",
   "offload.attachNormally": "通常どおり添付",
   "offload.upload": "アップロードしてリンクを追加",
-  "offload.resume": "アップロードを再開"
+  "offload.resume": "アップロードを再開",
+  "save.attachmentAction": "Nextcloud に保存",
+  "save.messageAction": "メッセージを Nextcloud に保存",
+  "save.titleAttachment": "{name} を Nextcloud に保存",
+  "save.titleMessage": "メッセージを Nextcloud に保存",
+  "save.choose": "{name} の保存先フォルダーを選んでください。",
+  "save.here": "ここに保存",
+  "save.newFolder": "新しいフォルダー",
+  "save.folderName": "フォルダー名",
+  "save.create": "作成",
+  "save.saving": "保存中…",
+  "save.saved": "Nextcloud に保存しました: {path}"
 }

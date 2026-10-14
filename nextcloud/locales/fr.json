@@ -88,5 +88,16 @@
   "offload.paused": "Envoi en pause. Reprenez-le pour continuer là où il s'est arrêté.",
   "offload.attachNormally": "Joindre normalement",
   "offload.upload": "Envoyer et ajouter le lien",
-  "offload.resume": "Reprendre l'envoi"
+  "offload.resume": "Reprendre l'envoi",
+  "save.attachmentAction": "Enregistrer dans Nextcloud",
+  "save.messageAction": "Enregistrer le message dans Nextcloud",
+  "save.titleAttachment": "Enregistrer {name} dans Nextcloud",
+  "save.titleMessage": "Enregistrer le message dans Nextcloud",
+  "save.choose": "Choisissez un dossier pour {name}.",
+  "save.here": "Enregistrer ici",
+  "save.newFolder": "Nouveau dossier",
+  "save.folderName": "Nom du dossier",
+  "save.create": "Créer",
+  "save.saving": "Enregistrement…",
+  "save.saved": "Enregistré dans Nextcloud : {path}"
 }

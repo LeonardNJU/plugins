@@ -88,5 +88,16 @@
   "offload.paused": "A feltöltés szünetel. Folytasd, és ott halad tovább, ahol abbamaradt.",
   "offload.attachNormally": "Csatolás a szokásos módon",
   "offload.upload": "Feltöltés és link hozzáadása",
-  "offload.resume": "Feltöltés folytatása"
+  "offload.resume": "Feltöltés folytatása",
+  "save.attachmentAction": "Mentés a Nextcloudba",
+  "save.messageAction": "Üzenet mentése a Nextcloudba",
+  "save.titleAttachment": "{name} mentése a Nextcloudba",
+  "save.titleMessage": "Az üzenet mentése a Nextcloudba",
+  "save.choose": "Válassz mappát ehhez: {name}.",
+  "save.here": "Mentés ide",
+  "save.newFolder": "Új mappa",
+  "save.folderName": "Mappa neve",
+  "save.create": "Létrehozás",
+  "save.saving": "Mentés…",
+  "save.saved": "Mentve a Nextcloudba: {path}"
 }

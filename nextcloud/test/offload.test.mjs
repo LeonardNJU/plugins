@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { fakeApi } from '../../test-utils/fake-api.mjs';
 import { offerLargeUpload, hooks, activate } from '../src/index.js';
-import { offloadFile, planUpload } from '../src/ui/offload-dialog.js';
+import { offloadFile } from '../src/ui/offload-dialog.js';
+import { planUpload } from '../src/lib/save.js';
 import manifest from '../manifest.json' with { type: 'json' };
 
 const MB = 1024 * 1024;

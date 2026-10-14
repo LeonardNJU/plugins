@@ -88,5 +88,16 @@
   "offload.paused": "Subida en pausa. Reanúdala para seguir donde se quedó.",
   "offload.attachNormally": "Adjuntar como siempre",
   "offload.upload": "Subir y añadir enlace",
-  "offload.resume": "Reanudar subida"
+  "offload.resume": "Reanudar subida",
+  "save.attachmentAction": "Guardar en Nextcloud",
+  "save.messageAction": "Guardar mensaje en Nextcloud",
+  "save.titleAttachment": "Guardar {name} en Nextcloud",
+  "save.titleMessage": "Guardar el mensaje en Nextcloud",
+  "save.choose": "Elige una carpeta para {name}.",
+  "save.here": "Guardar aquí",
+  "save.newFolder": "Nueva carpeta",
+  "save.folderName": "Nombre de la carpeta",
+  "save.create": "Crear",
+  "save.saving": "Guardando…",
+  "save.saved": "Guardado en Nextcloud: {path}"
 }
