@@ -4,21 +4,21 @@ Per-email sticky notes in the sidebar. Jot down notes while reading emails and s
 
 ## Features
 
-- **Sidebar widget** — Textarea for adding/editing notes per email
-- **Email banner** — Shows a preview of your note above emails that have one
+- **Side panel** — A note field beside the open message, one note per email
+- **Email banner** — A one-line info bar above emails that have a note
 - **Persistent storage** — Notes survive page reloads and sessions
 - **Auto-cleanup** — Oldest notes removed when storage limit reached
-- **Theme-aware** — Uses CSS variables for proper light/dark mode support
+- **Looks like the app** — Drawn with the app's UI kit, so it follows light, dark and custom themes
 
 ## Demonstrates
 
-- `api.ui.registerSidebarWidget()` — interactive React widget with state
-- `api.ui.registerEmailBanner()` — conditional banner with `shouldShow` predicate
+- `slots['email-detail-sidebar']` — a panel next to the open message
+- `slots['email-banner']` — conditional banner with a `shouldShow` predicate
 - `api.hooks.onEmailOpen()` / `onEmailClose()` — tracking the active email
 - `api.storage` — persisting structured data (notes object)
 - `api.plugin.settings` — number and boolean settings
 - React `useState`, `useEffect`, `useCallback` without JSX
-- Using CSS custom properties (`var(--color-*)`) for theme integration
+- `@plugin-host/ui` — `InfoBar`, `Field`, `Textarea` and `Heading` from the app's UI kit
 
 ## Build & Install
 
