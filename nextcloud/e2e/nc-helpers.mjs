@@ -73,9 +73,9 @@ export async function pluginFrame(page, selector, timeout = 30_000) {
 }
 
 /** Approve the host's "Connect Nextcloud" dialog and Nextcloud's login flow in the popup. */
-export async function connectThroughLoginFlow(page, frame) {
+export async function connectThroughLoginFlow(page, frame, buttonName = 'Connect Nextcloud') {
   const popupPromise = page.context().waitForEvent('page', { timeout: 30_000 });
-  await frame.getByRole('button', { name: 'Connect Nextcloud' }).click();
+  await frame.getByRole('button', { name: buttonName }).click();
   // The host's own dialog: the server is fixed by the admin, so it only asks to continue.
   const dialog = page.getByRole('dialog').filter({ hasText: 'Nextcloud' });
   await expect(dialog).toBeVisible();
@@ -89,11 +89,16 @@ export async function connectThroughLoginFlow(page, frame) {
 /** Nextcloud's Login Flow v2 pages: Log in, credentials, Grant access. */
 export async function approveInNextcloud(popup) {
   await popup.getByRole('button', { name: /log in/i }).first().click();
+  // With a Nextcloud session from an earlier sign-in in this browser, the
+  // credentials step is skipped.
   const user = popup.locator('input[name="user"]');
-  await user.waitFor({ timeout: 30_000 });
-  await user.fill(NC_USER);
-  await popup.locator('input[name="password"]').fill(NC.password);
-  await popup.locator('button[type="submit"], input[type="submit"]').first().click();
+  const grant = popup.getByRole('button', { name: /grant access/i });
+  await expect(user.or(grant)).toBeVisible({ timeout: 30_000 });
+  if (await user.isVisible()) {
+    await user.fill(NC_USER);
+    await popup.locator('input[name="password"]').fill(NC.password);
+    await popup.locator('button[type="submit"], input[type="submit"]').first().click();
+  }
   await popup.getByRole('button', { name: /grant access/i }).click({ timeout: 30_000 });
   await expect(popup.getByText(/account connected|connected/i).first()).toBeVisible({ timeout: 30_000 });
   await popup.close();
@@ -133,10 +138,11 @@ export async function admin() {
 export async function ensureConnected(page, theme) {
   const frame = await openSettings(page, theme);
   const connect = frame.getByRole('button', { name: 'Connect Nextcloud' });
+  const again = frame.getByRole('button', { name: 'Sign in again' });
   const connected = frame.getByText(/Connected to localhost:18080/);
-  await expect(connect.or(connected)).toBeVisible({ timeout: 30_000 });
-  if (await connect.isVisible()) {
-    await connectThroughLoginFlow(page, frame);
+  await expect(connect.or(again).or(connected)).toBeVisible({ timeout: 30_000 });
+  if (!(await connected.isVisible())) {
+    await connectThroughLoginFlow(page, frame, (await again.isVisible()) ? 'Sign in again' : 'Connect Nextcloud');
     await expect(connected).toBeVisible({ timeout: 30_000 });
   }
   await page.getByRole('button', { name: 'Back to Mail' }).click();

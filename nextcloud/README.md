@@ -15,6 +15,12 @@ plugin proxy, which adds the password and only talks to that one server.
 the app password is revoked in Nextcloud (or expires), the plugin says so and
 offers to sign in again.
 
+Errors are shown in plain words: an expired or revoked app password (with
+**Sign in again** right where it happened), sharing not allowed by the
+Nextcloud admin, a full storage quota, rate limits, timeouts, Nextcloud in
+maintenance mode, and Nextcloud's own message for things like password rules.
+
+![Sign in again after the app password was revoked](screenshots/expired-light.png)
 ![Settings, not connected](screenshots/settings-disconnected-light.png)
 ![Settings, connected](screenshots/settings-connected-dark.png)
 
