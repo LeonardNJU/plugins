@@ -373,9 +373,7 @@ class Handler(BaseHTTPRequestHandler):
             size = int(self.rfile.readline().split(b';')[0].strip() or b'0', 16)
             if size == 0:
                 # Trailer lines end with an empty line.
-                while self.rfile.readline() not in (b'
-', b'
-', b''):
+                while self.rfile.readline() not in (b'\r\n', b'\n', b''):
                     pass
                 return body
             body += self.rfile.read(size)
