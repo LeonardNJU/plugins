@@ -8,6 +8,8 @@
   "permissions": [
     "email:read",
     "ui:email-banner",
+    "ui:sidebar-widget",
+    "ui:notifications",
     "http:proxy"
   ],
   "entrypoint": "index.js",
@@ -65,6 +67,17 @@
       "type": "boolean",
       "label": "settings.autoLookup",
       "description": "settings.autoLookupHelp",
+      "default": true
+    },
+    "trackNewMail": {
+      "type": "boolean",
+      "label": "settings.trackNewMail",
+      "description": "settings.trackNewMailHelp",
+      "default": true
+    },
+    "notify": {
+      "type": "boolean",
+      "label": "settings.notify",
       "default": true
     }
   },
