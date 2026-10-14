@@ -2,6 +2,7 @@
 //   - NoteBanner: a one-line reader info bar ("This email has a note").
 //   - the side panel next to the open message: heading, the note as the
 //     kit's textarea, when it was saved.
+// Every visible string comes from the manifest's locales via api.i18n.t.
 // Built from a factory so tests can hand in React and a fake api.
 
 import { EmptyState, Field, Heading, InfoBar, Page, Row, Stack, Text, Textarea } from '@plugin-host/ui';
@@ -27,14 +28,16 @@ export function withNote(map, emailId, text, maxNotes, now = new Date()) {
   return next;
 }
 
-export function makeNoteBanner(React) {
+export function makeNoteBanner(React, api) {
   return function NoteBanner() {
-    return React.createElement(InfoBar, { compact: true, tone: 'primary', icon: 'note', title: 'This email has a note attached.' });
+    return React.createElement(InfoBar, { compact: true, tone: 'primary', icon: 'note', title: api.i18n.t('banner.title') });
   };
 }
 
 export function makeNotesPanel(React, api) {
   const { createElement: h, useCallback, useEffect, useRef, useState } = React;
+  const t = (key, vars) => api.i18n.t(key, vars);
+  const locale = () => (api.i18n.getLocale && api.i18n.getLocale()) || undefined;
 
   return function NotesPanel(props) {
     const emailId = props?.email?.id || null;
@@ -97,19 +100,19 @@ export function makeNotesPanel(React, api) {
     }, [emailId]);
 
     if (!emailId) {
-      return h(EmptyState, { compact: true, icon: 'note', title: 'Quick Notes', description: 'Open an email to add a note.' });
+      return h(EmptyState, { compact: true, icon: 'note', title: t('panel.title'), description: t('panel.empty') });
     }
 
     return h(Page, null, h(Stack, { gap: 3 },
       h(Row, { justify: 'between', align: 'baseline' },
-        h(Heading, { level: 3 }, 'Quick Notes'),
-        savedAt ? h(Text, { size: 'xs', tone: 'muted' }, `Saved ${new Date(savedAt).toLocaleTimeString()}`) : null),
-      h(Field, { label: 'Note for this email', hint: 'Saved half a second after you stop typing.' },
+        h(Heading, { level: 3 }, t('panel.title')),
+        savedAt ? h(Text, { size: 'xs', tone: 'muted' }, t('panel.saved', { time: new Date(savedAt).toLocaleTimeString(locale()) })) : null),
+      h(Field, { label: t('panel.label'), hint: t('panel.hint') },
         h(Textarea, {
           value: loaded ? text : '',
           onChange,
           disabled: !loaded,
-          placeholder: 'Jot a note for this email…',
+          placeholder: t('panel.placeholder'),
           rows: 8,
         })),
     ));

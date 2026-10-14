@@ -19,7 +19,7 @@ let notes = {}; // emailId → { text, updatedAt }
 
 // ─── Slot components (src/lib/notes.js) ─────────────────────
 
-const NoteBanner = makeNoteBanner(React);
+const NoteBanner = makeNoteBanner(React, slotApi);
 const NotesSidebar = makeNotesPanel(React, slotApi);
 
 // shouldShow runs in the background iframe.

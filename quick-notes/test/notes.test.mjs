@@ -2,14 +2,19 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as React from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { fakeApi } from '../../test-utils/fake-api.mjs';
 import { makeNoteBanner, makeNotesPanel, withNote, SAVE_DELAY_MS } from '../src/lib/notes.js';
+
+const manifest = JSON.parse(readFileSync(path.join(process.cwd(), 'quick-notes', 'manifest.json'), 'utf8'));
+const api = () => fakeApi({ translations: manifest.locales });
 
 afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 describe('note banner', () => {
   it('is a one-line info bar', () => {
-    render(React.createElement(makeNoteBanner(React)));
+    render(React.createElement(makeNoteBanner(React, api())));
     const bar = document.querySelector('.bk-infobar');
     expect(bar.textContent).toBe('This email has a note attached.');
     expect(document.querySelector('[style]')).toBeNull();
@@ -18,7 +23,7 @@ describe('note banner', () => {
 
 describe('notes panel', () => {
   it('loads the note into the kit textarea under a labelled field and saves edits', async () => {
-    const api = fakeApi();
+    const api = fakeApi({ translations: manifest.locales });
     await api.storage.set('notes', { m1: { text: 'call back', updatedAt: '2026-10-14T09:00:00.000Z' } });
     const Panel = makeNotesPanel(React, api);
     await act(async () => { render(React.createElement(Panel, { email: { id: 'm1' } })); });
