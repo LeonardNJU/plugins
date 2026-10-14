@@ -1,5 +1,6 @@
 // What a task made from a message says: title, description, link back.
 
+import { ownText } from './due-date.js';
 
 const REPLY_PREFIX = /^\s*((re|fwd?|aw|wg|sv|vs|antw|tr|rv|r|fw|ref|réf|rif|odp|pd|ynt|отв|ha|回复|转发|答复)\s*(\[\d+\])?\s*[:：]\s*)+/iu;
 
@@ -34,7 +35,7 @@ function sender(email) {
 
 /** The first `max` characters of the message's own text, without quoted replies. */
 export function excerpt(text, max = 600) {
-  const own = String(text ?? '').replace(/\n{3,}/g, '\n\n').trim();
+  const own = ownText(text).replace(/\n{3,}/g, '\n\n').trim();
   if (own.length <= max) return own;
   const cut = own.slice(0, max);
   const lastSpace = cut.lastIndexOf(' ');

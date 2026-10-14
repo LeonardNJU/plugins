@@ -3,6 +3,26 @@
 
 export const PRIORITIES = ['none', 'low', 'medium', 'high'];
 
+const URGENT_WORDS = /(?<![\p{L}\p{N}])(urgent|asap|important|high priority|dringend|eilig|eilt|wichtig|hohe priorität|sofort)(?![\p{L}\p{N}])/iu;
+
+function header(headers, name) {
+  if (!headers || typeof headers !== 'object') return '';
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() === name) return String(Array.isArray(value) ? value[0] : value ?? '');
+  }
+  return '';
+}
+
+/** 'high' for a message marked urgent (headers or subject), 'low' for one marked low, else 'none'. */
+export function detectPriority({ subject, headers }) {
+  const xPriority = header(headers, 'x-priority').trim();
+  const importance = header(headers, 'importance').trim().toLowerCase();
+  const priority = header(headers, 'priority').trim().toLowerCase();
+  if (/^[12](\D|$)/.test(xPriority) || importance === 'high' || priority === 'urgent') return 'high';
+  if (URGENT_WORDS.test(String(subject ?? ''))) return 'high';
+  if (/^[45](\D|$)/.test(xPriority) || importance === 'low' || priority === 'non-urgent') return 'low';
+  return 'none';
+}
 
 /** The level as each service stores it. */
 export function priorityFor(target, level) {

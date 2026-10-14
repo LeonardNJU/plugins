@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { escapeHtml, excerpt, messageLink, taskDescription, taskTitle, textToHtml, webmailBase } from '../src/lib/message.js';
-import { priorityFor } from '../src/lib/priority.js';
+import { detectPriority, priorityFor } from '../src/lib/priority.js';
 
 const t = (key, vars = {}) => `${key}:${Object.values(vars).join('|')}`;
 
@@ -44,7 +44,7 @@ describe('taskDescription', () => {
 
   it('names the sender and date, links the message and quotes its own text', () => {
     const d = taskDescription(email, { link: 'https://m/x', t });
-    expect(d).toBe('description.from:Bob Example <bob@example.org>\ndescription.date:2026-10-14T09:00:00Z\ndescription.link:https://m/x\n\nPlease pay the invoice.\n\n> old quoted text');
+    expect(d).toBe('description.from:Bob Example <bob@example.org>\ndescription.date:2026-10-14T09:00:00Z\ndescription.link:https://m/x\n\nPlease pay the invoice.');
   });
 
   it('leaves the text out when asked to', () => {
@@ -70,6 +70,15 @@ describe('HTML for Vikunja', () => {
 });
 
 describe('priority', () => {
+  it('reads urgent markers from headers and the subject', () => {
+    expect(detectPriority({ subject: 'Hello', headers: { 'X-Priority': '1 (Highest)' } })).toBe('high');
+    expect(detectPriority({ subject: 'Hello', headers: { Importance: 'High' } })).toBe('high');
+    expect(detectPriority({ subject: 'DRINGEND: Rechnung' })).toBe('high');
+    expect(detectPriority({ subject: 'Need this ASAP' })).toBe('high');
+    expect(detectPriority({ subject: 'Newsletter', headers: { 'x-priority': '5' } })).toBe('low');
+    expect(detectPriority({ subject: 'Unimportant stuff' })).toBe('none');
+    expect(detectPriority({ subject: 'Lunch' })).toBe('none');
+  });
 
   it('maps the four levels to each service', () => {
     expect(['none', 'low', 'medium', 'high'].map((p) => priorityFor('bulwark', p))).toEqual([0, 9, 5, 1]);

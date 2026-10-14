@@ -29,8 +29,9 @@ describe('prepareDialog', () => {
   it('fills in title, description with a link back, due date and priority from each message', async () => {
     const s = await prepareDialog(api(), { emailIds: ['M1', 'M2'], location: LOCATION });
     expect(s.items).toHaveLength(2);
-    expect(s.items[0]).toMatchObject({ emailId: 'M1', title: 'Invoice 2026-10', due: '', priority: 'none', link: 'http://localhost:3100/mail/message/M1' });
+    expect(s.items[0]).toMatchObject({ emailId: 'M1', title: 'Invoice 2026-10', due: '2026-10-16', dueMatch: 'by Friday', priority: 'none', link: 'http://localhost:3100/mail/message/M1' });
     expect(s.items[0].description).toContain('description.link');
+    expect(s.items[1]).toMatchObject({ title: 'URGENT: contract', due: '2026-10-30', priority: 'high' });
   });
 
 

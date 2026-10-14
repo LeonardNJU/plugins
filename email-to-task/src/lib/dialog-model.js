@@ -2,6 +2,8 @@
 // tested on its own: what the dialog is filled in with, and what happens on
 // "Create".
 
+import { findDueDate } from './due-date.js';
+import { detectPriority } from './priority.js';
 import { messageLink, taskDescription, taskTitle, webmailBase } from './message.js';
 import { TARGETS, contextFor, loadAccounts, loadConfig, targetById } from './targets/index.js';
 import { loadPrefs, savePrefs } from './task-store.js';
@@ -21,15 +23,16 @@ function formatDate(iso, locale) {
 /** One message as a dialog item. */
 export function itemFor(email, { t, base, locale, withExcerpt }) {
   const link = base ? messageLink(base, email.id) : '';
+  const due = findDueDate(email);
   return {
     emailId: email.id,
     subject: email.subject ?? '',
     title: taskTitle(email.subject) || t('dialog.no_subject'),
     description: taskDescription(email, { link, t, withExcerpt, formatDate: (iso) => formatDate(iso, locale) }),
     link,
-    due: '',
-    dueMatch: '',
-    priority: 'none',
+    due: due?.date ?? '',
+    dueMatch: due?.match ?? '',
+    priority: detectPriority(email),
     existing: [],
   };
 }

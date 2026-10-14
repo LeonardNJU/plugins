@@ -44,6 +44,8 @@ describe('TaskDialog', () => {
     const api = makeApi();
     const onResult = await open(api);
     expect(screen.getByLabelText('Title').value).toBe('Quarterly report');
+    expect(screen.getByLabelText('Due date').value).toBe('2026-10-16');
+    expect(screen.getByText('Found in the message: “by Friday”')).toBeTruthy();
     expect(screen.getByLabelText('Description').value).toContain('/mail/message/M1');
     await screen.findByRole('option', { name: 'Bulwark inbox' });
     // Bulwark tasks are not offered: this server has none.
@@ -88,5 +90,6 @@ describe('TaskDialog', () => {
     await act(async () => { render(React.createElement(TaskDialog, { api, emailIds: ['M1'], onResult })); });
     expect(await screen.findByLabelText('Titel')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Aufgabe erstellen' })).toBeTruthy();
+    expect(screen.getByLabelText('Fälligkeitsdatum').value).toBe('2026-10-16');
   });
 });
