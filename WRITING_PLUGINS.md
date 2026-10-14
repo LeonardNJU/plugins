@@ -331,6 +331,8 @@ High-risk permissions are listed first in the consent dialog and marked.
 | `email:blob-write` | **Replace attachments before sending.** Upload files to your mail server and replace a file you attached with another one before the message is sent. | yes |
 | `email:render-takeover` | **Change how messages are shown.** Replace the text of messages you open and of the message list, for example to show decrypted content. | yes |
 | `compose:open` | **Open the composer for you.** Open a new message with recipients, text or attachments filled in. You still decide whether to send it. |  |
+| `compose:read` | **Read the message you are writing.** Read the text of a message while you write it, when you use the plugin in the composer. Not the signature or the quoted message. |  |
+| `compose:write` | **Change the message you are writing.** Replace or add text in a message while you write it, when you use the plugin in the composer. You can undo each change, and you still decide whether to send. |  |
 | `calendar:read` | **Read your calendar.** See your calendars and their events. |  |
 | `calendar:write` | **Change your calendar.** Create, change and delete events. |  |
 | `contacts:read` | **Read your contacts.** Search and read your address books. |  |
@@ -843,17 +845,79 @@ export const slots = {
   `extraProps` plus `onResult`; `openDialog` resolves to the value passed to
   `onResult(value)`, or `null` when the user closes the dialog.
 
+  The host draws the title, the plugin's name under it, a close button and
+  the footer. Declare the footer's buttons with `DialogButtons` (Cancel
+  first, the main action last); a click calls your `onClick(id)`:
+
 ```js
+import { createElement as h, useState } from 'react';
+import { Stack, Field, Input, DialogButtons } from '@plugin-host/ui';
+
 function ConfirmUpload({ fileName, onResult }) {
-  return h('div', { style: { padding: 16 } },
-    h('p', null, `Upload ${fileName}?`),
-    h('button', { onClick: () => onResult(true) }, 'Upload'),
-    h('button', { onClick: () => onResult(false) }, 'Cancel'));
+  const [name, setName] = useState(fileName);
+  return h(Stack, { gap: 4 },
+    h(Field, { label: 'File name' }, h(Input, { value: name, onChange: (e) => setName(e.target.value) })),
+    h(DialogButtons, {
+      buttons: [
+        { id: 'cancel', label: 'Cancel', variant: 'secondary' },
+        { id: 'upload', label: 'Upload', disabled: !name },
+      ],
+      onClick: (id) => onResult(id === 'upload' ? name : null),
+    }));
 }
 export const slots = { 'plugin-dialog': { component: ConfirmUpload } };
 // in a hook or an action:
-const ok = await api.ui.openDialog({ title: 'Upload', slot: 'plugin-dialog', extraProps: { fileName } });
+const name = await api.ui.openDialog({ title: 'Upload', slot: 'plugin-dialog', extraProps: { fileName } });
 ```
+
+### The app's controls: `@plugin-host/ui`
+
+Draw your UI with the app's own components, so it looks like the rest of
+Bulwark in every theme. The sandbox provides them like React, so they add
+nothing to your bundle and always match the app version they run in:
+
+```js
+import { Stack, Field, Input, Select, Checkbox, DialogButtons } from '@plugin-host/ui';
+```
+
+The build script (`scripts/build.mjs`) keeps the module external; unit tests
+get a stand-in (`test-utils/ui-kit.mjs`) with the same roles and labels.
+The frame only has styles for these components, not the app's whole
+stylesheet, so lay out with `Stack` and `Row` instead of class names.
+
+| component | what it is in the app |
+|---|---|
+| `Button` | the app's button: `variant` primary, secondary, ghost or destructive; `size` sm, md or icon; `icon`, `busy` |
+| `LinkButton`, `Link` | an inline text link ("Add condition"); an external link |
+| `Input`, `Textarea`, `SearchInput` | the app's text fields; the Files toolbar's search box |
+| `Select` | the settings select; `options`, `onChange(value)`, `block` for full width in forms |
+| `Checkbox`, `Switch`, `Segmented` | the composer's check items, the settings toggle and choice row |
+| `Field` | label above a control, `hint` and `error` below |
+| `Stack`, `Row`, `Text`, `Heading`, `Divider` | layout and text in the app's sizes and colours |
+| `Page`, `PageHeader` | an app page's width and padding, title, description and actions |
+| `Section`, `SettingRow`, `Card` | a settings group and row; the admin pages' bordered card |
+| `Tabs` | the tab bar of the app's dialogs |
+| `Toolbar`, `ToolbarButton`, `ToolbarSpacer`, `Breadcrumbs` | the Files app's toolbar |
+| `List`, `ListRow`, `RowAction`, `FileIcon` | the Files app's list: 40 px rows, its file icons, size and date columns |
+| `Badge`, `Chip` | status pills; the reader's attachment chips |
+| `InfoBar`, `BarButton` | the reader's info bars (external content, invitations) and their buttons; `compact` for one line |
+| `Alert`, `ProgressBar`, `Spinner`, `Loading`, `EmptyState` | messages, progress, loading and empty states |
+| `SidebarRow`, `SidebarEmpty` | rows and the "nothing here" line of a sidebar section |
+| `DiffView` | a text with removed and added words marked, for previews |
+| `Icon` | an app icon by name (the names `setActions` takes) |
+| `DialogButtons` | the buttons of a plugin dialog, drawn by the host in the dialog's footer |
+
+A few rules make a plugin look like it belongs:
+
+- Don't wrap content in a box of your own where the host already gives it
+  one: dialogs, pages and sidebar sections come with their surface and
+  padding.
+- Buttons and menu entries that sit in the app's toolbars and menus are
+  actions (`api.ui.setActions`), not buttons in a frame.
+- No hard-coded colours: the components take theirs from the theme, in
+  light, dark and custom themes.
+- Information about the open message goes in the `email-banner` slot as an
+  `InfoBar`, where it lines up with the app's own info bars.
 
 ### Actions
 
@@ -884,7 +948,15 @@ its buttons. At most 8 actions per surface. An action has:
   roles, such as `inbox` or `sent` (message surfaces);
 - `mimeTypes` (optional): show it only for attachments or files of these
   types; `image/` or `image/*` matches all images;
-- `danger` (optional): draw it in red.
+- `danger` (optional): draw it in red;
+- `shortcut` (optional, `composer-toolbar-actions` only): a key combination
+  such as `Alt+A` that runs the action while the composer has focus. It needs
+  Alt, Ctrl/Cmd+Shift or Ctrl/Cmd+Alt, shows in the button's tooltip and is
+  listed in the keyboard help.
+
+Clicks on the composer's surfaces (its toolbar, Options, Attach and Send
+menus) carry `composerId`, which the [`api.composer`](#apicomposer) methods
+take, so a plugin works on the message the user clicked in.
 
 The surface's permission is checked on every call, and the click context is
 cut down to what the plugin may see.
@@ -928,7 +1000,7 @@ changes for another reason.
 <!-- generated:surfaces -->
 <!-- Generated by scripts/gen-docs.mjs; edit the webmail catalogues, not this table. -->
 
-48 surfaces. A plugin may use a surface with any one of the listed permissions; a prop or context key with a permission in brackets is only passed when the plugin holds that permission too.
+50 surfaces. A plugin may use a surface with any one of the listed permissions; a prop or context key with a permission in brackets is only passed when the plugin holds that permission too.
 
 #### App
 
@@ -1069,14 +1141,16 @@ changes for another reason.
 
 | Surface | Kind | Permission | Props or context | Where |
 |---|---|---|---|---|
-| `composer-toolbar` | frame, inline | `ui:composer-toolbar` | `insertText` (`compose:open`), `getSelectedText` (`email:send`) | the composer's plugin button row |
-| `composer-above-body` | frame | `ui:composer-toolbar` or `ui:composer-sidebar` | `draft` (`email:send`), `insertText` (`compose:open`), `getSelectedText` (`email:send`) | between the subject and the message text |
-| `composer-below-body` | frame | `ui:composer-toolbar` or `ui:composer-sidebar` | `draft` (`email:send`), `insertText` (`compose:open`), `getSelectedText` (`email:send`) | below the message text, above the attachments |
+| `composer-toolbar` | frame, inline | `ui:composer-toolbar` | `insertText` (`compose:open`), `getSelectedText` (`email:send`), `composerId` | the composer's plugin row above its bottom bar, for controls that need their own UI (a button belongs in composer-toolbar-actions) |
+| `composer-above-body` | frame | `ui:composer-toolbar` or `ui:composer-sidebar` | `draft` (`email:send`), `insertText` (`compose:open`), `getSelectedText` (`email:send`), `composerId` | between the subject and the message text |
+| `composer-below-body` | frame | `ui:composer-toolbar` or `ui:composer-sidebar` | `draft` (`email:send`), `insertText` (`compose:open`), `getSelectedText` (`email:send`), `composerId` | below the message text, above the attachments |
 | `composer-sidebar` | frame | `ui:composer-sidebar` |  | a panel left of the composer |
 | `composer-sidebar-right` | frame | `ui:composer-sidebar` |  | a panel right of the composer |
-| `composer-attachment-source` | frame, inline | `ui:composer-toolbar` or `ui:composer-sidebar` | `onAttach`, `insertText` (`compose:open`) | the composer's plugin button row, next to composer-toolbar, as a source of files (for an entry in the Attach menu itself, use composer-attach-menu) |
-| `composer-send-menu` | action | `ui:composer-toolbar` | `draft` (`email:send`) | entries in the menu next to Send |
-| `composer-attach-menu` | action | `ui:composer-toolbar` |  | entries in the attach menu (for example "From Nextcloud") |
+| `composer-attachment-source` | frame, inline | `ui:composer-toolbar` or `ui:composer-sidebar` | `onAttach`, `insertText` (`compose:open`), `composerId` | the composer's plugin row, next to composer-toolbar, as a source of files (older plugins; an entry in the Attach menu, composer-attach-menu, with api.composer.attach looks like the app's own) |
+| `composer-send-menu` | action | `ui:composer-toolbar` | `draft` (`email:send`), `composerId` | entries in the menu next to Send |
+| `composer-attach-menu` | action | `ui:composer-toolbar` | `composerId` | entries in the Attach menu (for example "From Nextcloud"); the click's composerId lets api.composer.attach add files |
+| `composer-options-menu` | action | `ui:composer-toolbar` | `composerId` | entries in the composer's Options menu |
+| `composer-toolbar-actions` | action, inline | `ui:composer-toolbar` | `composerId` | buttons in the composer's bottom bar, after Attach, Templates and Options; an action's shortcut works while the composer has focus |
 
 <p>
 <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/composer-dark.png"><img src="docs/screenshots/composer-light.png" alt="composer-above-body, composer-below-body, composer-toolbar, composer-attachment-source (side panels hidden, see the next picture)" width="640"></picture>
@@ -1242,7 +1316,7 @@ plugin may keep at most 1 MB per account; `set` rejects past that.
 
 ```js
 api.toast.success(text) / info / warning / error    // no await needed
-await api.notifications.show({ title, body, tag })  // 'system' or 'toast'
+await api.notifications.show({ title, body, tag, action })  // 'system' or 'toast'
 ```
 
 Toasts are cut at 300 characters; past 5 toasts in 10 seconds they are
@@ -1252,6 +1326,12 @@ either way it names the plugin. Title up to 120 characters, body up to 300,
 one line each; `tag` is 1 to 64 letters, digits or `. _ : -` and replaces an
 earlier notification with the same tag. At most 5 a minute. A click calls
 the plugin's `onNotificationClick({ tag })` hook.
+
+`action: { label, url }` adds a link: a button on the toast and a link under
+the entry in the notifications panel, opened in a new tab. The URL must be
+http(s) and on a server the plugin already talks to, one of its
+`httpOrigins` or the server of one of its proxy credentials; anything else is
+refused. Labels are up to 40 characters.
 
 ### api.ui
 
@@ -1266,6 +1346,7 @@ await api.ui.downloadFile({ content, filename, contentType })
 await api.ui.setActions(surface, actions)
 await api.ui.setDayLabels(labels)
 await api.ui.setPages(pages)
+await api.ui.setSectionTitle(title)     // the header of the plugin's sidebar-section; null for its name
 await api.ui.refreshRowBadges()
 await api.ui.rerenderEmail()            // run onRenderEmailBody again for the open message
 await api.ui.rerenderFetchedEmails()    // run onEmailsFetched again for the list
@@ -1278,6 +1359,32 @@ would open as a page: `.exe .msi .bat .cmd .com .scr .ps1 .vbs .vbe .js .jse
 .wsf .hta .jar .lnk .app .dmg .pkg .sh .command .html .htm .xhtml .shtml .svg
 .mhtml .xml` and HTML, SVG, XML and JavaScript content types. The file name
 is cleaned of paths and control characters.
+
+### api.composer
+
+The message the user is writing, in the composer that handed the plugin its
+`composerId` (the click context of a composer action, or the props of a
+composer slot):
+
+```js
+await api.composer.getBody(composerId)        // { html, text } of the user's own text   compose:read
+await api.composer.getSelection(composerId)   // { html, text, empty }                    compose:read
+await api.composer.replaceSelection(composerId, { text } | { html }, { below })   // true  compose:write
+await api.composer.replaceBody(composerId, { text } | { html })                   // true  compose:write
+await api.composer.attach(composerId, { blobId, name, type, size })               // true  email:blob-write
+```
+
+- The user's own text is what they wrote: the signature, a reply's quote
+  header and the quoted message are not part of it, and `replaceBody` leaves
+  them where they are. Inline images in replaced text are kept.
+- `replaceSelection` replaces the selection, or inserts at the caret when
+  nothing is selected; `{ below: true }` adds after the selection instead. A
+  selection that holds the signature or the quoted message is refused.
+- Each change is one step in the editor's history: one Ctrl+Z takes it back.
+- `text` becomes one paragraph per line; `html` goes through the same cleaning
+  as `compose.open` bodies. At most 60 changes a minute.
+- `attach` adds a blob from `api.jmap.uploadBlob` through the composer's usual
+  checks (size limit, onBeforeAttachmentUpload).
 
 ### api.email, api.mailboxes, api.drafts, api.compose
 
@@ -1293,6 +1400,7 @@ await api.email.removeKeyword(emailId, keyword, accountId?)
 await api.mailboxes.list()                   // [{ id, name, role, parentId, totalEmails, unreadEmails }]
 await api.drafts.create({ to, cc, bcc, subject, body, isHtml, attachments })   // the draft's email id
 await api.compose.open({ to, cc, bcc, subject, body, isHtml, attachments })    // 'opened' or 'navigating'
+await api.compose.reply(emailId, { text, all })   // reply to the open message, starting with text; true
 ```
 
 `EmailReadView` has `id, threadId, mailboxIds, from, to, cc, subject,
@@ -1570,6 +1678,7 @@ comes from the plugin id, so one plugin can't derive another plugin's key.
 | `api.ui.refreshRowBadges` | none |
 | `api.ui.setDayLabels` | `ui:calendar-action` |
 | `api.ui.setPages` | `ui:app-page` |
+| `api.ui.setSectionTitle` | `ui:sidebar-widget` |
 | `api.sieve.isSupported` | `filters:read` |
 | `api.sieve.getActiveScript` | `filters:read` |
 | `api.sieve.validateScript` | `filters:write` |
@@ -1602,8 +1711,14 @@ comes from the plugin id, so one plugin can't derive another plugin's key.
 | `api.email.move` | `email:write` |
 | `api.email.archive` | `email:write` |
 | `api.compose.open` | `compose:open` |
+| `api.compose.reply` | `compose:open` |
 | `api.drafts.create` | `email:write` |
 | `api.notifications.show` | `ui:notifications` |
+| `api.composer.getBody` | `compose:read` |
+| `api.composer.getSelection` | `compose:read` |
+| `api.composer.replaceSelection` | `compose:write` |
+| `api.composer.replaceBody` | `compose:write` |
+| `api.composer.attach` | `email:blob-write` |
 
 <!-- /generated:api-permissions -->
 
