@@ -160,13 +160,30 @@ export function detectParcels(message) {
   return results;
 }
 
+/**
+ * A typed digit run whose length only one carrier uses, when that carrier's
+ * check digit fits (a 10-digit DHL Express waybill). Lengths several
+ * carriers share stay unknown.
+ */
+function onlyCheckedShape(n) {
+  const fits = [];
+  for (const carrier of CARRIERS) {
+    for (const format of carrier.formats) {
+      if (format.strength !== 'weak') continue;
+      if (new RegExp(`^(?:${format.re.source.replace(/\\b/g, '')})$`).test(n)) fits.push({ carrier, format });
+    }
+  }
+  if (fits.length !== 1 || !fits[0].format.check?.(n)) return null;
+  return { carrier: fits[0].carrier, number: n };
+}
+
 /** For a number the user typed: the carrier when we know the format, else 'other'. */
 export function parcelFromInput(input) {
   const n = String(input || '').replace(/\s+/g, '').toUpperCase();
   if (!/^[0-9A-Z-]{6,40}$/.test(n)) return null;
-  // Bare digit runs fit several carriers; without a message around them we
-  // can't tell which, so those stay "other" and 17TRACK works it out.
-  const known = identifyNumber(n, { minStrength: 'medium' });
+  // Most bare digit runs fit several carriers; without a message around them
+  // we can't tell which, so those stay "other" and 17TRACK works it out.
+  const known = identifyNumber(n, { minStrength: 'medium' }) ?? onlyCheckedShape(n);
   return describe(known?.carrier ?? null, known?.number ?? n, { source: 'manual' });
 }
 

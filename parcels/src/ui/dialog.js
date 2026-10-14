@@ -9,7 +9,7 @@ import host from '@plugin-host';
 import { Alert, DialogButtons, Field, Input, Loading, Stack, Text } from '@plugin-host/ui';
 import { parcelFromInput } from '../lib/detect.js';
 import { getParcel, rememberParcels, saveParcel } from '../lib/parcels.js';
-import { carrierLabel, errorText, eventLine, formatDate, shownStatus, statusLabel } from '../lib/view.js';
+import { carrierLabel, errorText, eventLine, formatDate, shownStatus, statusLabel, trackLabel } from '../lib/view.js';
 
 const h = React.createElement;
 const t = (key, vars) => host.i18n.t(key, vars);
@@ -88,7 +88,7 @@ function ParcelDialog({ number, onResult }) {
     h(DialogButtons, {
       buttons: [
         { id: 'received', label: t('card.markReceived'), variant: 'secondary', icon: 'check' },
-        { id: 'track', label: t('card.track', { carrier }), variant: 'primary', icon: 'external-link' },
+        { id: 'track', label: trackLabel(t, parcel), variant: 'primary', icon: 'external-link' },
       ],
       onClick: (id) => {
         if (id === 'track') void host.ui.openExternalUrl(parcel.trackingUrl);

@@ -158,8 +158,10 @@ The tracking service addresses the administrator set are read with
 - Delivered parcels stay in the sidebar until you mark them received, so a
   parcel left at a neighbour doesn't vanish.
 - A number added by hand whose format several carriers share (plain
-  digits) gets no carrier; the tracking service works it out and the link
-  goes to 17TRACK's public tracking page.
+  digits) gets no carrier; the tracking service works it out and the button
+  says *Track online*, linking to 17TRACK's public tracking page. A length
+  only one carrier uses counts when its check digit fits, so a 10-digit
+  DHL Express waybill is taken as DHL.
 
 ## Development
 

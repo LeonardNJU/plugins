@@ -200,6 +200,15 @@ describe('numbers the user types', () => {
     expect(parcelFromInput('01505012345678').trackingUrl).toContain('17track.net');
   });
 
+  it('takes a typed 10-digit number with a fitting DHL Express check digit as DHL', () => {
+    expect(parcelFromInput('5571562835')).toMatchObject({ carrier: 'dhl', carrierName: 'DHL', number: '5571562835' });
+    expect(parcelFromInput('5571562835').trackingUrl).toContain('dhl.com');
+    // Wrong check digit: could be anything, so 17TRACK decides.
+    expect(parcelFromInput('5571562836')).toMatchObject({ carrier: 'other' });
+    // 12 digits fit DHL Paket, FedEx and GLS: still unknown.
+    expect(parcelFromInput('123456789012')).toMatchObject({ carrier: 'other' });
+  });
+
   it('refuses text that is not a number', () => {
     expect(parcelFromInput('hello')).toBeNull();
     expect(parcelFromInput('')).toBeNull();

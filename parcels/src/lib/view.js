@@ -61,6 +61,11 @@ export function carrierLabel(t, parcel) {
   return parcel.carrierName || t('carrier.other');
 }
 
+/** "Track at DHL"; "Track online" when we don't know the carrier. */
+export function trackLabel(t, parcel) {
+  return parcel.carrierName ? t('card.track', { carrier: parcel.carrierName }) : t('card.trackOnline');
+}
+
 /** "0034…2557" for long numbers, the number itself for short ones. */
 export function shortNumber(number) {
   const n = String(number || '');

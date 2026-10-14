@@ -234,6 +234,15 @@ describe('dialogs', () => {
     expect(api.storageSnapshot()).toEqual({});
   });
 
+  it('parcel: says Track online when the carrier is unknown', async () => {
+    const api = makeApi();
+    await api.storage.set('parcel:5571562836', parcel('5571562836', { carrier: 'other', carrierName: '' }));
+    const Dialog = load(api).slots['plugin-dialog'].component;
+    await show(React.createElement(Dialog, { mode: 'parcel', number: '5571562836', onResult: vi.fn() }));
+    await screen.findByText('Waiting for the first update');
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['Mark received', 'Track online']);
+  });
+
   it('parcel: shows the status and puts Mark received and Track in the footer', async () => {
     const api = makeApi();
     await api.storage.set('parcel:00340434161094042557', parcel('00340434161094042557', { subject: 'Your order has shipped', status: 'in_transit', text: 'Sorted', location: 'Hannover, DE', error: 'rate_limit' }));

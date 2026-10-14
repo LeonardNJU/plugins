@@ -84,6 +84,7 @@
   "locales": {
     "en": {
       "card.track": "Track at {carrier}",
+      "card.trackOnline": "Track online",
       "card.refresh": "Refresh",
       "card.refreshing": "Checking…",
       "card.lookup": "Show status",
@@ -143,6 +144,7 @@
     },
     "de": {
       "card.track": "Bei {carrier} verfolgen",
+      "card.trackOnline": "Online verfolgen",
       "card.refresh": "Aktualisieren",
       "card.refreshing": "Wird abgefragt…",
       "card.lookup": "Status anzeigen",
@@ -202,6 +204,7 @@
     },
     "fr": {
       "card.track": "Suivre chez {carrier}",
+      "card.trackOnline": "Suivre en ligne",
       "card.refresh": "Actualiser",
       "card.refreshing": "Vérification…",
       "card.lookup": "Afficher le statut",
@@ -261,6 +264,7 @@
     },
     "es": {
       "card.track": "Seguir en {carrier}",
+      "card.trackOnline": "Seguir en línea",
       "card.refresh": "Actualizar",
       "card.refreshing": "Consultando…",
       "card.lookup": "Ver estado",
@@ -320,6 +324,7 @@
     },
     "it": {
       "card.track": "Traccia su {carrier}",
+      "card.trackOnline": "Traccia online",
       "card.refresh": "Aggiorna",
       "card.refreshing": "Verifica in corso…",
       "card.lookup": "Mostra stato",
@@ -379,6 +384,7 @@
     },
     "pt": {
       "card.track": "Rastrear em {carrier}",
+      "card.trackOnline": "Rastrear online",
       "card.refresh": "Atualizar",
       "card.refreshing": "A verificar…",
       "card.lookup": "Ver estado",
@@ -438,6 +444,7 @@
     },
     "nl": {
       "card.track": "Volgen bij {carrier}",
+      "card.trackOnline": "Online volgen",
       "card.refresh": "Vernieuwen",
       "card.refreshing": "Bezig met opvragen…",
       "card.lookup": "Status tonen",
@@ -497,6 +504,7 @@
     },
     "ca": {
       "card.track": "Segueix a {carrier}",
+      "card.trackOnline": "Segueix en línia",
       "card.refresh": "Actualitza",
       "card.refreshing": "S'està consultant…",
       "card.lookup": "Mostra l'estat",
@@ -556,6 +564,7 @@
     },
     "cs": {
       "card.track": "Sledovat u {carrier}",
+      "card.trackOnline": "Sledovat online",
       "card.refresh": "Obnovit",
       "card.refreshing": "Zjišťuji…",
       "card.lookup": "Zobrazit stav",
@@ -615,6 +624,7 @@
     },
     "da": {
       "card.track": "Spor hos {carrier}",
+      "card.trackOnline": "Spor online",
       "card.refresh": "Opdatér",
       "card.refreshing": "Henter…",
       "card.lookup": "Vis status",
@@ -674,6 +684,7 @@
     },
     "nb": {
       "card.track": "Spor hos {carrier}",
+      "card.trackOnline": "Spor på nett",
       "card.refresh": "Oppdater",
       "card.refreshing": "Henter…",
       "card.lookup": "Vis status",
@@ -733,6 +744,7 @@
     },
     "pl": {
       "card.track": "Śledź w {carrier}",
+      "card.trackOnline": "Śledź online",
       "card.refresh": "Odśwież",
       "card.refreshing": "Sprawdzanie…",
       "card.lookup": "Pokaż status",
@@ -792,6 +804,7 @@
     },
     "sk": {
       "card.track": "Sledovať u {carrier}",
+      "card.trackOnline": "Sledovať online",
       "card.refresh": "Obnoviť",
       "card.refreshing": "Zisťujem…",
       "card.lookup": "Zobraziť stav",
@@ -851,6 +864,7 @@
     },
     "hu": {
       "card.track": "Követés itt: {carrier}",
+      "card.trackOnline": "Követés online",
       "card.refresh": "Frissítés",
       "card.refreshing": "Lekérdezés…",
       "card.lookup": "Állapot megjelenítése",
@@ -910,6 +924,7 @@
     },
     "ro": {
       "card.track": "Urmărește la {carrier}",
+      "card.trackOnline": "Urmărește online",
       "card.refresh": "Reîmprospătează",
       "card.refreshing": "Se verifică…",
       "card.lookup": "Afișează starea",
@@ -969,6 +984,7 @@
     },
     "tr": {
       "card.track": "{carrier} üzerinden takip et",
+      "card.trackOnline": "Çevrimiçi takip et",
       "card.refresh": "Yenile",
       "card.refreshing": "Sorgulanıyor…",
       "card.lookup": "Durumu göster",
@@ -1028,6 +1044,7 @@
     },
     "lv": {
       "card.track": "Izsekot pie {carrier}",
+      "card.trackOnline": "Izsekot tiešsaistē",
       "card.refresh": "Atsvaidzināt",
       "card.refreshing": "Pārbauda…",
       "card.lookup": "Rādīt statusu",
@@ -1087,6 +1104,7 @@
     },
     "ru": {
       "card.track": "Отследить на сайте {carrier}",
+      "card.trackOnline": "Отследить онлайн",
       "card.refresh": "Обновить",
       "card.refreshing": "Проверяем…",
       "card.lookup": "Показать статус",
@@ -1146,6 +1164,7 @@
     },
     "uk": {
       "card.track": "Відстежити на сайті {carrier}",
+      "card.trackOnline": "Відстежити онлайн",
       "card.refresh": "Оновити",
       "card.refreshing": "Перевіряємо…",
       "card.lookup": "Показати статус",
@@ -1205,6 +1224,7 @@
     },
     "mn": {
       "card.track": "{carrier} дээр хянах",
+      "card.trackOnline": "Онлайнаар хянах",
       "card.refresh": "Сэргээх",
       "card.refreshing": "Шалгаж байна…",
       "card.lookup": "Төлөв харах",
@@ -1264,6 +1284,7 @@
     },
     "ar": {
       "card.track": "التتبع لدى {carrier}",
+      "card.trackOnline": "التتبع عبر الإنترنت",
       "card.refresh": "تحديث",
       "card.refreshing": "جارٍ التحقق…",
       "card.lookup": "عرض الحالة",
@@ -1323,6 +1344,7 @@
     },
     "fa": {
       "card.track": "رهگیری در {carrier}",
+      "card.trackOnline": "رهگیری آنلاین",
       "card.refresh": "بازنشانی",
       "card.refreshing": "در حال بررسی…",
       "card.lookup": "نمایش وضعیت",
@@ -1382,6 +1404,7 @@
     },
     "he": {
       "card.track": "מעקב ב-{carrier}",
+      "card.trackOnline": "מעקב מקוון",
       "card.refresh": "רענן",
       "card.refreshing": "בודק…",
       "card.lookup": "הצג סטטוס",
@@ -1441,6 +1464,7 @@
     },
     "ja": {
       "card.track": "{carrier} で追跡",
+      "card.trackOnline": "オンラインで追跡",
       "card.refresh": "更新",
       "card.refreshing": "確認中…",
       "card.lookup": "状況を表示",
@@ -1500,6 +1524,7 @@
     },
     "ko": {
       "card.track": "{carrier}에서 조회",
+      "card.trackOnline": "온라인 조회",
       "card.refresh": "새로고침",
       "card.refreshing": "조회 중…",
       "card.lookup": "상태 보기",
@@ -1559,6 +1584,7 @@
     },
     "zh": {
       "card.track": "在 {carrier} 查询",
+      "card.trackOnline": "在线查询",
       "card.refresh": "刷新",
       "card.refreshing": "正在查询…",
       "card.lookup": "显示状态",
@@ -1618,6 +1644,7 @@
     },
     "zh-TW": {
       "card.track": "在 {carrier} 查詢",
+      "card.trackOnline": "線上查詢",
       "card.refresh": "重新整理",
       "card.refreshing": "查詢中…",
       "card.lookup": "顯示狀態",

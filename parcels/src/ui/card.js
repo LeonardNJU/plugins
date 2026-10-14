@@ -9,7 +9,7 @@ import { BarButton, InfoBar, Row, Text } from '@plugin-host/ui';
 import { detectParcels } from '../lib/detect.js';
 import { applyOutcome, getParcel, rememberParcels, saveParcel, CARD_REFRESH_MS, MANUAL_REFRESH_MS } from '../lib/parcels.js';
 import { createTracker } from '../lib/tracking.js';
-import { carrierLabel, errorText, eventLine, formatDate, shownStatus, statusBarTone, statusIcon, statusLabel } from '../lib/view.js';
+import { carrierLabel, errorText, eventLine, formatDate, shownStatus, statusBarTone, statusIcon, statusLabel, trackLabel } from '../lib/view.js';
 
 const h = React.createElement;
 let tracker = null;
@@ -34,7 +34,7 @@ function ParcelBar({ parcel, busy, onRefresh, onReceived, onOpen }) {
       parcel.stopped ? h(Text, { tone: 'muted' }, t('widget.stopped')) : null,
       parcel.error ? h('div', { role: 'status' }, h(Text, { tone: 'danger' }, errorText(t, parcel.error))) : null,
       h(Row, { gap: 2 },
-        h(BarButton, { icon: 'external-link', onClick: onOpen }, t('card.track', { carrier })),
+        h(BarButton, { icon: 'external-link', onClick: onOpen }, trackLabel(t, parcel)),
         h(BarButton, { icon: 'refresh', onClick: onRefresh, busy }, busy ? t('card.refreshing') : (status ? t('card.refresh') : t('card.lookup'))),
         parcel.received
           // Pressed while received; pressing it again follows the parcel again.
