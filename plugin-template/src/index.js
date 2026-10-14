@@ -1,19 +1,25 @@
 /**
  * Bulwark Mail Plugin Template — sandboxed contract.
  *
- * Plugins now export three top-level fields:
+ * Plugins export three top-level fields:
  *
  *   slots:    { [SlotName]: { component, shouldShow?, order? } }
  *             React components rendered inside their own opaque-origin
- *             iframe. The component receives whatever the host slot
- *             provides as `extraProps`. The slot iframe is a pure
- *             renderer — it cannot reach api.storage / api.http /
- *             api.plugin.settings.
+ *             iframe. Each slot needs its ui:* permission in the manifest,
+ *             or the host does not render it. The component receives the
+ *             props of the spot it sits in; data props (the open email,
+ *             the account) are only passed with the matching read
+ *             permission, and some slots (sidebar-widget) get none. The
+ *             slot iframe has the same `api` as the background iframe
+ *             (api.storage, api.http, api.plugin.settings, api.i18n, ...):
+ *             get it with `require('@plugin-host')`.
  *
  *   hooks:    { [HookName]: handler }
  *             Handlers dispatched into the background iframe via
  *             postMessage RPC. Handlers may return a Promise. NO DOM
- *             access from hooks — the background iframe is hidden.
+ *             access from hooks — the background iframe is hidden. Each
+ *             hook needs a permission (onEmailOpen needs email:read), or
+ *             the host does not register it.
  *
  *   activate(api): one-shot side effects (storage init, http calls).
  *             Runs once in the background iframe. Should NOT register
@@ -26,6 +32,11 @@
  *   - api.ui.confirm/alert/openExternalUrl → returns a Promise
  *   - api.toast.success/info/warning/error → fire-and-forget
  *   - api.log.*                             → local console
+ *   - api.plugin.settings                   → current settings, with the
+ *     manifest's settingsSchema defaults filled in. Slots re-render when
+ *     they change; elsewhere use api.plugin.onSettingsChange(cb).
+ *   - api.i18n.t(key, vars) / has(key)      → strings from manifest.locales.
+ *     t() returns the key itself when it is missing.
  *
  * IMPORTANT:
  *   - Do NOT import React via globalThis.__PLUGIN_EXTERNALS__ (that hook
@@ -35,19 +46,24 @@
  *   - Hooks are dispose-managed by the host. Don't try to capture
  *     "Disposable" return values — there aren't any.
  *   - The slot iframe and background iframe are separate. State you
- *     mutate in one is not visible in the other.
+ *     mutate in one is not visible in the other; share it through
+ *     api.storage.
  */
 
 const { createElement: h, useState } = require('react');
+const api = require('@plugin-host');
+
+const t = (key, vars) => api.i18n.t(key, vars);
 
 // ─── Slot component example ─────────────────────────────────
 
-function MyWidget(props) {
+function MyWidget() {
   const [count, setCount] = useState(0);
+  const title = String(api.plugin.settings.widgetTitle || '').trim() || t('widget.title');
   return h(
     'div',
     { style: { padding: '12px', fontSize: '13px' } },
-    h('div', { style: { fontWeight: 600, marginBottom: '8px' } }, 'My Plugin'),
+    h('div', { style: { fontWeight: 600, marginBottom: '8px' } }, title),
     h(
       'button',
       {
@@ -63,30 +79,30 @@ function MyWidget(props) {
           cursor: 'pointer',
         },
       },
-      `Clicked ${count} times`,
+      t('widget.clicked', { count }),
     ),
-    props?.email
-      ? h(
-          'div',
-          { style: { marginTop: '8px', color: 'var(--color-muted-foreground)' } },
-          `Current email: ${props.email.subject || '(no subject)'}`,
-        )
-      : null,
   );
 }
 
 export const slots = {
-  // Pick a slot name from SlotName in lib/plugin-types.ts:
-  //   toolbar-actions, app-top-banner, email-banner, email-footer,
-  //   composer-toolbar, composer-sidebar, composer-sidebar-right,
-  //   sidebar-widget, email-detail-sidebar, settings-section,
-  //   context-menu-email, navigation-rail-bottom,
-  //   calendar-event-actions, admin-plugin-page
+  // Pick a slot name from SlotName in lib/plugin-types.ts and add the
+  // permission it needs to manifest.json:
+  //   toolbar-actions (ui:toolbar), app-top-banner (ui:app-top-banner),
+  //   email-banner (ui:email-banner), email-footer (ui:email-footer),
+  //   composer-toolbar (ui:composer-toolbar),
+  //   composer-sidebar, composer-sidebar-right (ui:composer-sidebar),
+  //   sidebar-widget (ui:sidebar-widget),
+  //   email-detail-sidebar (ui:email-details),
+  //   settings-section (ui:settings-section),
+  //   context-menu-email (ui:context-menu),
+  //   navigation-rail-bottom (ui:navigation-rail),
+  //   calendar-event-actions (ui:calendar-action),
+  //   admin-plugin-page (ui:admin-page)
   'sidebar-widget': {
     component: MyWidget,
-    // shouldShow runs in the BACKGROUND iframe with the host's extraProps.
-    // Return false to skip mounting the slot iframe entirely.
-    shouldShow: () => true,
+    // shouldShow runs in the BACKGROUND iframe. Return false to skip
+    // mounting the slot iframe entirely.
+    shouldShow: () => api.plugin.settings.enabled !== false,
     order: 100,
   },
 };
@@ -95,14 +111,17 @@ export const slots = {
 
 export const hooks = {
   onAppReady() {
-    console.info('[my-plugin] App is ready');
+    api.log.info('App is ready');
   },
 
+  // Needs email:read, declared in manifest.json.
   onEmailOpen(email) {
-    console.info('[my-plugin] Email opened:', email?.subject);
+    if (api.plugin.settings.enabled === false) return;
+    api.log.info('Email opened:', email?.subject);
   },
 
   // Intercept hooks may return a Promise. Return `false` to cancel.
+  // onBeforeEmailSend needs email:send.
   // async onBeforeEmailSend(draft) {
   //   const ok = await api.ui.confirm({ title: 'Send?', message: '...' });
   //   return ok ? undefined : false;
@@ -112,6 +131,10 @@ export const hooks = {
 // ─── Activate (one-shot init) ───────────────────────────────
 
 export async function activate(api) {
+  api.plugin.onSettingsChange((settings) => {
+    api.log.info(`Settings changed (enabled: ${settings.enabled !== false})`);
+  });
+
   if (api.plugin.settings.enabled === false) {
     api.log.info('Plugin disabled by user settings');
     return;

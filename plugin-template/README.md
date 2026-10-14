@@ -33,7 +33,7 @@ Upload the ZIP via **Admin → Plugins** in Bulwark Mail.
 ## Customization
 
 1. **manifest.json**: Update `id`, `name`, `author`, `description`, `type`, and `permissions`
-2. **src/index.js**: Uncomment the sections you need (UI registrations, hooks, etc.)
+2. **src/index.js**: Keep the slot, hooks and settings you need and remove the rest
 3. **package.json**: Update `name` to match your plugin
 
 ## Plugin Types
@@ -46,5 +46,6 @@ Upload the ZIP via **Admin → Plugins** in Bulwark Mail.
 
 - React is provided by the host app — do **not** bundle it
 - Use `api.storage` for persistent data, not `localStorage` directly
-- Call `.dispose()` on all registrations when cleaning up
+- Every hook and slot needs its permission in `manifest.json` (for example `email:read` for `onEmailOpen`, `ui:sidebar-widget` for the sidebar widget), or the host skips it
+- Put strings users see in `locales` in `manifest.json` and read them with `api.i18n.t()`
 - Plugin auto-disables after 3 errors in 60 seconds

@@ -1,12 +1,13 @@
 {
   "id": "my-plugin",
   "name": "My Plugin",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "author": "Your Name",
   "description": "A custom plugin for Bulwark Mail",
-  "type": "hook",
+  "type": "ui-extension",
   "permissions": [
-    "email:read"
+    "email:read",
+    "ui:sidebar-widget"
   ],
   "entrypoint": "index.js",
   "minAppVersion": "1.7.0",
@@ -16,6 +17,22 @@
       "label": "Enable Plugin",
       "description": "Toggle the main functionality on or off",
       "default": true
+    },
+    "widgetTitle": {
+      "type": "string",
+      "label": "Widget title",
+      "description": "Shown at the top of the sidebar widget. Leave empty for the default.",
+      "default": ""
+    }
+  },
+  "locales": {
+    "en": {
+      "widget.title": "My Plugin",
+      "widget.clicked": "Clicked {count} times"
+    },
+    "de": {
+      "widget.title": "Mein Plugin",
+      "widget.clicked": "{count}-mal geklickt"
     }
   }
 }
