@@ -4,17 +4,19 @@ Automatically tags incoming emails based on configurable rules. Recognizes newsl
 
 ## Features
 
-- **Newsletter detection** — Tags emails from `noreply@` addresses or with unsubscribe-related subjects
+- **Newsletter detection** — Tags emails with a List-Unsubscribe header, from `noreply@` addresses or with unsubscribe-related subjects
 - **Invoice detection** — Tags emails with invoice/receipt/billing keywords in the subject
 - **GitHub detection** — Tags emails from GitHub notification addresses
 - All rules are toggleable via plugin settings
+- The first matching rule adds its keyword (`$github`, `$newsletter` or `$invoice`) to the message
 
 ## Demonstrates
 
-- `api.hooks.onNewEmailReceived()` — reacting to incoming email
-- `api.plugin.settings` — user-configurable boolean settings
+- `hooks.onNewEmailReceived` — reacting to incoming email
+- `api.email.setKeyword()` — tagging a message (needs `email:write`)
+- `api.plugin.settings` and `api.plugin.onSettingsChange()` — user-configurable boolean settings
 - `api.storage` — persisting counters across sessions
-- Pattern matching on email from/subject fields
+- Pattern matching on the sender list, subject and headers
 
 ## Build & Install
 
