@@ -6,7 +6,9 @@
   "description": "Shows the time where the people you write to are: participants' local times in the event form, the sender's local time in a message, a time in several zones for the composer and an optional world clock.",
   "type": "ui-extension",
   "permissions": [
-    "ui:settings-section"
+    "ui:settings-section",
+    "calendar:read",
+    "ui:calendar-action"
   ],
   "entrypoint": "index.js",
   "minAppVersion": "1.14.2",
@@ -22,6 +24,22 @@
       "label": "Your time zone",
       "description": "Leave empty to use the time zone of your browser. Set it if you picked another time zone in the webmail settings.",
       "default": ""
+    },
+    "workStart": {
+      "type": "number",
+      "label": "Working hours start",
+      "description": "Hour (0-23). Events before it get a warning.",
+      "default": 8,
+      "min": 0,
+      "max": 23
+    },
+    "workEnd": {
+      "type": "number",
+      "label": "Working hours end",
+      "description": "Hour (1-24). Events after it get a warning.",
+      "default": 20,
+      "min": 1,
+      "max": 24
     }
   },
   "locales": {
@@ -42,7 +60,16 @@
       "settings.noPeople": "None yet. Set them in the event form, in the message details or here.",
       "settings.addPerson": "Add a person",
       "settings.address": "Email address",
-      "settings.invalidAddress": "Enter an email address."
+      "settings.invalidAddress": "Enter an email address.",
+      "event.heading": "Time zones",
+      "event.warning": "Outside {from}–{to} for {names}",
+      "event.outside": "outside working hours",
+      "event.favourite": "favourite",
+      "event.nextDay": "next day",
+      "event.prevDay": "previous day",
+      "event.missing": "No time zone for {address}",
+      "event.set": "Set",
+      "zone.labelFor": "Time zone for {address}"
     },
     "ar": {
       "remove": "إزالة",
@@ -61,7 +88,16 @@
       "settings.noPeople": "لا شيء بعد. عيّنها في نموذج الحدث أو في تفاصيل الرسالة أو هنا.",
       "settings.addPerson": "إضافة شخص",
       "settings.address": "عنوان البريد الإلكتروني",
-      "settings.invalidAddress": "أدخل عنوان بريد إلكتروني."
+      "settings.invalidAddress": "أدخل عنوان بريد إلكتروني.",
+      "event.heading": "المناطق الزمنية",
+      "event.warning": "خارج {from}–{to} لـ {names}",
+      "event.outside": "خارج ساعات العمل",
+      "event.favourite": "مفضلة",
+      "event.nextDay": "اليوم التالي",
+      "event.prevDay": "اليوم السابق",
+      "event.missing": "لا توجد منطقة زمنية لـ {address}",
+      "event.set": "تعيين",
+      "zone.labelFor": "المنطقة الزمنية لـ {address}"
     },
     "ca": {
       "remove": "Elimina",
@@ -80,7 +116,16 @@
       "settings.noPeople": "Encara cap. Configura-les al formulari de l’esdeveniment, als detalls del missatge o aquí.",
       "settings.addPerson": "Afegeix una persona",
       "settings.address": "Adreça electrònica",
-      "settings.invalidAddress": "Introdueix una adreça electrònica."
+      "settings.invalidAddress": "Introdueix una adreça electrònica.",
+      "event.heading": "Zones horàries",
+      "event.warning": "Fora de {from}–{to} per a {names}",
+      "event.outside": "fora de l’horari laboral",
+      "event.favourite": "preferida",
+      "event.nextDay": "l’endemà",
+      "event.prevDay": "el dia abans",
+      "event.missing": "Sense zona horària per a {address}",
+      "event.set": "Configura",
+      "zone.labelFor": "Zona horària de {address}"
     },
     "cs": {
       "remove": "Odstranit",
@@ -99,7 +144,16 @@
       "settings.noPeople": "Zatím žádná. Nastavte je ve formuláři události, v podrobnostech zprávy nebo zde.",
       "settings.addPerson": "Přidat osobu",
       "settings.address": "E-mailová adresa",
-      "settings.invalidAddress": "Zadejte e-mailovou adresu."
+      "settings.invalidAddress": "Zadejte e-mailovou adresu.",
+      "event.heading": "Časová pásma",
+      "event.warning": "Mimo {from}–{to} pro {names}",
+      "event.outside": "mimo pracovní dobu",
+      "event.favourite": "oblíbené",
+      "event.nextDay": "následující den",
+      "event.prevDay": "předchozí den",
+      "event.missing": "Žádné časové pásmo pro {address}",
+      "event.set": "Nastavit",
+      "zone.labelFor": "Časové pásmo pro {address}"
     },
     "da": {
       "remove": "Fjern",
@@ -118,7 +172,16 @@
       "settings.noPeople": "Ingen endnu. Angiv dem i begivenhedsformularen, i beskedens detaljer eller her.",
       "settings.addPerson": "Tilføj person",
       "settings.address": "E-mailadresse",
-      "settings.invalidAddress": "Indtast en e-mailadresse."
+      "settings.invalidAddress": "Indtast en e-mailadresse.",
+      "event.heading": "Tidszoner",
+      "event.warning": "Uden for {from}–{to} for {names}",
+      "event.outside": "uden for arbejdstid",
+      "event.favourite": "foretrukken",
+      "event.nextDay": "næste dag",
+      "event.prevDay": "dagen før",
+      "event.missing": "Ingen tidszone for {address}",
+      "event.set": "Angiv",
+      "zone.labelFor": "Tidszone for {address}"
     },
     "de": {
       "remove": "Entfernen",
@@ -137,7 +200,16 @@
       "settings.noPeople": "Noch keine. Legen Sie sie im Terminformular, in den Nachrichtendetails oder hier fest.",
       "settings.addPerson": "Person hinzufügen",
       "settings.address": "E-Mail-Adresse",
-      "settings.invalidAddress": "Geben Sie eine E-Mail-Adresse ein."
+      "settings.invalidAddress": "Geben Sie eine E-Mail-Adresse ein.",
+      "event.heading": "Zeitzonen",
+      "event.warning": "Außerhalb von {from}–{to} für {names}",
+      "event.outside": "außerhalb der Arbeitszeit",
+      "event.favourite": "bevorzugt",
+      "event.nextDay": "am nächsten Tag",
+      "event.prevDay": "am Vortag",
+      "event.missing": "Keine Zeitzone für {address}",
+      "event.set": "Festlegen",
+      "zone.labelFor": "Zeitzone für {address}"
     },
     "es": {
       "remove": "Eliminar",
@@ -156,7 +228,16 @@
       "settings.noPeople": "Ninguna todavía. Configúralas en el formulario del evento, en los detalles del mensaje o aquí.",
       "settings.addPerson": "Añadir persona",
       "settings.address": "Dirección de correo",
-      "settings.invalidAddress": "Introduce una dirección de correo."
+      "settings.invalidAddress": "Introduce una dirección de correo.",
+      "event.heading": "Zonas horarias",
+      "event.warning": "Fuera de {from}–{to} para {names}",
+      "event.outside": "fuera del horario laboral",
+      "event.favourite": "favorita",
+      "event.nextDay": "día siguiente",
+      "event.prevDay": "día anterior",
+      "event.missing": "Sin zona horaria para {address}",
+      "event.set": "Configurar",
+      "zone.labelFor": "Zona horaria de {address}"
     },
     "fa": {
       "remove": "حذف",
@@ -175,7 +256,16 @@
       "settings.noPeople": "هنوز چیزی نیست. آن‌ها را در فرم رویداد، جزئیات پیام یا همین‌جا تنظیم کنید.",
       "settings.addPerson": "افزودن فرد",
       "settings.address": "نشانی ایمیل",
-      "settings.invalidAddress": "یک نشانی ایمیل وارد کنید."
+      "settings.invalidAddress": "یک نشانی ایمیل وارد کنید.",
+      "event.heading": "مناطق زمانی",
+      "event.warning": "خارج از {from}–{to} برای {names}",
+      "event.outside": "خارج از ساعت کاری",
+      "event.favourite": "برگزیده",
+      "event.nextDay": "روز بعد",
+      "event.prevDay": "روز قبل",
+      "event.missing": "منطقهٔ زمانی برای {address} تنظیم نشده",
+      "event.set": "تنظیم",
+      "zone.labelFor": "منطقهٔ زمانی {address}"
     },
     "fr": {
       "remove": "Supprimer",
@@ -194,7 +284,16 @@
       "settings.noPeople": "Aucun pour l’instant. Définissez-les dans le formulaire d’événement, dans les détails du message ou ici.",
       "settings.addPerson": "Ajouter une personne",
       "settings.address": "Adresse e-mail",
-      "settings.invalidAddress": "Saisissez une adresse e-mail."
+      "settings.invalidAddress": "Saisissez une adresse e-mail.",
+      "event.heading": "Fuseaux horaires",
+      "event.warning": "En dehors de {from}–{to} pour {names}",
+      "event.outside": "en dehors des heures de travail",
+      "event.favourite": "favori",
+      "event.nextDay": "le lendemain",
+      "event.prevDay": "la veille",
+      "event.missing": "Aucun fuseau horaire pour {address}",
+      "event.set": "Définir",
+      "zone.labelFor": "Fuseau horaire de {address}"
     },
     "he": {
       "remove": "הסר",
@@ -213,7 +312,16 @@
       "settings.noPeople": "עדיין אין. הגדירו אותם בטופס האירוע, בפרטי ההודעה או כאן.",
       "settings.addPerson": "הוספת אדם",
       "settings.address": "כתובת דוא\"ל",
-      "settings.invalidAddress": "הזינו כתובת דוא\"ל."
+      "settings.invalidAddress": "הזינו כתובת דוא\"ל.",
+      "event.heading": "אזורי זמן",
+      "event.warning": "מחוץ ל-{from}–{to} עבור {names}",
+      "event.outside": "מחוץ לשעות העבודה",
+      "event.favourite": "מועדף",
+      "event.nextDay": "למחרת",
+      "event.prevDay": "יום קודם",
+      "event.missing": "אין אזור זמן עבור {address}",
+      "event.set": "הגדרה",
+      "zone.labelFor": "אזור זמן עבור {address}"
     },
     "hu": {
       "remove": "Eltávolítás",
@@ -232,7 +340,16 @@
       "settings.noPeople": "Még nincs. Állítsa be őket az eseményűrlapon, az üzenet részleteinél vagy itt.",
       "settings.addPerson": "Személy hozzáadása",
       "settings.address": "E-mail-cím",
-      "settings.invalidAddress": "Adjon meg egy e-mail-címet."
+      "settings.invalidAddress": "Adjon meg egy e-mail-címet.",
+      "event.heading": "Időzónák",
+      "event.warning": "{from}–{to} időn kívül: {names}",
+      "event.outside": "munkaidőn kívül",
+      "event.favourite": "kedvenc",
+      "event.nextDay": "másnap",
+      "event.prevDay": "előző nap",
+      "event.missing": "Nincs időzóna: {address}",
+      "event.set": "Beállítás",
+      "zone.labelFor": "{address} időzónája"
     },
     "it": {
       "remove": "Rimuovi",
@@ -251,7 +368,16 @@
       "settings.noPeople": "Ancora nessuno. Impostali nel modulo dell’evento, nei dettagli del messaggio o qui.",
       "settings.addPerson": "Aggiungi persona",
       "settings.address": "Indirizzo email",
-      "settings.invalidAddress": "Inserisci un indirizzo email."
+      "settings.invalidAddress": "Inserisci un indirizzo email.",
+      "event.heading": "Fusi orari",
+      "event.warning": "Fuori dall’orario {from}–{to} per {names}",
+      "event.outside": "fuori dall’orario di lavoro",
+      "event.favourite": "preferito",
+      "event.nextDay": "giorno dopo",
+      "event.prevDay": "giorno prima",
+      "event.missing": "Nessun fuso orario per {address}",
+      "event.set": "Imposta",
+      "zone.labelFor": "Fuso orario di {address}"
     },
     "ja": {
       "remove": "削除",
@@ -270,7 +396,16 @@
       "settings.noPeople": "まだありません。予定のフォーム、メッセージの詳細、またはここで設定できます。",
       "settings.addPerson": "相手を追加",
       "settings.address": "メールアドレス",
-      "settings.invalidAddress": "メールアドレスを入力してください。"
+      "settings.invalidAddress": "メールアドレスを入力してください。",
+      "event.heading": "タイムゾーン",
+      "event.warning": "{names} にとって {from}–{to} の時間外です",
+      "event.outside": "勤務時間外",
+      "event.favourite": "お気に入り",
+      "event.nextDay": "翌日",
+      "event.prevDay": "前日",
+      "event.missing": "{address} のタイムゾーンが未設定です",
+      "event.set": "設定",
+      "zone.labelFor": "{address} のタイムゾーン"
     },
     "ko": {
       "remove": "삭제",
@@ -289,7 +424,16 @@
       "settings.noPeople": "아직 없습니다. 일정 양식, 메일 세부 정보 또는 여기에서 설정하세요.",
       "settings.addPerson": "사람 추가",
       "settings.address": "이메일 주소",
-      "settings.invalidAddress": "이메일 주소를 입력하세요."
+      "settings.invalidAddress": "이메일 주소를 입력하세요.",
+      "event.heading": "시간대",
+      "event.warning": "{names}에게는 {from}–{to} 시간 밖입니다",
+      "event.outside": "근무 시간 외",
+      "event.favourite": "즐겨찾기",
+      "event.nextDay": "다음 날",
+      "event.prevDay": "전날",
+      "event.missing": "{address}의 시간대가 없습니다",
+      "event.set": "설정",
+      "zone.labelFor": "{address}의 시간대"
     },
     "lv": {
       "remove": "Noņemt",
@@ -308,7 +452,16 @@
       "settings.noPeople": "Vēl nav. Iestatiet tās notikuma veidlapā, ziņojuma informācijā vai šeit.",
       "settings.addPerson": "Pievienot personu",
       "settings.address": "E-pasta adrese",
-      "settings.invalidAddress": "Ievadiet e-pasta adresi."
+      "settings.invalidAddress": "Ievadiet e-pasta adresi.",
+      "event.heading": "Laika joslas",
+      "event.warning": "Ārpus {from}–{to}: {names}",
+      "event.outside": "ārpus darba laika",
+      "event.favourite": "izlase",
+      "event.nextDay": "nākamajā dienā",
+      "event.prevDay": "iepriekšējā dienā",
+      "event.missing": "Nav laika joslas: {address}",
+      "event.set": "Iestatīt",
+      "zone.labelFor": "Laika josla: {address}"
     },
     "mn": {
       "remove": "Устгах",
@@ -327,7 +480,16 @@
       "settings.noPeople": "Одоогоор алга. Үйл явдлын маягт, захидлын дэлгэрэнгүй эсвэл энд тохируулна уу.",
       "settings.addPerson": "Хүн нэмэх",
       "settings.address": "Имэйл хаяг",
-      "settings.invalidAddress": "Имэйл хаяг оруулна уу."
+      "settings.invalidAddress": "Имэйл хаяг оруулна уу.",
+      "event.heading": "Цагийн бүсүүд",
+      "event.warning": "{names}-д {from}–{to}-аас гадуур",
+      "event.outside": "ажлын цагаас гадуур",
+      "event.favourite": "дуртай",
+      "event.nextDay": "дараагийн өдөр",
+      "event.prevDay": "өмнөх өдөр",
+      "event.missing": "{address}-д цагийн бүс алга",
+      "event.set": "Тохируулах",
+      "zone.labelFor": "{address}-ийн цагийн бүс"
     },
     "nb": {
       "remove": "Fjern",
@@ -346,7 +508,16 @@
       "settings.noPeople": "Ingen ennå. Angi dem i hendelsesskjemaet, i meldingsdetaljene eller her.",
       "settings.addPerson": "Legg til person",
       "settings.address": "E-postadresse",
-      "settings.invalidAddress": "Skriv inn en e-postadresse."
+      "settings.invalidAddress": "Skriv inn en e-postadresse.",
+      "event.heading": "Tidssoner",
+      "event.warning": "Utenfor {from}–{to} for {names}",
+      "event.outside": "utenfor arbeidstid",
+      "event.favourite": "favoritt",
+      "event.nextDay": "neste dag",
+      "event.prevDay": "dagen før",
+      "event.missing": "Ingen tidssone for {address}",
+      "event.set": "Angi",
+      "zone.labelFor": "Tidssone for {address}"
     },
     "nl": {
       "remove": "Verwijderen",
@@ -365,7 +536,16 @@
       "settings.noPeople": "Nog geen. Stel ze in via het afspraakformulier, de berichtdetails of hier.",
       "settings.addPerson": "Persoon toevoegen",
       "settings.address": "E-mailadres",
-      "settings.invalidAddress": "Voer een e-mailadres in."
+      "settings.invalidAddress": "Voer een e-mailadres in.",
+      "event.heading": "Tijdzones",
+      "event.warning": "Buiten {from}–{to} voor {names}",
+      "event.outside": "buiten werktijd",
+      "event.favourite": "favoriet",
+      "event.nextDay": "volgende dag",
+      "event.prevDay": "vorige dag",
+      "event.missing": "Geen tijdzone voor {address}",
+      "event.set": "Instellen",
+      "zone.labelFor": "Tijdzone voor {address}"
     },
     "pl": {
       "remove": "Usuń",
@@ -384,7 +564,16 @@
       "settings.noPeople": "Na razie brak. Ustaw je w formularzu wydarzenia, w szczegółach wiadomości lub tutaj.",
       "settings.addPerson": "Dodaj osobę",
       "settings.address": "Adres e-mail",
-      "settings.invalidAddress": "Wpisz adres e-mail."
+      "settings.invalidAddress": "Wpisz adres e-mail.",
+      "event.heading": "Strefy czasowe",
+      "event.warning": "Poza godzinami {from}–{to} dla: {names}",
+      "event.outside": "poza godzinami pracy",
+      "event.favourite": "ulubiona",
+      "event.nextDay": "następnego dnia",
+      "event.prevDay": "poprzedniego dnia",
+      "event.missing": "Brak strefy czasowej dla {address}",
+      "event.set": "Ustaw",
+      "zone.labelFor": "Strefa czasowa dla {address}"
     },
     "pt": {
       "remove": "Remover",
@@ -403,7 +592,16 @@
       "settings.noPeople": "Nenhum ainda. Defina-os no formulário do evento, nos detalhes da mensagem ou aqui.",
       "settings.addPerson": "Adicionar pessoa",
       "settings.address": "Endereço de e-mail",
-      "settings.invalidAddress": "Digite um endereço de e-mail."
+      "settings.invalidAddress": "Digite um endereço de e-mail.",
+      "event.heading": "Fusos horários",
+      "event.warning": "Fora de {from}–{to} para {names}",
+      "event.outside": "fora do horário de trabalho",
+      "event.favourite": "favorito",
+      "event.nextDay": "dia seguinte",
+      "event.prevDay": "dia anterior",
+      "event.missing": "Sem fuso horário para {address}",
+      "event.set": "Definir",
+      "zone.labelFor": "Fuso horário de {address}"
     },
     "ro": {
       "remove": "Eliminați",
@@ -422,7 +620,16 @@
       "settings.noPeople": "Niciunul încă. Setați-le în formularul evenimentului, în detaliile mesajului sau aici.",
       "settings.addPerson": "Adăugați o persoană",
       "settings.address": "Adresă de e-mail",
-      "settings.invalidAddress": "Introduceți o adresă de e-mail."
+      "settings.invalidAddress": "Introduceți o adresă de e-mail.",
+      "event.heading": "Fusuri orare",
+      "event.warning": "În afara intervalului {from}–{to} pentru {names}",
+      "event.outside": "în afara programului de lucru",
+      "event.favourite": "preferat",
+      "event.nextDay": "ziua următoare",
+      "event.prevDay": "ziua anterioară",
+      "event.missing": "Niciun fus orar pentru {address}",
+      "event.set": "Setați",
+      "zone.labelFor": "Fusul orar pentru {address}"
     },
     "ru": {
       "remove": "Удалить",
@@ -441,7 +648,16 @@
       "settings.noPeople": "Пока нет. Задайте их в форме события, в сведениях о письме или здесь.",
       "settings.addPerson": "Добавить человека",
       "settings.address": "Адрес эл. почты",
-      "settings.invalidAddress": "Введите адрес эл. почты."
+      "settings.invalidAddress": "Введите адрес эл. почты.",
+      "event.heading": "Часовые пояса",
+      "event.warning": "Вне {from}–{to} для {names}",
+      "event.outside": "вне рабочего времени",
+      "event.favourite": "избранный",
+      "event.nextDay": "на следующий день",
+      "event.prevDay": "накануне",
+      "event.missing": "Нет часового пояса для {address}",
+      "event.set": "Задать",
+      "zone.labelFor": "Часовой пояс для {address}"
     },
     "sk": {
       "remove": "Odstrániť",
@@ -460,7 +676,16 @@
       "settings.noPeople": "Zatiaľ žiadne. Nastavte ich vo formulári udalosti, v podrobnostiach správy alebo tu.",
       "settings.addPerson": "Pridať osobu",
       "settings.address": "E-mailová adresa",
-      "settings.invalidAddress": "Zadajte e-mailovú adresu."
+      "settings.invalidAddress": "Zadajte e-mailovú adresu.",
+      "event.heading": "Časové pásma",
+      "event.warning": "Mimo {from}–{to} pre {names}",
+      "event.outside": "mimo pracovného času",
+      "event.favourite": "obľúbené",
+      "event.nextDay": "nasledujúci deň",
+      "event.prevDay": "predchádzajúci deň",
+      "event.missing": "Žiadne časové pásmo pre {address}",
+      "event.set": "Nastaviť",
+      "zone.labelFor": "Časové pásmo pre {address}"
     },
     "tr": {
       "remove": "Kaldır",
@@ -479,7 +704,16 @@
       "settings.noPeople": "Henüz yok. Etkinlik formunda, ileti ayrıntılarında veya burada ayarlayın.",
       "settings.addPerson": "Kişi ekle",
       "settings.address": "E-posta adresi",
-      "settings.invalidAddress": "Bir e-posta adresi girin."
+      "settings.invalidAddress": "Bir e-posta adresi girin.",
+      "event.heading": "Saat dilimleri",
+      "event.warning": "{names} için {from}–{to} dışında",
+      "event.outside": "çalışma saatleri dışında",
+      "event.favourite": "favori",
+      "event.nextDay": "ertesi gün",
+      "event.prevDay": "önceki gün",
+      "event.missing": "{address} için saat dilimi yok",
+      "event.set": "Ayarla",
+      "zone.labelFor": "{address} için saat dilimi"
     },
     "uk": {
       "remove": "Видалити",
@@ -498,7 +732,16 @@
       "settings.noPeople": "Поки немає. Задайте їх у формі події, у деталях листа або тут.",
       "settings.addPerson": "Додати людину",
       "settings.address": "Адреса ел. пошти",
-      "settings.invalidAddress": "Введіть адресу ел. пошти."
+      "settings.invalidAddress": "Введіть адресу ел. пошти.",
+      "event.heading": "Часові пояси",
+      "event.warning": "Поза {from}–{to} для {names}",
+      "event.outside": "поза робочим часом",
+      "event.favourite": "улюблений",
+      "event.nextDay": "наступного дня",
+      "event.prevDay": "напередодні",
+      "event.missing": "Немає часового поясу для {address}",
+      "event.set": "Задати",
+      "zone.labelFor": "Часовий пояс для {address}"
     },
     "zh": {
       "remove": "移除",
@@ -517,7 +760,16 @@
       "settings.noPeople": "暂无。可在活动表单、邮件详情或此处设置。",
       "settings.addPerson": "添加联系人",
       "settings.address": "电子邮件地址",
-      "settings.invalidAddress": "请输入电子邮件地址。"
+      "settings.invalidAddress": "请输入电子邮件地址。",
+      "event.heading": "时区",
+      "event.warning": "对 {names} 来说不在 {from}–{to} 之内",
+      "event.outside": "非工作时间",
+      "event.favourite": "常用",
+      "event.nextDay": "次日",
+      "event.prevDay": "前一天",
+      "event.missing": "{address} 没有设置时区",
+      "event.set": "设置",
+      "zone.labelFor": "{address} 的时区"
     },
     "zh-TW": {
       "remove": "移除",
@@ -536,7 +788,16 @@
       "settings.noPeople": "尚無。可在活動表單、郵件詳細資料或這裡設定。",
       "settings.addPerson": "新增聯絡人",
       "settings.address": "電子郵件地址",
-      "settings.invalidAddress": "請輸入電子郵件地址。"
+      "settings.invalidAddress": "請輸入電子郵件地址。",
+      "event.heading": "時區",
+      "event.warning": "對 {names} 而言不在 {from}–{to} 之內",
+      "event.outside": "非上班時間",
+      "event.favourite": "常用",
+      "event.nextDay": "隔天",
+      "event.prevDay": "前一天",
+      "event.missing": "{address} 尚未設定時區",
+      "event.set": "設定",
+      "zone.labelFor": "{address} 的時區"
     }
   }
 }

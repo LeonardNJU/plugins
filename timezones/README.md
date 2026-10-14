@@ -24,11 +24,34 @@ address), where you can add or remove them.
 The settings fields themselves are labelled in English: the webmail shows a
 plugin's setting labels as written in its manifest.
 
+## Event form
+
+The form for a new or edited event gets a **Time zones** section. It shows
+the event's time for every participant whose time zone you set, and in each
+of your favourite zones, with "next day" or "previous day" when the date
+differs. Participants without a zone are listed with a **Set** link, so you
+can pick their zone right there; it is remembered for that address.
+
+When the event falls outside working hours (08:00 to 20:00 by default, see
+**Working hours start** and **Working hours end** in the settings) for a
+participant, the form shows a warning next to its other warnings, for
+example "Outside 08:00–20:00 for kei@example.jp (Tokyo)". Favourite zones are
+only marked, not warned about. The warning appears when the times change
+(the form re-checks then); all-day events get none.
+
+The section reads the event's own time zone. The warning is worked out from
+the times in the form and your time zone setting (or your browser's).
+
+![Event form](screenshots/event-form-light.png)
+![Event form, dark](screenshots/event-form-dark.png)
+
 ## Permissions
 
 | Permission | Why |
 | --- | --- |
-| `ui:settings-section` | The section on the plugin's settings page. |
+| `ui:settings-section` | The plugin's page in Settings. |
+| `ui:calendar-action` | The section in the event form. |
+| `calendar:read` | To see the event in the form (times, participants) and add the working-hours warning (onCheckEventConflicts). |
 
 ## Data
 

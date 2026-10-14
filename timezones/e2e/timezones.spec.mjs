@@ -119,3 +119,43 @@ for (const theme of ['light', 'dark']) {
     await shoot(page, ID, 'settings', theme);
   });
 }
+
+/** Plugins start with the mail page; go to another part of the app the way a user does. */
+async function openFromRail(page, name) {
+  await page.getByRole('link', { name, exact: true }).first().click();
+}
+
+for (const theme of ['light', 'dark']) {
+  test(`event form shows participants' local times and warns outside working hours (${theme})`, async ({ page }) => {
+    await preparePage(page, { theme });
+    await signIn(page);
+    await waitForPlugin(page, ID);
+    await useTheme(page, theme);
+    await setUserSettings(page, { 'Favourite time zones': 'New York', 'Your time zone': 'Europe/Berlin' });
+    await openFromRail(page, 'Calendar');
+    await page.getByRole('button', { name: 'Create event' }).click();
+    await page.getByPlaceholder('Title').fill('Planning call');
+    await page.locator('input[type="time"]').first().fill('15:00');
+    await page.getByPlaceholder('Add email address or search contacts').fill('kei@example.jp');
+    await page.keyboard.press('Enter');
+
+    const frame = slotFrame(page, 'calendar-event-form');
+    await expect(frame.locator('[data-zone="America/New_York"]')).toContainText('9:00');
+    await expect(frame.getByText('No time zone for kei@example.jp')).toBeVisible();
+    await frame.getByRole('button', { name: 'Time zone for kei@example.jp' }).click();
+    await frame.getByLabel('Time zone for kei@example.jp').fill('Tokyo');
+    await frame.getByRole('button', { name: 'Save' }).click();
+    const tokyo = frame.locator('[data-zone="Asia/Tokyo"]');
+    await expect(tokyo).toContainText('10:00');
+    await expect(tokyo).toContainText('kei@example.jp');
+    await expect(tokyo).toContainText('outside working hours');
+
+    // The form's own warnings come from the conflict check, which runs when
+    // the times change.
+    await page.locator('input[type="time"]').nth(1).fill('16:30');
+    await expect(page.getByText(/Outside 8:00\sAM–8:00\sPM for kei@example\.jp \(Tokyo\)/)).toBeVisible();
+    await page.locator('[data-plugin-slot="calendar-event-form"]').scrollIntoViewIfNeeded();
+    await shoot(page, ID, 'event-form', theme);
+    await page.getByRole('button', { name: 'Cancel', exact: true }).last().click();
+  });
+}
