@@ -1,8 +1,11 @@
 // The background part: reads the contacts when the app starts, once a day
 // and an hour after the last check (contacts change on other devices too),
 // and soon after the user changes a contact here. Each run sends the
-// reminders that are due. A click on a reminder opens a greeting.
+// reminders that are due and, when the user turned it on, brings the
+// birthday events in the calendar up to date. A click on a reminder opens a
+// greeting.
 
+import { calendarErrorText, syncCalendar } from './calendar-sync.js';
 import { birthdaysFromContacts } from './contacts.js';
 import { localToday } from './dates.js';
 import { greetingFor, sendGreeting } from './greeting.js';
@@ -15,6 +18,15 @@ export const SENT_KEY = 'sent';
 export const RECHECK_MS = 60 * 60 * 1000;
 /** Wait after a contact change, so an import of many runs once. */
 export const CHANGE_DELAY_MS = 3000;
+/** Set while the calendar may hold events of this plugin (cleared after removing them). */
+export const CALENDAR_KEY = 'calendarEvents';
+/**
+ * Another tab of this browser is syncing the calendar until this time (ms).
+ * Short and renewed before every change, so a tab closed (or a plugin
+ * reloaded) in the middle of a sync holds the others up only briefly.
+ */
+export const LOCK_KEY = 'calendarLock';
+export const LOCK_MS = 30 * 1000;
 
 export function createBackground(api, { now = () => new Date() } = {}) {
   let birthdays = [];
@@ -23,6 +35,8 @@ export function createBackground(api, { now = () => new Date() } = {}) {
   let running = null;
   let again = false;
   let timer = null;
+  let calendarErrorShown = false;
+  let lockRetry = null;
 
   async function remind(today) {
     const settings = readSettings(api.plugin.settings);
@@ -40,6 +54,42 @@ export function createBackground(api, { now = () => new Date() } = {}) {
     }
   }
 
+  async function calendar(today) {
+    const { addToCalendar } = readSettings(api.plugin.settings);
+    const hasEvents = (await api.storage.get(CALENDAR_KEY)) === true;
+    if (!addToCalendar && !hasEvents) return;
+    const lockedUntil = Number(await api.storage.get(LOCK_KEY)) || 0;
+    if (lockedUntil > now().getTime()) {
+      // Another tab is at it; look again once its lock runs out.
+      clearTimeout(lockRetry);
+      lockRetry = setTimeout(() => { void run(); }, lockedUntil - now().getTime() + 1000);
+      return;
+    }
+    const beat = () => api.storage.set(LOCK_KEY, now().getTime() + LOCK_MS);
+    await beat();
+    let failure = null;
+    try {
+      if (addToCalendar) await api.storage.set(CALENDAR_KEY, true);
+      const result = await syncCalendar(api, { birthdays, today, enabled: addToCalendar, beat });
+      failure = result.error;
+      if (!failure && !addToCalendar) await api.storage.remove(CALENDAR_KEY);
+    } catch (err) {
+      failure = err;
+    } finally {
+      await api.storage.remove(LOCK_KEY);
+    }
+    if (failure) {
+      api.log.warn('calendar sync failed', failure);
+      // Once per session: the next hourly try would only repeat it.
+      if (!calendarErrorShown) {
+        calendarErrorShown = true;
+        api.toast.error(api.i18n.t('calendar.error', { reason: calendarErrorText(failure, api.i18n) }));
+      }
+    } else {
+      calendarErrorShown = false;
+    }
+  }
+
   async function check() {
     const today = localToday(now());
     try {
@@ -52,6 +102,7 @@ export function createBackground(api, { now = () => new Date() } = {}) {
     lastDay = today;
     lastRunAt = now().getTime();
     await remind(today);
+    await calendar(today);
   }
 
   /** One check at a time; a request during a check runs one more after it. */
@@ -104,6 +155,13 @@ export function createBackground(api, { now = () => new Date() } = {}) {
   return {
     hooks,
     activate() {
+      let addToCalendar = readSettings(api.plugin.settings).addToCalendar;
+      api.plugin.onSettingsChange((settings) => {
+        const next = readSettings(settings).addToCalendar;
+        if (next === addToCalendar) return;
+        addToCalendar = next;
+        void run();
+      });
       // Not awaited: the host waits for activate before it registers the
       // plugin, and reading the contacts can take a while.
       void run();

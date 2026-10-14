@@ -1,7 +1,8 @@
 # Birthday reminders
 
 Shows upcoming birthdays from your contacts in the mail sidebar, reminds you
-of them and opens a birthday greeting with one click.
+of them, opens a birthday greeting with one click and, if you want, keeps
+birthday events in your calendar.
 
 ## What it does
 
@@ -24,6 +25,14 @@ of them and opens a birthday greeting with one click.
   Nothing is sent until you press Send. Clicking a system notification for one
   contact does the same; a summary notification just brings the webmail to the
   front.
+- **Birthdays in the calendar** (off by default). With "Add birthdays to my
+  calendar" on, the plugin keeps one all-day event per contact on the next
+  birthday in your default calendar ("Ada's birthday"), so phones and other
+  CalDAV clients show them too. After the day has passed it adds the next
+  year's; past ones stay as history. When a birthday changes, the event moves
+  (and past events on the old date go); when a contact is deleted or its
+  birthday removed, its events go; turning the setting off removes them all.
+  See "How the calendar events work" below.
 
 ## Dates
 
@@ -34,13 +43,35 @@ of them and opens a birthday greeting with one click.
   `birth`), as JSContact partial dates, `--MM-DD` or `YYYY-MM-DD`. Wedding and
   other anniversaries are ignored, as are contact groups.
 
-## Settings
+## How the calendar events work
+
+The plugin api can't create recurring events or set an event's UID, so the
+plugin can't write one `RRULE:FREQ=YEARLY` event per contact. Instead it
+keeps one event for the next birthday and adds the following year's once the
+day has passed (it checks at start, hourly and when the day changes). The
+webmail's own "Contact birthday calendar" (Settings > Calendar) shows the same
+birthdays without real events; with both on you see each birthday twice, so
+use the plugin option only if you want the birthdays on other devices too.
+
+Each event's description ends with a marker such as `[birthdays:c42]` (the
+contact id). That marker is how the plugin finds its events again, also from
+another browser, so it never makes duplicates, and it removes duplicates two
+browsers made at the same moment. It looks a year back and a year ahead. If
+you delete one of these events by hand, it comes back on the next check; turn
+the setting off, or remove the birthday from the contact, instead. Changes you
+make to the title or date are put back, since the contact is the source.
+
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | Show birthdays in the next … days | 30 | How far ahead the sidebar list looks (1-365). |
 | Birthday reminders | on | Notifications on the day and a few days before. |
 | Remind me … days before | 3 | When the early reminder comes (0-30). 0 leaves only the one on the day. |
+| Add birthdays to my calendar | off | Keep all-day birthday events in the default calendar. Turning it off removes them. |
+
+The setting labels are in English: the webmail shows `settingsSchema` labels
+as they are and has no way for a plugin to translate them yet. Everything
+else the plugin shows is translated into all 27 webmail languages.
 
 ## Permissions
 
@@ -50,15 +81,20 @@ of them and opens a birthday greeting with one click.
 | `ui:sidebar-widget` | Show the list in the mail sidebar. |
 | `ui:notifications` | Show the reminders. |
 | `compose:open` | Open the composer for a greeting. |
+| `calendar:read` | Find the plugin's own birthday events again. |
+| `calendar:write` | Create, move and remove them, only when the calendar setting is on (or to clean up after turning it off). |
 
 The plugin also uses the app lifecycle hooks (start, once a minute), which
 every plugin has.
 
 ## Privacy
 
-The plugin sends nothing anywhere. It reads your contacts through the webmail
-and keeps no copy of them; the only thing it stores (in this browser) is which
-reminders it has shown, by contact id and date.
+The plugin sends nothing anywhere outside your mail server. It reads your
+contacts through the webmail and keeps no copy of them; the only things it
+stores (in this browser) are which reminders it has shown, by contact id and
+date, and whether it may have calendar events to clean up. With the calendar
+setting on it writes the contact's name and birthday into your own calendar
+on the same server.
 
 ## Development
 

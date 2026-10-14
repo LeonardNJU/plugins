@@ -3,13 +3,15 @@
   "name": "Birthday reminders",
   "version": "1.0.0",
   "author": "Bulwark Mail Community",
-  "description": "Upcoming birthdays from your contacts in the sidebar, reminders on the day and a few days before, and a quick birthday greeting.",
+  "description": "Upcoming birthdays from your contacts in the sidebar, reminders on the day and a few days before, a quick birthday greeting and, if you like, birthday events in your calendar.",
   "type": "sidebar-app",
   "permissions": [
     "contacts:read",
     "ui:sidebar-widget",
     "ui:notifications",
-    "compose:open"
+    "compose:open",
+    "calendar:read",
+    "calendar:write"
   ],
   "entrypoint": "index.js",
   "minAppVersion": "1.7.0",
@@ -35,6 +37,12 @@
       "default": 3,
       "min": 0,
       "max": 30
+    },
+    "addToCalendar": {
+      "type": "boolean",
+      "label": "Add birthdays to my calendar",
+      "description": "Keeps an all-day event for each contact's next birthday in your default calendar, so other calendar apps show them too. Turning it off removes them.",
+      "default": false
     }
   },
   "locales": {
@@ -60,7 +68,12 @@
       "greeting.subject": "عيد ميلاد سعيد يا {name}!",
       "greeting.subjectNoName": "عيد ميلاد سعيد!",
       "greeting.body": "مرحبًا {name}،\n\nعيد ميلاد سعيد! أتمنى لك كل التوفيق في عامك الجديد.\n\n",
-      "greeting.bodyNoName": "مرحبًا،\n\nعيد ميلاد سعيد! أتمنى لك كل التوفيق في عامك الجديد.\n\n"
+      "greeting.bodyNoName": "مرحبًا،\n\nعيد ميلاد سعيد! أتمنى لك كل التوفيق في عامك الجديد.\n\n",
+      "event.title": "عيد ميلاد {name}",
+      "event.description": "من جهات الاتصال. يتم تحديث هذا الحدث تلقائيًا؛ لتغيير التاريخ عدّل جهة الاتصال.",
+      "calendar.error": "تعذّر تحديث أعياد الميلاد في التقويم. {reason}",
+      "error.readOnly": "التقويم الافتراضي للقراءة فقط.",
+      "error.quota": "مساحة التخزين على الخادم ممتلئة."
     },
     "ca": {
       "widget.title": "Propers aniversaris",
@@ -85,7 +98,12 @@
       "greeting.subject": "Per molts anys, {name}!",
       "greeting.subjectNoName": "Per molts anys!",
       "greeting.body": "Hola, {name}:\n\nPer molts anys! Que tinguis un any fantàstic.\n\n",
-      "greeting.bodyNoName": "Hola:\n\nPer molts anys! Que tinguis un any fantàstic.\n\n"
+      "greeting.bodyNoName": "Hola:\n\nPer molts anys! Que tinguis un any fantàstic.\n\n",
+      "event.title": "Aniversari de {name}",
+      "event.description": "Dels vostres contactes. Aquest esdeveniment s’actualitza automàticament; per canviar la data, editeu el contacte.",
+      "calendar.error": "No s’han pogut actualitzar els aniversaris al calendari. {reason}",
+      "error.readOnly": "El calendari predeterminat és només de lectura.",
+      "error.quota": "L’espai del servidor és ple."
     },
     "cs": {
       "widget.title": "Nadcházející narozeniny",
@@ -109,7 +127,12 @@
       "greeting.subject": "Všechno nejlepší k narozeninám, {name}!",
       "greeting.subjectNoName": "Všechno nejlepší k narozeninám!",
       "greeting.body": "Ahoj {name},\n\nvšechno nejlepší k narozeninám! Ať se ti v novém roce daří.\n\n",
-      "greeting.bodyNoName": "Ahoj,\n\nvšechno nejlepší k narozeninám! Ať se ti v novém roce daří.\n\n"
+      "greeting.bodyNoName": "Ahoj,\n\nvšechno nejlepší k narozeninám! Ať se ti v novém roce daří.\n\n",
+      "event.title": "Narozeniny: {name}",
+      "event.description": "Z vašich kontaktů. Tato událost se aktualizuje automaticky; datum změníte v kontaktu.",
+      "calendar.error": "Narozeniny v kalendáři se nepodařilo aktualizovat. {reason}",
+      "error.readOnly": "Výchozí kalendář je jen pro čtení.",
+      "error.quota": "Úložiště na serveru je plné."
     },
     "da": {
       "widget.title": "Kommende fødselsdage",
@@ -133,7 +156,12 @@
       "greeting.subject": "Tillykke med fødselsdagen, {name}!",
       "greeting.subjectNoName": "Tillykke med fødselsdagen!",
       "greeting.body": "Hej {name}\n\nTillykke med fødselsdagen! Jeg ønsker dig alt det bedste i det nye år.\n\n",
-      "greeting.bodyNoName": "Hej\n\nTillykke med fødselsdagen! Jeg ønsker dig alt det bedste i det nye år.\n\n"
+      "greeting.bodyNoName": "Hej\n\nTillykke med fødselsdagen! Jeg ønsker dig alt det bedste i det nye år.\n\n",
+      "event.title": "{name}s fødselsdag",
+      "event.description": "Fra dine kontakter. Begivenheden opdateres automatisk; ret datoen i kontakten.",
+      "calendar.error": "Fødselsdagene i kalenderen kunne ikke opdateres. {reason}",
+      "error.readOnly": "Standardkalenderen er skrivebeskyttet.",
+      "error.quota": "Lagerpladsen på serveren er fuld."
     },
     "de": {
       "widget.title": "Anstehende Geburtstage",
@@ -157,7 +185,12 @@
       "greeting.subject": "Alles Gute zum Geburtstag, {name}!",
       "greeting.subjectNoName": "Alles Gute zum Geburtstag!",
       "greeting.body": "Hallo {name},\n\nalles Gute zum Geburtstag! Ich wünsche dir ein schönes neues Lebensjahr.\n\n",
-      "greeting.bodyNoName": "Hallo,\n\nalles Gute zum Geburtstag! Ich wünsche dir ein schönes neues Lebensjahr.\n\n"
+      "greeting.bodyNoName": "Hallo,\n\nalles Gute zum Geburtstag! Ich wünsche dir ein schönes neues Lebensjahr.\n\n",
+      "event.title": "Geburtstag von {name}",
+      "event.description": "Aus deinen Kontakten. Der Termin wird automatisch aktualisiert; ändere das Datum im Kontakt.",
+      "calendar.error": "Die Geburtstage im Kalender konnten nicht aktualisiert werden. {reason}",
+      "error.readOnly": "Der Standardkalender ist schreibgeschützt.",
+      "error.quota": "Dein Speicherplatz auf dem Server ist voll."
     },
     "en": {
       "widget.title": "Upcoming birthdays",
@@ -181,7 +214,12 @@
       "greeting.subject": "Happy birthday, {name}!",
       "greeting.subjectNoName": "Happy birthday!",
       "greeting.body": "Hi {name},\n\nhappy birthday! All the best for the year ahead.\n\n",
-      "greeting.bodyNoName": "Hi,\n\nhappy birthday! All the best for the year ahead.\n\n"
+      "greeting.bodyNoName": "Hi,\n\nhappy birthday! All the best for the year ahead.\n\n",
+      "event.title": "{name}’s birthday",
+      "event.description": "From your contacts. This event is kept up to date automatically; change the date in the contact.",
+      "calendar.error": "The birthdays in your calendar could not be updated. {reason}",
+      "error.readOnly": "Your default calendar is read-only.",
+      "error.quota": "Your storage on the server is full."
     },
     "es": {
       "widget.title": "Próximos cumpleaños",
@@ -206,7 +244,12 @@
       "greeting.subject": "¡Feliz cumpleaños, {name}!",
       "greeting.subjectNoName": "¡Feliz cumpleaños!",
       "greeting.body": "Hola, {name}:\n\n¡Feliz cumpleaños! Te deseo lo mejor para este nuevo año.\n\n",
-      "greeting.bodyNoName": "Hola:\n\n¡Feliz cumpleaños! Te deseo lo mejor para este nuevo año.\n\n"
+      "greeting.bodyNoName": "Hola:\n\n¡Feliz cumpleaños! Te deseo lo mejor para este nuevo año.\n\n",
+      "event.title": "Cumpleaños de {name}",
+      "event.description": "De tus contactos. Este evento se actualiza automáticamente; cambia la fecha en el contacto.",
+      "calendar.error": "No se pudieron actualizar los cumpleaños del calendario. {reason}",
+      "error.readOnly": "El calendario predeterminado es de solo lectura.",
+      "error.quota": "El espacio en el servidor está lleno."
     },
     "fa": {
       "widget.title": "تولدهای پیش رو",
@@ -230,7 +273,12 @@
       "greeting.subject": "{name}، تولدت مبارک!",
       "greeting.subjectNoName": "تولدت مبارک!",
       "greeting.body": "سلام {name}،\n\nتولدت مبارک! بهترین‌ها را برای سال پیش رو برایت آرزو می‌کنم.\n\n",
-      "greeting.bodyNoName": "سلام،\n\nتولدت مبارک! بهترین‌ها را برای سال پیش رو برایت آرزو می‌کنم.\n\n"
+      "greeting.bodyNoName": "سلام،\n\nتولدت مبارک! بهترین‌ها را برای سال پیش رو برایت آرزو می‌کنم.\n\n",
+      "event.title": "تولد {name}",
+      "event.description": "از مخاطبین شما. این رویداد خودکار به‌روز می‌شود؛ تاریخ را در مخاطب تغییر دهید.",
+      "calendar.error": "تولدها در تقویم به‌روز نشدند. {reason}",
+      "error.readOnly": "تقویم پیش‌فرض فقط‌خواندنی است.",
+      "error.quota": "فضای ذخیره‌سازی شما روی سرور پر است."
     },
     "fr": {
       "widget.title": "Anniversaires à venir",
@@ -255,7 +303,12 @@
       "greeting.subject": "Joyeux anniversaire, {name} !",
       "greeting.subjectNoName": "Joyeux anniversaire !",
       "greeting.body": "Bonjour {name},\n\nJoyeux anniversaire ! Je te souhaite le meilleur pour l’année à venir.\n\n",
-      "greeting.bodyNoName": "Bonjour,\n\nJoyeux anniversaire ! Je te souhaite le meilleur pour l’année à venir.\n\n"
+      "greeting.bodyNoName": "Bonjour,\n\nJoyeux anniversaire ! Je te souhaite le meilleur pour l’année à venir.\n\n",
+      "event.title": "Anniversaire de {name}",
+      "event.description": "Depuis vos contacts. Cet événement est mis à jour automatiquement ; modifiez la date dans le contact.",
+      "calendar.error": "Impossible de mettre à jour les anniversaires dans le calendrier. {reason}",
+      "error.readOnly": "Le calendrier par défaut est en lecture seule.",
+      "error.quota": "Votre espace de stockage sur le serveur est plein."
     },
     "he": {
       "widget.title": "ימי הולדת קרובים",
@@ -279,7 +332,12 @@
       "greeting.subject": "יום הולדת שמח, {name}!",
       "greeting.subjectNoName": "יום הולדת שמח!",
       "greeting.body": "היי {name},\n\nיום הולדת שמח! מאחל לך את כל הטוב בשנה הקרובה.\n\n",
-      "greeting.bodyNoName": "היי,\n\nיום הולדת שמח! מאחל לך את כל הטוב בשנה הקרובה.\n\n"
+      "greeting.bodyNoName": "היי,\n\nיום הולדת שמח! מאחל לך את כל הטוב בשנה הקרובה.\n\n",
+      "event.title": "יום ההולדת של {name}",
+      "event.description": "מאנשי הקשר שלך. האירוע מתעדכן אוטומטית; שנה את התאריך באיש הקשר.",
+      "calendar.error": "לא ניתן היה לעדכן את ימי ההולדת בלוח השנה. {reason}",
+      "error.readOnly": "לוח השנה המוגדר כברירת מחדל הוא לקריאה בלבד.",
+      "error.quota": "שטח האחסון שלך בשרת מלא."
     },
     "hu": {
       "widget.title": "Közelgő születésnapok",
@@ -303,7 +361,12 @@
       "greeting.subject": "Boldog születésnapot, {name}!",
       "greeting.subjectNoName": "Boldog születésnapot!",
       "greeting.body": "Szia {name}!\n\nBoldog születésnapot! Minden jót kívánok az új évedre.\n\n",
-      "greeting.bodyNoName": "Szia!\n\nBoldog születésnapot! Minden jót kívánok az új évedre.\n\n"
+      "greeting.bodyNoName": "Szia!\n\nBoldog születésnapot! Minden jót kívánok az új évedre.\n\n",
+      "event.title": "{name} születésnapja",
+      "event.description": "A névjegyeiből. Az esemény automatikusan frissül; a dátumot a névjegyben módosítsa.",
+      "calendar.error": "A naptárban lévő születésnapokat nem sikerült frissíteni. {reason}",
+      "error.readOnly": "Az alapértelmezett naptár csak olvasható.",
+      "error.quota": "A tárhelye a szerveren megtelt."
     },
     "it": {
       "widget.title": "Prossimi compleanni",
@@ -328,7 +391,12 @@
       "greeting.subject": "Buon compleanno, {name}!",
       "greeting.subjectNoName": "Buon compleanno!",
       "greeting.body": "Ciao {name},\n\nbuon compleanno! Ti auguro il meglio per l’anno che arriva.\n\n",
-      "greeting.bodyNoName": "Ciao,\n\nbuon compleanno! Ti auguro il meglio per l’anno che arriva.\n\n"
+      "greeting.bodyNoName": "Ciao,\n\nbuon compleanno! Ti auguro il meglio per l’anno che arriva.\n\n",
+      "event.title": "Compleanno di {name}",
+      "event.description": "Dai tuoi contatti. Questo evento si aggiorna automaticamente; modifica la data nel contatto.",
+      "calendar.error": "Non è stato possibile aggiornare i compleanni nel calendario. {reason}",
+      "error.readOnly": "Il calendario predefinito è di sola lettura.",
+      "error.quota": "Lo spazio sul server è esaurito."
     },
     "ja": {
       "widget.title": "近づいている誕生日",
@@ -352,7 +420,12 @@
       "greeting.subject": "{name}さん、お誕生日おめでとうございます！",
       "greeting.subjectNoName": "お誕生日おめでとうございます！",
       "greeting.body": "{name}さん\n\nお誕生日おめでとうございます！素敵な一年になりますように。\n\n",
-      "greeting.bodyNoName": "お誕生日おめでとうございます！素敵な一年になりますように。\n\n"
+      "greeting.bodyNoName": "お誕生日おめでとうございます！素敵な一年になりますように。\n\n",
+      "event.title": "{name}さんの誕生日",
+      "event.description": "連絡先から作成。この予定は自動で更新されます。日付は連絡先で変更してください。",
+      "calendar.error": "カレンダーの誕生日を更新できませんでした。{reason}",
+      "error.readOnly": "既定のカレンダーは読み取り専用です。",
+      "error.quota": "サーバーの保存容量がいっぱいです。"
     },
     "ko": {
       "widget.title": "다가오는 생일",
@@ -376,7 +449,12 @@
       "greeting.subject": "{name}님, 생일 축하드립니다!",
       "greeting.subjectNoName": "생일 축하드립니다!",
       "greeting.body": "{name}님께\n\n생일 축하드립니다! 새로운 한 해에 좋은 일만 가득하길 바랍니다.\n\n",
-      "greeting.bodyNoName": "생일 축하드립니다! 새로운 한 해에 좋은 일만 가득하길 바랍니다.\n\n"
+      "greeting.bodyNoName": "생일 축하드립니다! 새로운 한 해에 좋은 일만 가득하길 바랍니다.\n\n",
+      "event.title": "{name}님의 생일",
+      "event.description": "연락처에서 가져온 일정입니다. 자동으로 업데이트되므로 날짜는 연락처에서 변경하세요.",
+      "calendar.error": "캘린더의 생일을 업데이트하지 못했습니다. {reason}",
+      "error.readOnly": "기본 캘린더가 읽기 전용입니다.",
+      "error.quota": "서버 저장 공간이 가득 찼습니다."
     },
     "lv": {
       "widget.title": "Gaidāmās dzimšanas dienas",
@@ -400,7 +478,12 @@
       "greeting.subject": "Daudz laimes dzimšanas dienā, {name}!",
       "greeting.subjectNoName": "Daudz laimes dzimšanas dienā!",
       "greeting.body": "Sveiks, {name}!\n\nDaudz laimes dzimšanas dienā! Visu labāko nākamajā gadā.\n\n",
-      "greeting.bodyNoName": "Sveiki!\n\nDaudz laimes dzimšanas dienā! Visu labāko nākamajā gadā.\n\n"
+      "greeting.bodyNoName": "Sveiki!\n\nDaudz laimes dzimšanas dienā! Visu labāko nākamajā gadā.\n\n",
+      "event.title": "Dzimšanas diena: {name}",
+      "event.description": "No jūsu kontaktiem. Notikums tiek atjaunināts automātiski; datumu mainiet kontaktā.",
+      "calendar.error": "Neizdevās atjaunināt dzimšanas dienas kalendārā. {reason}",
+      "error.readOnly": "Noklusējuma kalendārs ir tikai lasāms.",
+      "error.quota": "Jūsu krātuve serverī ir pilna."
     },
     "mn": {
       "widget.title": "Ойртож буй төрсөн өдрүүд",
@@ -424,7 +507,12 @@
       "greeting.subject": "{name}, төрсөн өдрийн мэнд хүргэе!",
       "greeting.subjectNoName": "Төрсөн өдрийн мэнд хүргэе!",
       "greeting.body": "Сайн уу, {name}!\n\nТөрсөн өдрийн мэнд хүргэе! Ирэх жилдээ сайн сайхныг хүсье.\n\n",
-      "greeting.bodyNoName": "Сайн уу!\n\nТөрсөн өдрийн мэнд хүргэе! Ирэх жилдээ сайн сайхныг хүсье.\n\n"
+      "greeting.bodyNoName": "Сайн уу!\n\nТөрсөн өдрийн мэнд хүргэе! Ирэх жилдээ сайн сайхныг хүсье.\n\n",
+      "event.title": "{name}-ийн төрсөн өдөр",
+      "event.description": "Таны харилцагчдаас. Энэ үйл явдал автоматаар шинэчлэгдэнэ; огноог харилцагч дээр өөрчилнө үү.",
+      "calendar.error": "Хуанли дахь төрсөн өдрүүдийг шинэчилж чадсангүй. {reason}",
+      "error.readOnly": "Үндсэн хуанли зөвхөн уншигдах горимд байна.",
+      "error.quota": "Сервер дээрх таны санах ой дүүрсэн байна."
     },
     "nb": {
       "widget.title": "Kommende bursdager",
@@ -448,7 +536,12 @@
       "greeting.subject": "Gratulerer med dagen, {name}!",
       "greeting.subjectNoName": "Gratulerer med dagen!",
       "greeting.body": "Hei {name}!\n\nGratulerer med dagen! Jeg ønsker deg alt godt i året som kommer.\n\n",
-      "greeting.bodyNoName": "Hei!\n\nGratulerer med dagen! Jeg ønsker deg alt godt i året som kommer.\n\n"
+      "greeting.bodyNoName": "Hei!\n\nGratulerer med dagen! Jeg ønsker deg alt godt i året som kommer.\n\n",
+      "event.title": "Bursdag: {name}",
+      "event.description": "Fra kontaktene dine. Hendelsen oppdateres automatisk; endre datoen i kontakten.",
+      "calendar.error": "Bursdagene i kalenderen kunne ikke oppdateres. {reason}",
+      "error.readOnly": "Standardkalenderen er skrivebeskyttet.",
+      "error.quota": "Lagringsplassen på serveren er full."
     },
     "nl": {
       "widget.title": "Komende verjaardagen",
@@ -472,7 +565,12 @@
       "greeting.subject": "Gefeliciteerd met je verjaardag, {name}!",
       "greeting.subjectNoName": "Gefeliciteerd met je verjaardag!",
       "greeting.body": "Hoi {name},\n\nGefeliciteerd met je verjaardag! Het allerbeste voor het komende jaar.\n\n",
-      "greeting.bodyNoName": "Hoi,\n\nGefeliciteerd met je verjaardag! Het allerbeste voor het komende jaar.\n\n"
+      "greeting.bodyNoName": "Hoi,\n\nGefeliciteerd met je verjaardag! Het allerbeste voor het komende jaar.\n\n",
+      "event.title": "Verjaardag van {name}",
+      "event.description": "Uit je contacten. Deze afspraak wordt automatisch bijgewerkt; wijzig de datum in het contact.",
+      "calendar.error": "De verjaardagen in je agenda konden niet worden bijgewerkt. {reason}",
+      "error.readOnly": "Je standaardagenda is alleen-lezen.",
+      "error.quota": "Je opslag op de server is vol."
     },
     "pl": {
       "widget.title": "Nadchodzące urodziny",
@@ -499,7 +597,12 @@
       "greeting.subject": "Wszystkiego najlepszego z okazji urodzin, {name}!",
       "greeting.subjectNoName": "Wszystkiego najlepszego z okazji urodzin!",
       "greeting.body": "Cześć {name},\n\nwszystkiego najlepszego z okazji urodzin! Wspaniałego nowego roku.\n\n",
-      "greeting.bodyNoName": "Cześć,\n\nwszystkiego najlepszego z okazji urodzin! Wspaniałego nowego roku.\n\n"
+      "greeting.bodyNoName": "Cześć,\n\nwszystkiego najlepszego z okazji urodzin! Wspaniałego nowego roku.\n\n",
+      "event.title": "Urodziny: {name}",
+      "event.description": "Z Twoich kontaktów. To wydarzenie aktualizuje się automatycznie; datę zmień w kontakcie.",
+      "calendar.error": "Nie udało się zaktualizować urodzin w kalendarzu. {reason}",
+      "error.readOnly": "Kalendarz domyślny jest tylko do odczytu.",
+      "error.quota": "Miejsce na serwerze jest zapełnione."
     },
     "pt": {
       "widget.title": "Próximos aniversários",
@@ -524,7 +627,12 @@
       "greeting.subject": "Feliz aniversário, {name}!",
       "greeting.subjectNoName": "Feliz aniversário!",
       "greeting.body": "Olá, {name},\n\nfeliz aniversário! Tudo de bom no ano que começa.\n\n",
-      "greeting.bodyNoName": "Olá,\n\nfeliz aniversário! Tudo de bom no ano que começa.\n\n"
+      "greeting.bodyNoName": "Olá,\n\nfeliz aniversário! Tudo de bom no ano que começa.\n\n",
+      "event.title": "Aniversário de {name}",
+      "event.description": "Dos seus contatos. Este evento é atualizado automaticamente; altere a data no contato.",
+      "calendar.error": "Não foi possível atualizar os aniversários no calendário. {reason}",
+      "error.readOnly": "O calendário padrão é somente leitura.",
+      "error.quota": "Seu espaço no servidor está cheio."
     },
     "ro": {
       "widget.title": "Zile de naștere apropiate",
@@ -550,7 +658,12 @@
       "greeting.subject": "La mulți ani, {name}!",
       "greeting.subjectNoName": "La mulți ani!",
       "greeting.body": "Bună, {name},\n\nLa mulți ani! Îți doresc tot binele în anul care vine.\n\n",
-      "greeting.bodyNoName": "Bună,\n\nLa mulți ani! Îți doresc tot binele în anul care vine.\n\n"
+      "greeting.bodyNoName": "Bună,\n\nLa mulți ani! Îți doresc tot binele în anul care vine.\n\n",
+      "event.title": "Ziua de naștere a lui {name}",
+      "event.description": "Din contactele dvs. Evenimentul se actualizează automat; schimbați data în contact.",
+      "calendar.error": "Zilele de naștere din calendar nu au putut fi actualizate. {reason}",
+      "error.readOnly": "Calendarul implicit este doar pentru citire.",
+      "error.quota": "Spațiul de stocare de pe server este plin."
     },
     "ru": {
       "widget.title": "Ближайшие дни рождения",
@@ -577,7 +690,12 @@
       "greeting.subject": "С днём рождения, {name}!",
       "greeting.subjectNoName": "С днём рождения!",
       "greeting.body": "Привет, {name}!\n\nС днём рождения! Всего самого лучшего в новом году жизни.\n\n",
-      "greeting.bodyNoName": "Привет!\n\nС днём рождения! Всего самого лучшего в новом году жизни.\n\n"
+      "greeting.bodyNoName": "Привет!\n\nС днём рождения! Всего самого лучшего в новом году жизни.\n\n",
+      "event.title": "День рождения: {name}",
+      "event.description": "Из ваших контактов. Событие обновляется автоматически; дату меняйте в контакте.",
+      "calendar.error": "Не удалось обновить дни рождения в календаре. {reason}",
+      "error.readOnly": "Календарь по умолчанию доступен только для чтения.",
+      "error.quota": "Хранилище на сервере заполнено."
     },
     "sk": {
       "widget.title": "Nadchádzajúce narodeniny",
@@ -601,7 +719,12 @@
       "greeting.subject": "Všetko najlepšie k narodeninám, {name}!",
       "greeting.subjectNoName": "Všetko najlepšie k narodeninám!",
       "greeting.body": "Ahoj {name},\n\nvšetko najlepšie k narodeninám! Nech sa ti v novom roku darí.\n\n",
-      "greeting.bodyNoName": "Ahoj,\n\nvšetko najlepšie k narodeninám! Nech sa ti v novom roku darí.\n\n"
+      "greeting.bodyNoName": "Ahoj,\n\nvšetko najlepšie k narodeninám! Nech sa ti v novom roku darí.\n\n",
+      "event.title": "Narodeniny: {name}",
+      "event.description": "Z vašich kontaktov. Udalosť sa aktualizuje automaticky; dátum zmeníte v kontakte.",
+      "calendar.error": "Narodeniny v kalendári sa nepodarilo aktualizovať. {reason}",
+      "error.readOnly": "Predvolený kalendár je iba na čítanie.",
+      "error.quota": "Úložisko na serveri je plné."
     },
     "tr": {
       "widget.title": "Yaklaşan doğum günleri",
@@ -625,7 +748,12 @@
       "greeting.subject": "Doğum günün kutlu olsun, {name}!",
       "greeting.subjectNoName": "Doğum günün kutlu olsun!",
       "greeting.body": "Merhaba {name},\n\nDoğum günün kutlu olsun! Yeni yaşında her şey gönlünce olsun.\n\n",
-      "greeting.bodyNoName": "Merhaba,\n\nDoğum günün kutlu olsun! Yeni yaşında her şey gönlünce olsun.\n\n"
+      "greeting.bodyNoName": "Merhaba,\n\nDoğum günün kutlu olsun! Yeni yaşında her şey gönlünce olsun.\n\n",
+      "event.title": "Doğum günü: {name}",
+      "event.description": "Kişilerinizden. Bu etkinlik otomatik olarak güncellenir; tarihi kişi kaydında değiştirin.",
+      "calendar.error": "Takvimdeki doğum günleri güncellenemedi. {reason}",
+      "error.readOnly": "Varsayılan takvim salt okunur.",
+      "error.quota": "Sunucudaki depolama alanınız dolu."
     },
     "uk": {
       "widget.title": "Найближчі дні народження",
@@ -652,7 +780,12 @@
       "greeting.subject": "З днем народження, {name}!",
       "greeting.subjectNoName": "З днем народження!",
       "greeting.body": "Привіт, {name}!\n\nЗ днем народження! Усього найкращого в новому році життя.\n\n",
-      "greeting.bodyNoName": "Привіт!\n\nЗ днем народження! Усього найкращого в новому році життя.\n\n"
+      "greeting.bodyNoName": "Привіт!\n\nЗ днем народження! Усього найкращого в новому році життя.\n\n",
+      "event.title": "День народження: {name}",
+      "event.description": "З ваших контактів. Подія оновлюється автоматично; дату змінюйте в контакті.",
+      "calendar.error": "Не вдалося оновити дні народження в календарі. {reason}",
+      "error.readOnly": "Типовий календар доступний лише для читання.",
+      "error.quota": "Сховище на сервері заповнене."
     },
     "zh": {
       "widget.title": "即将到来的生日",
@@ -676,7 +809,12 @@
       "greeting.subject": "{name}，生日快乐！",
       "greeting.subjectNoName": "生日快乐！",
       "greeting.body": "{name}，你好：\n\n生日快乐！祝你新的一岁一切顺利。\n\n",
-      "greeting.bodyNoName": "你好：\n\n生日快乐！祝你新的一岁一切顺利。\n\n"
+      "greeting.bodyNoName": "你好：\n\n生日快乐！祝你新的一岁一切顺利。\n\n",
+      "event.title": "{name}的生日",
+      "event.description": "来自你的联系人。此日程会自动更新；如需修改日期，请编辑联系人。",
+      "calendar.error": "无法更新日历中的生日。{reason}",
+      "error.readOnly": "默认日历为只读。",
+      "error.quota": "你在服务器上的存储空间已满。"
     },
     "zh-TW": {
       "widget.title": "即將到來的生日",
@@ -700,7 +838,12 @@
       "greeting.subject": "{name}，生日快樂！",
       "greeting.subjectNoName": "生日快樂！",
       "greeting.body": "{name}，你好：\n\n生日快樂！祝你新的一歲一切順利。\n\n",
-      "greeting.bodyNoName": "你好：\n\n生日快樂！祝你新的一歲一切順利。\n\n"
+      "greeting.bodyNoName": "你好：\n\n生日快樂！祝你新的一歲一切順利。\n\n",
+      "event.title": "{name}的生日",
+      "event.description": "來自你的聯絡人。此活動會自動更新；如需修改日期，請編輯聯絡人。",
+      "calendar.error": "無法更新行事曆中的生日。{reason}",
+      "error.readOnly": "預設行事曆為唯讀。",
+      "error.quota": "你在伺服器上的儲存空間已滿。"
     }
   }
 }
