@@ -28,8 +28,8 @@ describe('compose logic', () => {
 describe('composer button and dialog', () => {
   afterEach(() => { setApi(null); vi.useRealTimers(); delete navigator.clipboard; });
 
-  const setup = (settings = {}) => {
-    const api = fakeApi({ settings: { homeZone: 'Europe/Berlin', favouriteZones: 'New York', ...settings }, translations: manifest.locales, locale: 'en-GB', handlers: { 'ui.openDialog': async () => null } });
+  const setup = (settings = {}, dialogAnswer = null) => {
+    const api = fakeApi({ settings: { homeZone: 'Europe/Berlin', favouriteZones: 'New York', ...settings }, translations: manifest.locales, locale: 'en-GB', handlers: { 'ui.openDialog': async () => dialogAnswer } });
     setApi(api);
     return api;
   };
@@ -41,10 +41,51 @@ describe('composer button and dialog', () => {
 
   it('opens the dialog from the button', async () => {
     const api = setup();
-    const ui = await mount(ComposeButton);
+    const ui = await mount(ComposeButton, {});
     await click(button(ui.container, 'Time zones'));
-    expect(api.calls('ui.openDialog')).toEqual([{ method: 'ui.openDialog', args: [{ title: 'Time in several zones', slot: 'plugin-dialog', width: 520 }] }]);
+    expect(api.calls('ui.openDialog')).toEqual([{ method: 'ui.openDialog', args: [{ title: 'Time in several zones', slot: 'plugin-dialog', width: 520, extraProps: { canInsert: false } }] }]);
     await ui.unmount();
+  });
+
+  it('inserts the line the dialog answers with into the message', async () => {
+    const api = setup({}, '15:00 Berlin / 09:00 New York');
+    const insertText = vi.fn(async () => true);
+    const ui = await mount(ComposeButton, { insertText });
+    await click(button(ui.container, 'Time zones'));
+    expect(api.calls('ui.openDialog')[0].args[0].extraProps).toEqual({ canInsert: true });
+    expect(insertText).toHaveBeenCalledWith('15:00 Berlin / 09:00 New York');
+    expect(ui.$('[role="alert"]')).toBeNull();
+    await ui.unmount();
+  });
+
+  it('inserts nothing when the dialog was closed', async () => {
+    setup({}, null);
+    const insertText = vi.fn(async () => true);
+    const ui = await mount(ComposeButton, { insertText });
+    await click(button(ui.container, 'Time zones'));
+    expect(insertText).not.toHaveBeenCalled();
+    await ui.unmount();
+  });
+
+  it('says so when the composer refuses the text', async () => {
+    setup({}, '15:00 Berlin');
+    const ui = await mount(ComposeButton, { insertText: vi.fn(async () => false) });
+    await click(button(ui.container, 'Time zones'));
+    expect(ui.$('[role="alert"]').textContent).toBe('Could not insert the text. Use Copy and paste it instead.');
+    await ui.unmount();
+  });
+
+  it('answers Insert with the line, and offers it only when the composer can take it', async () => {
+    setup();
+    const onResult = vi.fn();
+    const a = await mount(ComposeDialog, { onResult, canInsert: true });
+    const text = a.$('[data-tz="compose-text"]').value;
+    await click(button(a.container, 'Insert'));
+    expect(onResult).toHaveBeenCalledWith(text);
+    await a.unmount();
+    const b = await mount(ComposeDialog, { onResult });
+    expect(button(b.container, 'Insert')).toBeUndefined();
+    await b.unmount();
   });
 
   it('builds the line from the time and the ticked zones', async () => {

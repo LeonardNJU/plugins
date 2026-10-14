@@ -67,11 +67,9 @@ The composer's plugin row gets a **Time zones** button. It opens a dialog
 where you pick a date and a time (in your zone) and the zones to show; your
 zone and your favourites are ticked, and you can add others. It writes one
 line such as `3:00 PM Berlin / 9:00 AM New York` (with weekdays when the
-zones are on different dates) and copies it, so you paste it into the
-message.
-
-Plugins can't type into the message yet, so the text goes through the
-clipboard. Where the browser doesn't let the plugin frame copy, the dialog
+zones are on different dates). **Insert** puts it where the cursor is in the
+message (replacing selected text); **Copy** puts it on the clipboard
+instead. Where the browser doesn't let the plugin frame copy, the dialog
 selects the text and asks you to press Ctrl+C.
 
 ![Composer](screenshots/composer-light.png)
@@ -98,6 +96,7 @@ dimmed. The time updates every 30 seconds.
 | `ui:email-details` | The row in the message details. |
 | `email:read` | To read the open message's Date header and sender address. Nothing else of the message is used. |
 | `ui:composer-toolbar` | The button in the composer. The dialog it opens needs no permission of its own. |
+| `compose:open` | To insert the line into the message (the composer's insertText). The plugin never opens a composer by itself. |
 | `ui:sidebar-widget` | The world clock section in the mail sidebar (only offered when it is turned on). |
 | `calendar:read` | To see the event in the form (times, participants) and add the working-hours warning (onCheckEventConflicts). |
 

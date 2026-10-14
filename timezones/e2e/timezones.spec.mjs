@@ -277,7 +277,7 @@ for (const theme of ['light', 'dark']) {
 // ─── Composer ────────────────────────────────────────────────
 
 for (const theme of ['light', 'dark']) {
-  test(`composer writes a time in several zones to paste into the message (${theme})`, async ({ page, context }) => {
+  test(`composer writes a time in several zones into the message (${theme})`, async ({ page, context }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: BASE });
     await preparePage(page, { theme });
     await signIn(page);
@@ -297,11 +297,9 @@ for (const theme of ['light', 'dark']) {
     await expect(dialog.getByRole('status')).toHaveText('Copied. Paste it into your message.');
     await shootThemed(page, 'composer', theme);
 
-    // What the user does next: close the dialog and paste into the message.
-    await dialog.getByRole('button', { name: 'Close' }).click();
+    // Insert writes the line where the cursor is in the message.
+    await dialog.getByRole('button', { name: 'Insert' }).click();
     const body = page.locator('[contenteditable="true"]').first();
-    await body.click();
-    await page.keyboard.press('Control+V');
     await expect(body).toContainText(/3:00\sPM Berlin \/ 9:00\sAM New York/);
     await page.getByRole('button', { name: 'Discard' }).click();
     const confirm = page.getByRole('button', { name: /^(Discard|Delete)$/ }).last();

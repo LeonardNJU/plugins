@@ -1,7 +1,6 @@
 // In the composer: a button that opens a dialog to write one time in several
-// zones ("15:00 Berlin / 09:00 New York") and copy it for the message.
-// Plugins can't type into the message, so the text goes through the
-// clipboard (see the README).
+// zones ("15:00 Berlin / 09:00 New York") and insert it where the cursor is.
+// Copying is there too, for when the composer can't take the text.
 
 import { useId, useMemo, useRef, useState } from 'react';
 import { getApi, t, locale } from '../host.js';
@@ -9,18 +8,41 @@ import { composeLine, nextFullHour } from '../lib/compose.js';
 import { zoneCity } from '../lib/zones.js';
 import { ClockIcon, Styles, ZoneField, useSettings } from './common.jsx';
 
-/** composer-toolbar */
-export function ComposeButton() {
-  const open = () => {
-    void getApi()?.ui.openDialog({ title: t('compose.dialogTitle'), slot: 'plugin-dialog', width: 520 }).catch(() => {});
+/**
+ * composer-toolbar. The dialog answers with the line to insert (or null);
+ * the button then writes it into the message with the composer's
+ * insertText, which only this slot gets.
+ */
+export function ComposeButton({ insertText }) {
+  const [failed, setFailed] = useState(false);
+  const open = async () => {
+    setFailed(false);
+    let text = null;
+    try {
+      text = await getApi()?.ui.openDialog({
+        title: t('compose.dialogTitle'),
+        slot: 'plugin-dialog',
+        width: 520,
+        extraProps: { canInsert: typeof insertText === 'function' },
+      });
+    } catch {
+      return;
+    }
+    if (typeof text !== 'string' || !text || typeof insertText !== 'function') return;
+    let ok = false;
+    try { ok = (await insertText(text)) !== false; } catch { ok = false; }
+    if (!ok) setFailed(true);
   };
   return (
     <>
       <Styles />
-      <button type="button" className="tz-btn tz-btn-ghost" onClick={open} data-tz="compose-button" style={{ height: 32 }}>
-        <ClockIcon size={16} />
-        <span>{t('compose.button')}</span>
-      </button>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <button type="button" className="tz-btn tz-btn-ghost" onClick={() => void open()} data-tz="compose-button" style={{ height: 32 }}>
+          <ClockIcon size={16} />
+          <span>{t('compose.button')}</span>
+        </button>
+        {failed && <span role="alert" className="tz-warn" style={{ fontSize: 12 }}>{t('compose.insertFailed')}</span>}
+      </span>
     </>
   );
 }
@@ -46,7 +68,7 @@ export async function copyText(text, field) {
 }
 
 /** plugin-dialog */
-export function ComposeDialog({ onResult }) {
+export function ComposeDialog({ onResult, canInsert }) {
   const settings = useSettings();
   const loc = locale();
   const start = useMemo(() => nextFullHour(Date.now(), settings.home), [settings.home]);
@@ -125,7 +147,10 @@ export function ComposeDialog({ onResult }) {
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
         <button type="button" className="tz-btn" onClick={() => onResult?.(null)}>{t('compose.close')}</button>
-        <button type="button" className="tz-btn tz-btn-primary" disabled={!text} onClick={() => void copy()}>{t('compose.copy')}</button>
+        <button type="button" className={canInsert ? 'tz-btn' : 'tz-btn tz-btn-primary'} disabled={!text} onClick={() => void copy()}>{t('compose.copy')}</button>
+        {canInsert && (
+          <button type="button" className="tz-btn tz-btn-primary" disabled={!text} onClick={() => onResult?.(text)}>{t('compose.insert')}</button>
+        )}
       </div>
     </div>
   );

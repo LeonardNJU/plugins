@@ -13,7 +13,8 @@
     "ui:email-banner",
     "ui:email-details",
     "ui:composer-toolbar",
-    "ui:sidebar-widget"
+    "ui:sidebar-widget",
+    "compose:open"
   ],
   "entrypoint": "index.js",
   "minAppVersion": "1.14.2",
@@ -100,7 +101,9 @@
       "compose.noZones": "Pick at least one time zone.",
       "compose.close": "Close",
       "clock.heading": "World clock",
-      "clock.empty": "Add favourite time zones in Settings to see them here."
+      "clock.empty": "Add favourite time zones in Settings to see them here.",
+      "compose.insert": "Insert",
+      "compose.insertFailed": "Could not insert the text. Use Copy and paste it instead."
     },
     "ar": {
       "remove": "إزالة",
@@ -148,7 +151,9 @@
       "compose.noZones": "اختر منطقة زمنية واحدة على الأقل.",
       "compose.close": "إغلاق",
       "clock.heading": "الساعة العالمية",
-      "clock.empty": "أضف مناطق زمنية مفضلة في الإعدادات لتظهر هنا."
+      "clock.empty": "أضف مناطق زمنية مفضلة في الإعدادات لتظهر هنا.",
+      "compose.insert": "إدراج",
+      "compose.insertFailed": "تعذّر إدراج النص. انسخه والصقه بنفسك."
     },
     "ca": {
       "remove": "Elimina",
@@ -196,7 +201,9 @@
       "compose.noZones": "Tria almenys una zona horària.",
       "compose.close": "Tanca",
       "clock.heading": "Rellotge mundial",
-      "clock.empty": "Afegeix zones horàries preferides a la Configuració per veure-les aquí."
+      "clock.empty": "Afegeix zones horàries preferides a la Configuració per veure-les aquí.",
+      "compose.insert": "Insereix",
+      "compose.insertFailed": "No s’ha pogut inserir el text. Copia’l i enganxa’l tu mateix."
     },
     "cs": {
       "remove": "Odstranit",
@@ -244,7 +251,9 @@
       "compose.noZones": "Vyberte alespoň jedno časové pásmo.",
       "compose.close": "Zavřít",
       "clock.heading": "Světové hodiny",
-      "clock.empty": "Přidejte oblíbená časová pásma v Nastavení, aby se zobrazila zde."
+      "clock.empty": "Přidejte oblíbená časová pásma v Nastavení, aby se zobrazila zde.",
+      "compose.insert": "Vložit",
+      "compose.insertFailed": "Text se nepodařilo vložit. Zkopírujte ho a vložte sami."
     },
     "da": {
       "remove": "Fjern",
@@ -292,7 +301,9 @@
       "compose.noZones": "Vælg mindst én tidszone.",
       "compose.close": "Luk",
       "clock.heading": "Verdensur",
-      "clock.empty": "Tilføj foretrukne tidszoner i Indstillinger for at se dem her."
+      "clock.empty": "Tilføj foretrukne tidszoner i Indstillinger for at se dem her.",
+      "compose.insert": "Indsæt",
+      "compose.insertFailed": "Teksten kunne ikke indsættes. Kopiér den og indsæt den selv."
     },
     "de": {
       "remove": "Entfernen",
@@ -340,7 +351,9 @@
       "compose.noZones": "Wählen Sie mindestens eine Zeitzone.",
       "compose.close": "Schließen",
       "clock.heading": "Weltuhr",
-      "clock.empty": "Fügen Sie in den Einstellungen bevorzugte Zeitzonen hinzu, um sie hier zu sehen."
+      "clock.empty": "Fügen Sie in den Einstellungen bevorzugte Zeitzonen hinzu, um sie hier zu sehen.",
+      "compose.insert": "Einfügen",
+      "compose.insertFailed": "Der Text konnte nicht eingefügt werden. Kopieren Sie ihn stattdessen und fügen Sie ihn selbst ein."
     },
     "es": {
       "remove": "Eliminar",
@@ -388,7 +401,9 @@
       "compose.noZones": "Elige al menos una zona horaria.",
       "compose.close": "Cerrar",
       "clock.heading": "Reloj mundial",
-      "clock.empty": "Añade zonas horarias favoritas en Configuración para verlas aquí."
+      "clock.empty": "Añade zonas horarias favoritas en Configuración para verlas aquí.",
+      "compose.insert": "Insertar",
+      "compose.insertFailed": "No se pudo insertar el texto. Cópialo y pégalo tú mismo."
     },
     "fa": {
       "remove": "حذف",
@@ -436,7 +451,9 @@
       "compose.noZones": "دست‌کم یک منطقهٔ زمانی انتخاب کنید.",
       "compose.close": "بستن",
       "clock.heading": "ساعت جهانی",
-      "clock.empty": "برای دیدن مناطق زمانی برگزیده در اینجا، آن‌ها را در تنظیمات اضافه کنید."
+      "clock.empty": "برای دیدن مناطق زمانی برگزیده در اینجا، آن‌ها را در تنظیمات اضافه کنید.",
+      "compose.insert": "درج",
+      "compose.insertFailed": "درج متن ممکن نشد. آن را کپی کنید و خودتان جای‌گذاری کنید."
     },
     "fr": {
       "remove": "Supprimer",
@@ -484,7 +501,9 @@
       "compose.noZones": "Choisissez au moins un fuseau horaire.",
       "compose.close": "Fermer",
       "clock.heading": "Horloge mondiale",
-      "clock.empty": "Ajoutez des fuseaux horaires favoris dans les Paramètres pour les voir ici."
+      "clock.empty": "Ajoutez des fuseaux horaires favoris dans les Paramètres pour les voir ici.",
+      "compose.insert": "Insérer",
+      "compose.insertFailed": "Impossible d’insérer le texte. Copiez-le et collez-le vous-même."
     },
     "he": {
       "remove": "הסר",
@@ -532,7 +551,9 @@
       "compose.noZones": "בחרו לפחות אזור זמן אחד.",
       "compose.close": "סגירה",
       "clock.heading": "שעון עולמי",
-      "clock.empty": "הוסיפו אזורי זמן מועדפים בהגדרות כדי לראות אותם כאן."
+      "clock.empty": "הוסיפו אזורי זמן מועדפים בהגדרות כדי לראות אותם כאן.",
+      "compose.insert": "הוספה",
+      "compose.insertFailed": "לא ניתן להוסיף את הטקסט. העתיקו והדביקו אותו בעצמכם."
     },
     "hu": {
       "remove": "Eltávolítás",
@@ -580,7 +601,9 @@
       "compose.noZones": "Válasszon legalább egy időzónát.",
       "compose.close": "Bezárás",
       "clock.heading": "Világóra",
-      "clock.empty": "Adjon hozzá kedvenc időzónákat a Beállításokban, hogy itt lássa őket."
+      "clock.empty": "Adjon hozzá kedvenc időzónákat a Beállításokban, hogy itt lássa őket.",
+      "compose.insert": "Beszúrás",
+      "compose.insertFailed": "A szöveget nem sikerült beszúrni. Másolja ki, és illessze be saját maga."
     },
     "it": {
       "remove": "Rimuovi",
@@ -628,7 +651,9 @@
       "compose.noZones": "Scegli almeno un fuso orario.",
       "compose.close": "Chiudi",
       "clock.heading": "Orologio mondiale",
-      "clock.empty": "Aggiungi fusi orari preferiti nelle Impostazioni per vederli qui."
+      "clock.empty": "Aggiungi fusi orari preferiti nelle Impostazioni per vederli qui.",
+      "compose.insert": "Inserisci",
+      "compose.insertFailed": "Impossibile inserire il testo. Copialo e incollalo tu."
     },
     "ja": {
       "remove": "削除",
@@ -676,7 +701,9 @@
       "compose.noZones": "タイムゾーンを 1 つ以上選んでください。",
       "compose.close": "閉じる",
       "clock.heading": "世界時計",
-      "clock.empty": "設定でお気に入りのタイムゾーンを追加すると、ここに表示されます。"
+      "clock.empty": "設定でお気に入りのタイムゾーンを追加すると、ここに表示されます。",
+      "compose.insert": "挿入",
+      "compose.insertFailed": "テキストを挿入できませんでした。コピーして貼り付けてください。"
     },
     "ko": {
       "remove": "삭제",
@@ -724,7 +751,9 @@
       "compose.noZones": "시간대를 하나 이상 선택하세요.",
       "compose.close": "닫기",
       "clock.heading": "세계 시계",
-      "clock.empty": "설정에서 즐겨찾는 시간대를 추가하면 여기에 표시됩니다."
+      "clock.empty": "설정에서 즐겨찾는 시간대를 추가하면 여기에 표시됩니다.",
+      "compose.insert": "삽입",
+      "compose.insertFailed": "텍스트를 삽입하지 못했습니다. 복사해서 직접 붙여넣으세요."
     },
     "lv": {
       "remove": "Noņemt",
@@ -772,7 +801,9 @@
       "compose.noZones": "Izvēlieties vismaz vienu laika joslu.",
       "compose.close": "Aizvērt",
       "clock.heading": "Pasaules pulkstenis",
-      "clock.empty": "Pievienojiet izlases laika joslas iestatījumos, lai tās redzētu šeit."
+      "clock.empty": "Pievienojiet izlases laika joslas iestatījumos, lai tās redzētu šeit.",
+      "compose.insert": "Ievietot",
+      "compose.insertFailed": "Tekstu neizdevās ievietot. Nokopējiet un ielīmējiet to pats."
     },
     "mn": {
       "remove": "Устгах",
@@ -820,7 +851,9 @@
       "compose.noZones": "Дор хаяж нэг цагийн бүс сонгоно уу.",
       "compose.close": "Хаах",
       "clock.heading": "Дэлхийн цаг",
-      "clock.empty": "Энд харахын тулд Тохиргоо хэсэгт дуртай цагийн бүсүүдээ нэмнэ үү."
+      "clock.empty": "Энд харахын тулд Тохиргоо хэсэгт дуртай цагийн бүсүүдээ нэмнэ үү.",
+      "compose.insert": "Оруулах",
+      "compose.insertFailed": "Текстийг оруулж чадсангүй. Хуулаад өөрөө буулгана уу."
     },
     "nb": {
       "remove": "Fjern",
@@ -868,7 +901,9 @@
       "compose.noZones": "Velg minst én tidssone.",
       "compose.close": "Lukk",
       "clock.heading": "Verdensklokke",
-      "clock.empty": "Legg til favoritt-tidssoner i Innstillinger for å se dem her."
+      "clock.empty": "Legg til favoritt-tidssoner i Innstillinger for å se dem her.",
+      "compose.insert": "Sett inn",
+      "compose.insertFailed": "Kunne ikke sette inn teksten. Kopier den og lim den inn selv."
     },
     "nl": {
       "remove": "Verwijderen",
@@ -916,7 +951,9 @@
       "compose.noZones": "Kies minstens één tijdzone.",
       "compose.close": "Sluiten",
       "clock.heading": "Wereldklok",
-      "clock.empty": "Voeg favoriete tijdzones toe in Instellingen om ze hier te zien."
+      "clock.empty": "Voeg favoriete tijdzones toe in Instellingen om ze hier te zien.",
+      "compose.insert": "Invoegen",
+      "compose.insertFailed": "De tekst kon niet worden ingevoegd. Kopieer en plak hem zelf."
     },
     "pl": {
       "remove": "Usuń",
@@ -964,7 +1001,9 @@
       "compose.noZones": "Wybierz co najmniej jedną strefę czasową.",
       "compose.close": "Zamknij",
       "clock.heading": "Zegar światowy",
-      "clock.empty": "Dodaj ulubione strefy czasowe w Ustawieniach, aby zobaczyć je tutaj."
+      "clock.empty": "Dodaj ulubione strefy czasowe w Ustawieniach, aby zobaczyć je tutaj.",
+      "compose.insert": "Wstaw",
+      "compose.insertFailed": "Nie udało się wstawić tekstu. Skopiuj go i wklej samodzielnie."
     },
     "pt": {
       "remove": "Remover",
@@ -1012,7 +1051,9 @@
       "compose.noZones": "Escolha pelo menos um fuso horário.",
       "compose.close": "Fechar",
       "clock.heading": "Relógio mundial",
-      "clock.empty": "Adicione fusos horários favoritos nas Configurações para vê-los aqui."
+      "clock.empty": "Adicione fusos horários favoritos nas Configurações para vê-los aqui.",
+      "compose.insert": "Inserir",
+      "compose.insertFailed": "Não foi possível inserir o texto. Copie e cole você mesmo."
     },
     "ro": {
       "remove": "Eliminați",
@@ -1060,7 +1101,9 @@
       "compose.noZones": "Alegeți cel puțin un fus orar.",
       "compose.close": "Închide",
       "clock.heading": "Ceas mondial",
-      "clock.empty": "Adăugați fusuri orare preferate în Setări pentru a le vedea aici."
+      "clock.empty": "Adăugați fusuri orare preferate în Setări pentru a le vedea aici.",
+      "compose.insert": "Inserați",
+      "compose.insertFailed": "Textul nu a putut fi inserat. Copiați-l și lipiți-l singur."
     },
     "ru": {
       "remove": "Удалить",
@@ -1108,7 +1151,9 @@
       "compose.noZones": "Выберите хотя бы один часовой пояс.",
       "compose.close": "Закрыть",
       "clock.heading": "Мировые часы",
-      "clock.empty": "Добавьте избранные часовые пояса в Настройках, чтобы видеть их здесь."
+      "clock.empty": "Добавьте избранные часовые пояса в Настройках, чтобы видеть их здесь.",
+      "compose.insert": "Вставить",
+      "compose.insertFailed": "Не удалось вставить текст. Скопируйте его и вставьте сами."
     },
     "sk": {
       "remove": "Odstrániť",
@@ -1156,7 +1201,9 @@
       "compose.noZones": "Vyberte aspoň jedno časové pásmo.",
       "compose.close": "Zavrieť",
       "clock.heading": "Svetové hodiny",
-      "clock.empty": "Pridajte obľúbené časové pásma v Nastaveniach, aby sa zobrazili tu."
+      "clock.empty": "Pridajte obľúbené časové pásma v Nastaveniach, aby sa zobrazili tu.",
+      "compose.insert": "Vložiť",
+      "compose.insertFailed": "Text sa nepodarilo vložiť. Skopírujte ho a vložte sami."
     },
     "tr": {
       "remove": "Kaldır",
@@ -1204,7 +1251,9 @@
       "compose.noZones": "En az bir saat dilimi seçin.",
       "compose.close": "Kapat",
       "clock.heading": "Dünya saati",
-      "clock.empty": "Burada görmek için Ayarlar’da favori saat dilimleri ekleyin."
+      "clock.empty": "Burada görmek için Ayarlar’da favori saat dilimleri ekleyin.",
+      "compose.insert": "Ekle",
+      "compose.insertFailed": "Metin eklenemedi. Kopyalayıp kendiniz yapıştırın."
     },
     "uk": {
       "remove": "Видалити",
@@ -1252,7 +1301,9 @@
       "compose.noZones": "Виберіть хоча б один часовий пояс.",
       "compose.close": "Закрити",
       "clock.heading": "Світовий годинник",
-      "clock.empty": "Додайте улюблені часові пояси в Налаштуваннях, щоб бачити їх тут."
+      "clock.empty": "Додайте улюблені часові пояси в Налаштуваннях, щоб бачити їх тут.",
+      "compose.insert": "Вставити",
+      "compose.insertFailed": "Не вдалося вставити текст. Скопіюйте його та вставте самі."
     },
     "zh": {
       "remove": "移除",
@@ -1300,7 +1351,9 @@
       "compose.noZones": "请至少选择一个时区。",
       "compose.close": "关闭",
       "clock.heading": "世界时钟",
-      "clock.empty": "在设置中添加常用时区后会显示在这里。"
+      "clock.empty": "在设置中添加常用时区后会显示在这里。",
+      "compose.insert": "插入",
+      "compose.insertFailed": "无法插入文本。请复制后自行粘贴。"
     },
     "zh-TW": {
       "remove": "移除",
@@ -1348,7 +1401,9 @@
       "compose.noZones": "請至少選擇一個時區。",
       "compose.close": "關閉",
       "clock.heading": "世界時鐘",
-      "clock.empty": "在設定中新增常用時區後會顯示在這裡。"
+      "clock.empty": "在設定中新增常用時區後會顯示在這裡。",
+      "compose.insert": "插入",
+      "compose.insertFailed": "無法插入文字。請複製後自行貼上。"
     }
   }
 }
