@@ -196,7 +196,9 @@ for (const theme of ['light', 'dark']) {
     await expect(tokyo).toContainText('10:00');
     await expect(tokyo).toContainText('kei@example.jp');
     await expect(tokyo).toContainText('outside working hours');
-    await expect(frame.getByRole('status').filter({ hasText: /Outside 8:00\sAM–8:00\sPM for kei@example\.jp \(Tokyo\)/ })).toBeVisible();
+    // The section marks the row; the sentence is left to the form's own
+    // warnings, so it isn't shown twice.
+    await expect(frame.getByRole('status').filter({ hasText: /Outside/ })).toHaveCount(0);
 
     // The form's own warnings come from the conflict check, which runs when
     // the times change.

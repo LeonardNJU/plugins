@@ -52,6 +52,13 @@ describe('composer Options entry and dialog', () => {
     expect(api.calls('ui.setActions')).toEqual([{ method: 'ui.setActions', args: ['composer-options-menu', [{ id: 'insert-zone-times', label: 'Insert time in other zones…', icon: 'clock' }]] }]);
   });
 
+  it('titles the world clock section in the sidebar', async () => {
+    const api = setup();
+    plugin.activate(api);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(api.calls('ui.setSectionTitle')).toEqual([{ method: 'ui.setSectionTitle', args: ['World clock'] }]);
+  });
+
   it('opens the dialog for the composer that was clicked, and ignores other actions', () => {
     const api = setup();
     clickEntry();

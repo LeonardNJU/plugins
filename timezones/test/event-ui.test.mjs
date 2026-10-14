@@ -33,8 +33,9 @@ describe('event form section', () => {
     expect(rows[0].textContent).toContain('outside working hours');
     expect(rows[1].textContent).toContain('08:00–09:00');
     expect(rows[1].textContent).not.toContain('outside working hours');
-    // One warning for the participants outside working hours.
-    expect(ui.$('[role="status"][data-tone="warning"]').textContent).toBe('Outside 08:00–20:00 for kei@example.jp (Tokyo)');
+    // The warning sentence is the form's own (onCheckEventConflicts); the
+    // section only marks the rows, so the form doesn't show it twice.
+    expect(ui.$('[role="status"][data-tone="warning"]')).toBeNull();
     await ui.unmount();
   });
 

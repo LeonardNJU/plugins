@@ -69,6 +69,8 @@ export const hooks = {
 
 async function registerActions(api) {
   await api.ui.setActions(OPTIONS_SURFACE, composerActions());
+  // The world clock's sidebar section; the host draws its header like Folders and Tags.
+  await api.ui.setSectionTitle?.(api.i18n.t('clock.heading'));
 }
 
 export function activate(api) {

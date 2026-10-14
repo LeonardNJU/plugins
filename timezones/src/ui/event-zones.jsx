@@ -1,12 +1,12 @@
 // In the event form: the event's time for each participant with a known
 // time zone and in the favourite zones, marked when it falls outside working
-// hours, and a way to set a missing zone. The same warning also goes to the
-// form's own warnings through the onCheckEventConflicts hook.
+// hours, and a way to set a missing zone. The warning itself is the form's
+// own (onCheckEventConflicts in index.js), so it isn't repeated here.
 
 import { useState } from 'react';
-import { Alert, Badge, LinkButton, List, ListRow, Row, Stack, Text } from '@plugin-host/ui';
+import { Badge, LinkButton, List, ListRow, Row, Stack, Text } from '@plugin-host/ui';
 import { t, locale } from '../host.js';
-import { eventZones, outsideHoursWarning } from '../lib/event.js';
+import { eventZones } from '../lib/event.js';
 import { formatOffset, formatTime, offsetMinutes, zoneCity } from '../lib/zones.js';
 import { ZoneField, useAddressZones, useSettings } from './common.jsx';
 
@@ -39,7 +39,6 @@ export function EventZones(props) {
   if (!info || info.allDay) return null;
   if (info.rows.length === 0 && info.missing.length === 0) return null;
   const loc = locale();
-  const warning = outsideHoursWarning(info, settings, t, loc);
 
   return (
     <Stack gap={2}>
@@ -56,7 +55,6 @@ export function EventZones(props) {
           ))}
         </List>
       )}
-      {warning && <Alert tone="warning" icon="alert-triangle">{warning.message}</Alert>}
       {info.missing.map((address) => (
         editing === address ? (
           <ZoneField
