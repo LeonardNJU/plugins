@@ -256,6 +256,13 @@ async function fetchAttachments(req) {
   return out;
 }
 
+// onComposeSend outcomes: `false` tells the host "I sent it" (it deletes the
+// draft and closes the composer); ABORT tells it nothing was sent, so it
+// keeps the message open with its draft. Every refusal below shows the user
+// why before returning ABORT.
+const ABORT = { abort: true };
+const KEY_LOCKED_MESSAGE = 'Not sent: your S/MIME key is still locked.';
+
 async function onComposeSend(req) {
   if (!req || typeof req !== 'object') return undefined;
 
@@ -264,7 +271,7 @@ async function onComposeSend(req) {
 
   if (!(await isCapable())) {
     host.toast.error('Cannot sign/encrypt: S/MIME is not running in the privileged tier.');
-    return false; // refuse rather than send plaintext when sign/encrypt was requested
+    return ABORT; // refuse rather than send plaintext when sign/encrypt was requested
   }
 
   try {
@@ -282,7 +289,7 @@ async function onComposeSend(req) {
     const keyRecord = (sign || encrypt) ? await signingKeyRecordForEmail(from.email) : undefined;
     if ((sign || encrypt) && !keyRecord) {
       host.toast.error(`No S/MIME key for ${from.email}. Import one in Settings → Plugins → S/MIME.`);
-      return false;
+      return ABORT;
     }
 
     // Build the inner MIME message from the draft.
@@ -304,7 +311,8 @@ async function onComposeSend(req) {
       // multipart/signed stays readable in clients without S/MIME.
       const session = await ensureKeyUnlocked(keyRecord);
       if (!session || !session.signingKey) {
-        return false; // refuse rather than send unsigned
+        host.toast.error(KEY_LOCKED_MESSAGE);
+        return ABORT; // refuse rather than send unsigned
       }
       const entityBytes = buildMimeEntity(mimeInput);
       const signatureDer = await smimeSignDetached(
@@ -316,26 +324,31 @@ async function onComposeSend(req) {
       rfc822 = wrapDetachedSignedMessage(entityBytes, signatureDer, mimeInput);
     } else {
       rfc822 = await buildOpaqueMessage(mimeInput, { sign, encrypt, keyRecord, allRecipientEmails });
-      if (!rfc822) return false;
+      if (!rfc822) return ABORT; // buildOpaqueMessage already told the user why
     }
     const rawBytes = await blobToBytes(rfc822);
 
     const envelopeRecipients = [...new Set([...allRecipientEmails])];
-    await host.jmap.sendRaw(bytesArrayBuffer(rawBytes), identityId, { envelopeRecipients });
+    // Pass a scheduled send's time through, so it is not sent right away.
+    const sendOpts = { envelopeRecipients };
+    if (req.delayedUntil) sendOpts.delayedUntil = req.delayedUntil;
+    await host.jmap.sendRaw(bytesArrayBuffer(rawBytes), identityId, sendOpts);
 
+    const sent = req.delayedUntil ? 'scheduled' : 'sent';
     host.toast.success(
-      encrypt && sign ? 'Message signed, encrypted and sent'
-        : encrypt ? 'Message encrypted and sent'
-          : useDetachedSignature() ? 'Message signed (detached) and sent'
-            : 'Message signed (opaque) and sent',
+      encrypt && sign ? `Message signed, encrypted and ${sent}`
+        : encrypt ? `Message encrypted and ${sent}`
+          : useDetachedSignature() ? `Message signed (detached) and ${sent}`
+            : `Message signed (opaque) and ${sent}`,
     );
     // Clear the per-message intent so the next compose starts from defaults.
-    await host.storage.set(INTENT_KEY, {});
+    // The mail is already out, so a storage error must not turn into an abort.
+    await host.storage.set(INTENT_KEY, {}).catch((err) => host.log.warn('clearing send intent failed', err));
     return false; // we handled the send
   } catch (err) {
     host.log.error('onComposeSend failed', err);
     host.toast.error(`S/MIME send failed: ${err && err.message ? err.message : String(err)}`);
-    return false; // do NOT fall through to a plaintext send when sign/encrypt was requested
+    return ABORT; // nothing was sent: keep the draft, and never fall back to plaintext
   }
 }
 
@@ -345,12 +358,11 @@ async function buildOpaqueMessage(mimeInput, { sign, encrypt, keyRecord, allReci
 
   // 1. Sign (opaque). If we'll also encrypt, nest the signed CMS as a MIME entity.
   if (sign) {
-    // Locked keys are normally unlocked in onBeforeEmailSend (which can abort
-    // the send cleanly). This is a fallback for that path not having run: the
-    // popup shows here too, but cancelling clears the composer, so prefer the
-    // pre-send hook.
+    // Locked keys are normally unlocked in onBeforeEmailSend. This is a
+    // fallback for that path not having run; cancelling here keeps the draft.
     const session = await ensureKeyUnlocked(keyRecord);
     if (!session || !session.signingKey) {
+      host.toast.error(KEY_LOCKED_MESSAGE);
       return null; // refuse rather than send unsigned
     }
     const signedBlob = await smimeSign(
