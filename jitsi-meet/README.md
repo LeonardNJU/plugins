@@ -1,6 +1,6 @@
 # Jitsi Meet Plugin
 
-Adds a **"Add Jitsi Meeting"** button to the calendar event editor. Meeting URLs are generated server-side by a sidecar service, which handles room name generation, optional JWT signing, and user authentication via OIDC.
+Adds a **"Add Jitsi meeting"** button to the calendar event editor. Meeting URLs are generated server-side by a sidecar service, which handles room name generation, optional JWT signing, and user authentication via OIDC.
 
 ## Architecture
 
@@ -102,7 +102,7 @@ Upload or deploy `jitsi-meet` through Admin → Plugins. No plugin configuration
 
 ### 4. Use
 
-Open any calendar event form and an **"Add Jitsi Meeting"** button appears. Clicking it:
+Open any calendar event form and an **"Add Jitsi meeting"** button appears. Clicking it:
 
 1. Sends the event title to the sidecar with the user's OIDC Bearer token
 2. The sidecar verifies the token, generates a room name, and optionally appends a signed Jitsi JWT
