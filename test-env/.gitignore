@@ -1,2 +1,3 @@
 stalwart/stalwart-cli
 .env
+__pycache__/

@@ -93,6 +93,27 @@ services:
       retries: 60
       start_period: 60s
 
+  vikunja:
+    image: vikunja/vikunja:2.6.0
+    container_name: bpt-vikunja
+    # Named volumes are created root-owned and the image runs as uid 1000,
+    # which then cannot write the files directory. Root is fine for a test box.
+    user: "0:0"
+    ports:
+      - "18456:3456"
+    volumes:
+      - vikunja-db:/db
+      - vikunja-files:/app/vikunja/files
+    environment:
+      VIKUNJA_SERVICE_PUBLICURL: http://localhost:18456/
+      VIKUNJA_SERVICE_SECRET: bulwark-plugin-test-only-not-secret
+      VIKUNJA_SERVICE_ENABLEREGISTRATION: "true"
+      VIKUNJA_SERVICE_TIMEZONE: Europe/Berlin
+      VIKUNJA_DATABASE_TYPE: sqlite
+      VIKUNJA_DATABASE_PATH: /db/vikunja.db
+    # The image has no shell or curl, so there is no container healthcheck;
+    # seed/seed_vikunja.py waits for /api/v1/info instead.
+
 volumes:
   stalwart-data:
   stalwart-config:
@@ -100,3 +121,5 @@ volumes:
   paperless-redis:
   paperless-data:
   paperless-media:
+  vikunja-db:
+  vikunja-files:
