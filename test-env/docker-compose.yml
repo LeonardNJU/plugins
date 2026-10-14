@@ -114,6 +114,20 @@ services:
     # The image has no shell or curl, so there is no container healthcheck;
     # seed/seed_vikunja.py waits for /api/v1/info instead.
 
+  mocks:
+    image: python:3.13.16-alpine
+    container_name: bpt-mocks
+    command: ["python", "-u", "/mocks/server.py", "--port", "18099"]
+    ports:
+      - "18099:18099"
+    volumes:
+      - ./mocks:/mocks:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:18099/health', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
 volumes:
   stalwart-data:
   stalwart-config:
