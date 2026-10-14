@@ -6,7 +6,8 @@
  *
  *   • onComposeSend   (intercept)  → build MIME, sign/encrypt, api.jmap.sendRaw
  *   • onRenderEmailBody (transform) → api.jmap.fetchBlob, decrypt/verify, replace body
- *   • composer-toolbar slot         → per-message Sign / Encrypt toggles
+ *   • composer Options menu         → per-message Sign / Encrypt check items
+ *                                     (api.ui.setActions, src/compose-actions.js)
  *   • email-banner slot             → signature / encryption status
  *   • settings-section slot         → key import, unlock/lock, recipient certs
  *
@@ -16,9 +17,6 @@
  */
 
 const host = require('@plugin-host');
-const React = require('react');
-const h = React.createElement;
-const { useState, useEffect, useCallback, useRef } = React;
 
 import {
   buildMimeMessage, buildMimeEntity, wrapCmsAsSmimeMessage, wrapDetachedSignedMessage, base64Encode,
@@ -32,6 +30,10 @@ import { parseMime, extractDetachedSigned } from './mime-parse.js';
 import { importPkcs12, unlockPrivateKey } from './pkcs12.js';
 import { parseCertificatePemOrDer, extractCertificateInfo } from './certificate-utils.js';
 import { generateUUID } from './util.js';
+import { makeUi } from './ui.js';
+import {
+  INTENT_KEY, publishComposeActions, resetComposeIntent, handleComposeAction,
+} from './compose-actions.js';
 import {
   saveKeyRecord, listKeyRecords, deleteKeyRecord,
   savePublicCert, listPublicCerts, deletePublicCert,
@@ -41,7 +43,6 @@ import {
 // ─── Shared preferences (api.storage; shared across iframes) ──────────
 
 const PREFS_KEY = 'prefs.v1';
-const INTENT_KEY = 'composeIntent.v1';
 const VERIFY_PREFIX = 'verify:';
 
 const DEFAULT_PREFS = { defaultSign: false, defaultEncrypt: false };
@@ -227,7 +228,7 @@ async function resolveIntent(req) {
   let encrypt = pick(req.encrypt, req.smimeEncrypt, req.intent && req.intent.encrypt, req.smime && req.smime.encrypt);
 
   if (sign === undefined && encrypt === undefined) {
-    // Fall back to the composer-toolbar slot's stored intent, then prefs.
+    // Fall back to the Options menu's stored intent, then prefs.
     const stored = (await host.storage.get(INTENT_KEY)) || {};
     const prefs = await getPrefs();
     sign = typeof stored.sign === 'boolean' ? stored.sign : prefs.defaultSign;
@@ -344,6 +345,7 @@ async function onComposeSend(req) {
     // Clear the per-message intent so the next compose starts from defaults.
     // The mail is already out, so a storage error must not turn into an abort.
     await host.storage.set(INTENT_KEY, {}).catch((err) => host.log.warn('clearing send intent failed', err));
+    void publishComposeActions(host, composeDeps).catch(() => {});
     return false; // we handled the send
   } catch (err) {
     host.log.error('onComposeSend failed', err);
@@ -417,34 +419,6 @@ async function maybeAutoImportSigner(status) {
     host.log.warn('auto-import signer cert failed', err);
   }
 }
-
-// Lucide-style stroke icons rendered inline so the status chip can tint them
-// with `currentColor` — matching the host's "External Content" banner, which
-// uses tinted SVG glyphs (not emoji) in a round chip.
-function iconSvg(size, ...children) {
-  return h('svg', { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }, ...children);
-}
-const ICONS = {
-  chevronDown: (s = 20) => iconSvg(s, h('path', { d: 'm6 9 6 6 6-6' })),
-  chevronUp: (s = 20) => iconSvg(s, h('path', { d: 'm18 15-6-6-6 6' })),
-  lock: (s = 20) => iconSvg(s,
-    h('rect', { width: 18, height: 11, x: 3, y: 11, rx: 2, ry: 2 }),
-    h('path', { d: 'M7 11V7a5 5 0 0 1 10 0v4' })),
-  lockOpen: (s = 20) => iconSvg(s,
-    h('rect', { width: 18, height: 11, x: 3, y: 11, rx: 2, ry: 2 }),
-    h('path', { d: 'M7 11V7a5 5 0 0 1 9.9-1' })),
-  shieldCheck: (s = 20) => iconSvg(s,
-    h('path', { d: 'M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z' }),
-    h('path', { d: 'm9 12 2 2 4-4' })),
-  shieldAlert: (s = 20) => iconSvg(s,
-    h('path', { d: 'M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z' }),
-    h('path', { d: 'M12 8v4' }),
-    h('path', { d: 'M12 16h.01' })),
-  info: (s = 20) => iconSvg(s,
-    h('circle', { cx: 12, cy: 12, r: 10 }),
-    h('path', { d: 'M12 16v-4' }),
-    h('path', { d: 'M12 8h.01' })),
-};
 
 async function persistVerifyStatus(emailId, status) {
   if (!emailId) return;
@@ -601,588 +575,20 @@ function innerContentType(bytes) {
   return m ? m[1].trim() : '';
 }
 
-// ─── UI: shared bits ───────────────────────────────────────────────────
+// ─── UI ────────────────────────────────────────────────────────────────
 
-const card = {
-  border: '1px solid var(--color-border, #e2e8f0)',
-  borderRadius: '8px',
-  padding: '12px',
-  background: 'var(--color-card, #fff)',
-  color: 'var(--color-foreground, #0f172a)',
-};
-const btn = {
-  font: 'inherit',
-  padding: '6px 12px',
-  borderRadius: '6px',
-  border: '1px solid var(--color-input, #cbd5e1)',
-  background: 'var(--color-muted, #f1f5f9)',
-  color: 'var(--color-foreground, #0f172a)',
-  cursor: 'pointer',
-};
-const btnPrimary = { ...btn, background: 'var(--color-primary, #2563eb)', color: '#fff', border: '1px solid var(--color-primary, #2563eb)' };
-const input = {
-  font: 'inherit',
-  padding: '6px 8px',
-  borderRadius: '6px',
-  border: '1px solid var(--color-input, #cbd5e1)',
-  background: 'var(--color-background, #fff)',
-  color: 'var(--color-foreground, #0f172a)',
-  width: '100%',
-  boxSizing: 'border-box',
-};
+const composeDeps = { getPrefs, listKeyRecords, detached: useDetachedSignature };
 
-function fmtDate(iso) {
-  try { return new Date(iso).toLocaleDateString(); } catch { return iso; }
-}
-function isExpired(iso) {
-  try { return new Date(iso).getTime() < Date.now(); } catch { return false; }
-}
-
-// ─── UI: composer toolbar (Sign / Encrypt toggles) ─────────────────────
-
-function ComposerToolbar() {
-  const [intent, setIntent] = useState({ sign: false, encrypt: false });
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        if (!(await isCapable())) { setReady(false); return; }
-        const stored = (await host.storage.get(INTENT_KEY)) || {};
-        const prefs = await getPrefs();
-        setIntent({
-          sign: typeof stored.sign === 'boolean' ? stored.sign : prefs.defaultSign,
-          encrypt: typeof stored.encrypt === 'boolean' ? stored.encrypt : prefs.defaultEncrypt,
-        });
-        const recs = await listKeyRecords();
-        setReady(recs.length > 0);
-      } catch { setReady(false); }
-    })();
-  }, []);
-
-  const update = useCallback(async (next) => {
-    setIntent(next);
-    await host.storage.set(INTENT_KEY, next);
-  }, []);
-
-  const toggle = (key) => update({ ...intent, [key]: !intent[key] });
-
-  const pill = (active) => ({
-    ...btn,
-    background: active ? 'var(--color-primary, #2563eb)' : 'var(--color-muted, #f1f5f9)',
-    color: active ? '#fff' : 'var(--color-foreground, #0f172a)',
-    border: active ? '1px solid var(--color-primary, #2563eb)' : '1px solid var(--color-input, #cbd5e1)',
-  });
-
-  if (!ready) {
-    return h('span', { style: { fontSize: '12px', color: 'var(--color-muted-foreground, #64748b)' } },
-      'S/MIME: import a key in Settings to sign/encrypt');
-  }
-
-  return h('div', { style: { display: 'inline-flex', gap: '6px', alignItems: 'center' } },
-    h('button', {
-      type: 'button',
-      style: pill(intent.sign),
-      title: 'Digitally sign this message',
-      onClick: () => toggle('sign'),
-    }, intent.sign ? '✓ Sign' : 'Sign'),
-    h('button', {
-      type: 'button',
-      style: pill(intent.encrypt),
-      title: 'Encrypt this message to its recipients',
-      onClick: () => toggle('encrypt'),
-    }, intent.encrypt ? '✓ Encrypt' : 'Encrypt'),
-    intent.sign && h('span', {
-      style: { fontSize: '12px', color: 'var(--color-muted-foreground, #64748b)' },
-      title: signatureFormatHint(intent),
-    }, intent.encrypt ? 'opaque, inside encryption' : useDetachedSignature() ? 'detached' : 'opaque'),
-  );
-}
-
-function signatureFormatHint(intent) {
-  if (intent.encrypt) return 'Signed and encrypted mail carries an opaque signature inside the encryption.';
-  return useDetachedSignature()
-    ? 'Detached signature (multipart/signed): readable in mail clients without S/MIME. Change under Settings → Plugins → S/MIME.'
-    : 'Opaque signature (application/pkcs7-mime): only S/MIME-capable clients can show the text. Change under Settings → Plugins → S/MIME.';
-}
-
-// ─── UI: email banner (verification / encryption status) ───────────────
-
-function fmtDateTime(iso) {
-  try { return new Date(iso).toLocaleString(); } catch { return iso; }
-}
-
-// Checks behind the signature verdict. Older persisted statuses lack some fields; those are skipped.
-function signatureChecks(status) {
-  const checks = [];
-  const cert = status.signerCert;
-  if (!cert) {
-    checks.push({ tone: 'bad', text: status.signatureError || 'Signer certificate not found in the message' });
-    return checks;
-  }
-  if (status.cryptoValid === true) {
-    checks.push({ tone: 'ok', text: 'Signature matches the message content — unchanged since signing' });
-  } else if (status.cryptoValid === false) {
-    checks.push({
-      tone: 'bad',
-      text: status.verifyError
-        ? `Signature could not be verified: ${status.verifyError}`
-        : 'Signature does not match the message content — it was changed after signing or the signature is damaged',
-    });
-  }
-  // Older statuses lack certExpired/certNotYetValid; work them out from the dates
-  // like verifyStatus does, rather than calling an expired certificate valid.
-  const certExpired = status.certExpired ?? isExpired(cert.notAfter);
-  const certNotYetValid = status.certNotYetValid ?? new Date(cert.notBefore).getTime() > Date.now();
-  if (certExpired) checks.push({ tone: 'bad', text: `Certificate expired on ${fmtDateTime(cert.notAfter)}` });
-  else if (certNotYetValid) checks.push({ tone: 'bad', text: `Certificate is not valid before ${fmtDateTime(cert.notBefore)}` });
-  else checks.push({ tone: 'ok', text: `Certificate valid until ${fmtDate(cert.notAfter)}` });
-
-  // Without a chain check anyone can mint a certificate for any address, so say
-  // what the certificate claims, not who it belongs to.
-  if (status.signerEmailMatch === true) {
-    checks.push({ tone: 'ok', text: `Certificate is for the sender's address (${cert.email})` });
-  } else if (status.signerEmailMatch === false) {
-    checks.push({
-      tone: 'warn',
-      text: `Certificate is for ${cert.email || 'another address'}, but the message is from ${status.fromEmail || 'someone else'}`,
-    });
-  }
-
-  if (status.selfSigned) {
-    checks.push({ tone: 'warn', text: 'Self-signed certificate — not issued by a certificate authority' });
-  } else {
-    checks.push({ tone: 'info', text: 'Issuer not verified: the certificate chain is not checked against trusted authorities' });
-  }
-  return checks;
-}
-
-function certificateFields(status) {
-  const cert = status.signerCert || {};
-  const fields = [
-    ['Subject', cert.subject],
-    ['E-mail', cert.email],
-    ['Issuer', cert.issuer],
-    ['Valid', cert.notBefore && cert.notAfter ? `${fmtDateTime(cert.notBefore)} – ${fmtDateTime(cert.notAfter)}` : null],
-    ['Algorithm', cert.algorithm],
-    ['Serial', cert.serialNumber],
-    ['SHA-256', cert.fingerprint],
-    ['Format', status.format === 'detached' ? 'Detached (multipart/signed)'
-      : status.format === 'opaque' ? 'Opaque (application/pkcs7-mime)' : null],
-  ];
-  return fields.filter(([, v]) => v);
-}
-
-function SignatureDetails({ status }) {
-  const checkColor = (tone) => tone === 'ok' ? 'var(--color-success, #16a34a)'
-    : tone === 'bad' ? 'var(--color-destructive, #dc2626)'
-      : tone === 'warn' ? 'var(--color-warning, #d97706)'
-        : 'var(--color-muted-foreground, #64748b)';
-  const checkMark = (tone) => tone === 'ok' ? '✓' : tone === 'bad' ? '✗' : tone === 'warn' ? '!' : 'i';
-  const muted = 'var(--color-muted-foreground, #64748b)';
-
-  return h('div', { style: { marginTop: '8px', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '8px' } },
-    h('ul', { style: { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '2px' } },
-      signatureChecks(status).map((c, i) => h('li', { key: i, style: { display: 'flex', gap: '8px' } },
-        h('span', { style: { color: checkColor(c.tone), fontWeight: 700, width: '12px', flexShrink: 0, textAlign: 'center' } }, checkMark(c.tone)),
-        h('span', null, c.text),
-      )),
-    ),
-    h('dl', { style: { display: 'grid', gridTemplateColumns: 'max-content 1fr', columnGap: '12px', rowGap: '2px', margin: 0 } },
-      certificateFields(status).flatMap(([k, v]) => [
-        h('dt', { key: `${k}-k`, style: { color: muted } }, k),
-        h('dd', { key: `${k}-v`, style: { margin: 0, overflowWrap: 'anywhere', fontFamily: k === 'SHA-256' || k === 'Serial' ? 'monospace' : undefined } }, v),
-      ]),
-    ),
-  );
-}
-
-function EmailBanner(props) {
-  const email = props && props.email;
-  const [status, setStatus] = useState(null);
-  const [loaded, setLoaded] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [detailsOpen, setDetailsOpen] = useState(false);
-
-  // "Unlock now" action for the locked-encryption banner: unlock any locked key
-  // (prompting for the storage passphrase), then ask the host to re-run the
-  // render hook so the body decrypts in place — no reload (which would wipe the
-  // just-unlocked in-memory keys).
-  const unlockNow = useCallback(async () => {
-    setBusy(true);
-    try {
-      const recs = await listKeyRecords();
-      const locked = [];
-      for (const r of recs) {
-        const s = await getSessionKeys(r.id);
-        if (!(s && s.decryptionKey)) locked.push(r);
-      }
-      let unlockedAny = false;
-      for (const rec of locked) {
-        const s = await ensureKeyUnlocked(rec);
-        if (s && s.decryptionKey) unlockedAny = true;
-        else break; // cancelled or wrong passphrase — stop prompting
-      }
-      if (!unlockedAny) return;
-
-      await host.ui.rerenderEmail();
-      // The re-decrypt runs in the background instance and rewrites the persisted
-      // verify status. This banner only read storage once on mount, so poll for
-      // the fresh status (until it's no longer 'locked') and update in place.
-      if (email && email.id) {
-        for (let i = 0; i < 20; i++) {
-          await new Promise((resolve) => setTimeout(resolve, 150));
-          let next = null;
-          try { next = await host.storage.get(VERIFY_PREFIX + email.id); } catch { /* ignore */ }
-          if (next && next.decryptionError !== 'locked') { setStatus(next); break; }
-        }
-      }
-    } finally {
-      setBusy(false);
-    }
-  }, [email]);
-
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      if (!email || !email.id) { setLoaded(true); return; }
-      let s = await host.storage.get(VERIFY_PREFIX + email.id);
-      if (!s) {
-        // No render-hook result yet — best-effort detect from headers/source.
-        const ct = email.headers && (email.headers['Content-Type'] || email.headers['content-type']);
-        const det = detectSmime(Array.isArray(ct) ? ct[0] : ct, undefined, undefined);
-        if (det.type === 'enveloped-data') s = { isEncrypted: true };
-        else if (det.type === 'signed-data') s = { isSigned: true };
-        else if (det.type === 'detached-sig') s = { isSigned: true };
-      }
-      if (alive) { setStatus(s || null); setLoaded(true); }
-    })();
-    return () => { alive = false; };
-  }, [email && email.id]);
-
-  if (!loaded || !status) return null;
-
-  const rows = [];
-  const warnSelfSigned = settings().warnOnSelfSigned !== false;
-
-  if (status.isEncrypted) {
-    if (status.decryptionSuccess) rows.push({ icon: 'lockOpen', eyebrow: 'Encryption', text: 'Decrypted', tone: 'success' });
-    else if (status.decryptionError === 'locked') rows.push({ icon: 'lock', eyebrow: 'Encryption', text: 'Encrypted — unlock your key to read', tone: 'warning', action: 'unlock' });
-    else if (status.decryptionError) rows.push({ icon: 'lock', eyebrow: 'Encryption', text: 'Encrypted — couldn’t be decrypted with your keys', tone: 'destructive' });
-    else rows.push({ icon: 'lock', eyebrow: 'Encryption', text: 'Encrypted message', tone: 'info' });
-  }
-  if (status.isSigned || status.signerCert) {
-    if (status.signatureValid) {
-      const who = status.signerCert && status.signerCert.email ? ` by ${status.signerCert.email}` : '';
-      const mismatch = status.signerEmailMatch === false ? ' · signer ≠ From' : '';
-      const selfSigned = warnSelfSigned && status.selfSigned;
-      const ss = selfSigned ? ' · self-signed' : '';
-      // A valid signature only reads as trusted-green when it also chains to a
-      // CA and the signer matches the From. A self-signed cert or a signer≠From
-      // mismatch downgrades to an amber warning (still "valid", just untrusted).
-      const untrusted = status.signerEmailMatch === false || selfSigned;
-      rows.push({
-        icon: untrusted ? 'shieldAlert' : 'shieldCheck',
-        eyebrow: 'Signature',
-        text: `Valid signature${who}${ss}${mismatch}`,
-        tone: untrusted ? 'warning' : 'success',
-        details: true,
-      });
-    } else if (status.signatureError) {
-      rows.push({ icon: 'shieldAlert', eyebrow: 'Signature', text: `Invalid signature: ${status.signatureError}`, tone: 'destructive', details: !!status.signerCert });
-    } else {
-      rows.push({ icon: 'shieldCheck', eyebrow: 'Signature', text: 'Signed message', tone: 'info' });
-    }
-  }
-  if (status.unsupportedReason) rows.push({ icon: 'info', eyebrow: 'S/MIME', text: status.unsupportedReason, tone: 'info' });
-
-  if (rows.length === 0) return null;
-
-  const toneColor = (tone) => tone === 'success' ? 'var(--color-success, #16a34a)'
-    : tone === 'destructive' ? 'var(--color-destructive, #dc2626)'
-      : tone === 'warning' ? 'var(--color-warning, #d97706)'
-        : 'var(--color-info, #0284c7)';
-
-  // Mirror the host's "External Content" banner: a full-width bg-muted/30 strip
-  // with a bottom border, each status as a round tinted icon chip + uppercase
-  // eyebrow + foreground message.
-  return h('div', {
-    style: {
-      background: 'color-mix(in srgb, var(--color-muted, #f1f5f9) 30%, transparent)',
-      borderBottom: '1px solid var(--color-border, #e2e8f0)',
-      padding: '6px 24px',
-      display: 'flex', flexDirection: 'column', gap: '4px',
-    },
-  },
-    rows.map((r, i) => {
-      const color = toneColor(r.tone);
-      return h('div', { key: i, style: { display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '4px 0' } },
-        h('div', {
-          style: {
-            width: '40px', height: '40px', borderRadius: '9999px', flexShrink: 0,
-            background: `color-mix(in srgb, ${color} 15%, transparent)`,
-            color,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-          },
-        }, ICONS[r.icon]()),
-        h('div', { style: { flex: 1, minWidth: 0 } },
-          h('div', { style: { fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-muted-foreground, #64748b)' } }, r.eyebrow),
-          h('div', {
-            style: { fontSize: '14px', fontWeight: 500, color: 'var(--color-foreground, #0f172a)', overflowWrap: 'break-word' },
-            title: r.details ? signatureChecks(status).map((c) => c.text).join('\n') : undefined,
-          }, r.text),
-          r.details && h('button', {
-            type: 'button',
-            onClick: () => setDetailsOpen(!detailsOpen),
-            'aria-expanded': detailsOpen,
-            style: {
-              marginTop: '2px', padding: 0, border: 'none', background: 'transparent', cursor: 'pointer',
-              display: 'inline-flex', alignItems: 'center', gap: '4px',
-              fontSize: '12px', color: 'var(--color-muted-foreground, #64748b)',
-            },
-          }, detailsOpen ? ICONS.chevronUp(14) : ICONS.chevronDown(14),
-          detailsOpen ? 'Hide certificate details' : 'Show certificate details'),
-          r.details && detailsOpen && h(SignatureDetails, { status }),
-          r.action === 'unlock' && h('div', { style: { marginTop: '8px' } },
-            h('button', {
-              type: 'button',
-              disabled: busy,
-              onClick: unlockNow,
-              style: {
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                fontSize: '13px', padding: '6px 12px', borderRadius: '8px', minHeight: '34px',
-                border: '1px solid var(--color-border, #e2e8f0)',
-                background: 'transparent', color: 'var(--color-foreground, #0f172a)',
-                cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.6 : 1,
-              },
-            }, ICONS.lockOpen(15), busy ? 'Unlocking…' : 'Unlock now'),
-          ),
-        ),
-      );
-    }),
-  );
-}
-
-// ─── UI: settings section (key & certificate management) ───────────────
-
-function SettingsSection() {
-  const [keys, setKeys] = useState([]);
-  const [certs, setCerts] = useState([]);
-  const [prefs, setPrefsState] = useState(DEFAULT_PREFS);
-  const [unlocked, setUnlocked] = useState({}); // id -> bool
-  const [busy, setBusy] = useState(false);
-  const [capable, setCapable] = useState(true);
-  const fileRef = useRef(null);
-  const certFileRef = useRef(null);
-
-  const refresh = useCallback(async () => {
-    if (!(await isCapable())) { setCapable(false); return; }
-    const [k, c, p] = await Promise.all([listKeyRecords(), listPublicCerts(), getPrefs()]);
-    setKeys(k); setCerts(c); setPrefsState(p);
-    const u = {};
-    for (const rec of k) u[rec.id] = !!(await getSessionKeys(rec.id));
-    setUnlocked(u);
-  }, []);
-
-  useEffect(() => { void refresh(); }, [refresh]);
-
-  if (!capable) {
-    return h('div', { style: { ...card, borderColor: 'var(--color-destructive, #dc2626)', color: 'var(--color-destructive, #dc2626)', maxWidth: '720px' } },
-      h('div', { style: { fontWeight: 600, marginBottom: '6px' } }, 'S/MIME is not active'),
-      h('div', { style: { fontSize: '13px', lineHeight: 1.5 } }, NOT_PRIVILEGED_MSG),
-    );
-  }
-
-  async function importKeyFile() {
-    const file = fileRef.current && fileRef.current.files && fileRef.current.files[0];
-    if (!file) return;
-    const answers = await host.ui.prompt({
-      title: 'Import S/MIME key',
-      message: `Importing "${file.name}".`,
-      confirmLabel: 'Import',
-      fields: [
-        { name: 'p12pass', label: 'Passphrase protecting the .p12/.pfx file', type: 'password', placeholder: 'Leave blank if the file has none' },
-        { name: 'storagePass', label: 'New passphrase to protect this key in your browser', type: 'password', required: true },
-      ],
-    });
-    if (!answers) return; // cancelled
-    const p12pass = answers.p12pass || '';
-    const storagePass = answers.storagePass || '';
-    if (!storagePass) { host.toast.error('A storage passphrase is required'); return; }
-    setBusy(true);
-    try {
-      const buf = await file.arrayBuffer();
-      const { keyRecord } = await importPkcs12(buf, p12pass, storagePass);
-      await saveKeyRecord(keyRecord);
-      host.toast.success(`Imported S/MIME key for ${keyRecord.email || 'certificate'}`);
-      if (fileRef.current) fileRef.current.value = '';
-      await refresh();
-    } catch (err) {
-      host.toast.error(`Import failed: ${err && err.message ? err.message : String(err)}`);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function unlock(rec) {
-    const answers = await host.ui.prompt({
-      title: `Unlock ${rec.email || 'S/MIME key'}`,
-      confirmLabel: 'Unlock',
-      fields: [
-        { name: 'pass', label: 'Storage passphrase for this key', type: 'password', required: true },
-      ],
-    });
-    if (!answers) return; // cancelled
-    const pass = answers.pass || '';
-    if (!pass) return;
-    setBusy(true);
-    try {
-      const { signingKey, decryptionKey, legacyDecryptionKey } = await unlockPrivateKey(rec, pass);
-      await saveSessionKeys({ id: rec.id, signingKey, decryptionKey, legacyDecryptionKey });
-      host.toast.success(`Unlocked ${rec.email || 'key'}`);
-      await refresh();
-    } catch (err) {
-      host.toast.error(err && err.message ? err.message : 'Unlock failed');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function lock(rec) {
-    await deleteSessionKeys(rec.id);
-    host.toast.info(`Locked ${rec.email || 'key'}`);
-    await refresh();
-  }
-
-  async function removeKey(rec) {
-    const ok = await host.ui.confirm({
-      title: 'Delete S/MIME key',
-      message: `Delete the private key and certificate for ${rec.email || 'this identity'}? You will no longer be able to decrypt mail encrypted to it.`,
-      danger: true,
-      confirmLabel: 'Delete',
-    });
-    if (!ok) return;
-    await deleteSessionKeys(rec.id);
-    await deleteKeyRecord(rec.id);
-    host.toast.success('Key deleted');
-    await refresh();
-  }
-
-  async function importCertFile() {
-    const file = certFileRef.current && certFileRef.current.files && certFileRef.current.files[0];
-    if (!file) return;
-    setBusy(true);
-    try {
-      const buf = await file.arrayBuffer();
-      const cert = parseCertificatePemOrDer(buf);
-      const der = cert.toSchema(true).toBER(false);
-      const info = await extractCertificateInfo(cert, der);
-      const email = (info.emailAddresses[0] || '').toLowerCase();
-      if (!email) throw new Error('Certificate has no email address');
-      await savePublicCert({
-        id: generateUUID(),
-        email,
-        certificate: der,
-        issuer: info.issuer,
-        subject: info.subject,
-        notBefore: info.notBefore,
-        notAfter: info.notAfter,
-        fingerprint: info.fingerprint,
-        source: 'manual',
-      });
-      host.toast.success(`Imported certificate for ${email}`);
-      if (certFileRef.current) certFileRef.current.value = '';
-      await refresh();
-    } catch (err) {
-      host.toast.error(`Certificate import failed: ${err && err.message ? err.message : String(err)}`);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function removeCert(c) {
-    await deletePublicCert(c.id);
-    await refresh();
-  }
-
-  async function setPref(key, value) {
-    const next = { ...prefs, [key]: value };
-    setPrefsState(next);
-    await setPrefs(next);
-  }
-
-  return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '720px' } },
-    h('div', null,
-      h('h3', { style: { margin: '0 0 4px', fontSize: '15px', fontWeight: 600 } }, 'Your keys'),
-      h('p', { style: { margin: '0 0 8px', fontSize: '13px', color: 'var(--color-muted-foreground, #64748b)' } },
-        'Import a PKCS#12 (.p12/.pfx) file containing your certificate and private key. The key is encrypted in your browser and never leaves it.'),
-      h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' } },
-        h('input', { ref: fileRef, type: 'file', accept: '.p12,.pfx', style: { fontSize: '13px' } }),
-        h('button', { type: 'button', style: btnPrimary, disabled: busy, onClick: importKeyFile }, 'Import key'),
-      ),
-      keys.length === 0
-        ? h('div', { style: { ...card, fontSize: '13px', color: 'var(--color-muted-foreground, #64748b)' } }, 'No keys imported yet.')
-        : h('div', { style: { display: 'flex', flexDirection: 'column', gap: '8px' } },
-          keys.map((rec) => h('div', { key: rec.id, style: card },
-            h('div', { style: { display: 'flex', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' } },
-              h('div', null,
-                h('div', { style: { fontWeight: 600, fontSize: '14px' } }, rec.email || rec.subject || 'Certificate'),
-                h('div', { style: { fontSize: '12px', color: 'var(--color-muted-foreground, #64748b)' } },
-                  `${rec.algorithm} · valid ${fmtDate(rec.notBefore)} – ${fmtDate(rec.notAfter)}${isExpired(rec.notAfter) ? ' · EXPIRED' : ''}`),
-                h('div', { style: { fontSize: '11px', fontFamily: 'monospace', color: 'var(--color-muted-foreground, #64748b)', wordBreak: 'break-all' } },
-                  rec.fingerprint),
-                h('div', { style: { fontSize: '11px', color: 'var(--color-muted-foreground, #64748b)' } },
-                  `${rec.capabilities && rec.capabilities.canSign ? 'sign' : ''}${rec.capabilities && rec.capabilities.canSign && rec.capabilities.canEncrypt ? ' · ' : ''}${rec.capabilities && rec.capabilities.canEncrypt ? 'encrypt' : ''}`),
-              ),
-              h('div', { style: { display: 'flex', gap: '6px', alignItems: 'flex-start' } },
-                unlocked[rec.id]
-                  ? h('button', { type: 'button', style: btn, disabled: busy, onClick: () => lock(rec) }, '🔓 Lock')
-                  : h('button', { type: 'button', style: btnPrimary, disabled: busy, onClick: () => unlock(rec) }, '🔒 Unlock'),
-                h('button', {
-                  type: 'button',
-                  style: { ...btn, color: 'var(--color-destructive, #dc2626)', borderColor: 'var(--color-destructive, #dc2626)' },
-                  disabled: busy, onClick: () => removeKey(rec),
-                }, 'Delete'),
-              ),
-            ),
-          )),
-        ),
-    ),
-
-    h('div', null,
-      h('h3', { style: { margin: '0 0 4px', fontSize: '15px', fontWeight: 600 } }, 'Recipient certificates'),
-      h('p', { style: { margin: '0 0 8px', fontSize: '13px', color: 'var(--color-muted-foreground, #64748b)' } },
-        'Public certificates (PEM/DER) of people you want to send encrypted mail to. Signer certificates from validly signed mail are saved automatically.'),
-      h('div', { style: { display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' } },
-        h('input', { ref: certFileRef, type: 'file', accept: '.pem,.crt,.cer,.der', style: { fontSize: '13px' } }),
-        h('button', { type: 'button', style: btn, disabled: busy, onClick: importCertFile }, 'Import certificate'),
-      ),
-      certs.length === 0
-        ? h('div', { style: { ...card, fontSize: '13px', color: 'var(--color-muted-foreground, #64748b)' } }, 'No recipient certificates.')
-        : h('div', { style: { display: 'flex', flexDirection: 'column', gap: '6px' } },
-          certs.map((c) => h('div', { key: c.id, style: { ...card, display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center' } },
-            h('div', null,
-              h('div', { style: { fontWeight: 600, fontSize: '13px' } }, c.email || c.subject),
-              h('div', { style: { fontSize: '11px', color: 'var(--color-muted-foreground, #64748b)' } },
-                `${c.source} · expires ${fmtDate(c.notAfter)}${isExpired(c.notAfter) ? ' · EXPIRED' : ''}`),
-            ),
-            h('button', { type: 'button', style: { ...btn, color: 'var(--color-destructive, #dc2626)' }, onClick: () => removeCert(c) }, 'Remove'),
-          )),
-        ),
-    ),
-
-    h('div', null,
-      h('h3', { style: { margin: '0 0 8px', fontSize: '15px', fontWeight: 600 } }, 'Defaults for new messages'),
-      h('label', { style: { display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', marginBottom: '6px' } },
-        h('input', { type: 'checkbox', checked: !!prefs.defaultSign, onChange: (e) => setPref('defaultSign', e.target.checked) }),
-        'Sign new messages by default'),
-      h('label', { style: { display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px' } },
-        h('input', { type: 'checkbox', checked: !!prefs.defaultEncrypt, onChange: (e) => setPref('defaultEncrypt', e.target.checked) }),
-        'Encrypt new messages by default (when all recipients have certificates)'),
-    ),
-  );
-}
+const { EmailBanner, SettingsSection } = makeUi(host, {
+  VERIFY_PREFIX, DEFAULT_PREFS, NOT_PRIVILEGED_MSG,
+  settings, isCapable, getPrefs, setPrefs, detectSmime, ensureKeyUnlocked,
+  listKeyRecords, saveKeyRecord, deleteKeyRecord, getSessionKeys, saveSessionKeys, deleteSessionKeys,
+  listPublicCerts, savePublicCert, deletePublicCert,
+  importPkcs12, unlockPrivateKey, parseCertificatePemOrDer, extractCertificateInfo, generateUUID,
+  // The settings page runs in its own iframe; it republishes the composer's
+  // Options entries so a newly imported key makes Sign / Encrypt usable.
+  onKeysChanged: () => publishComposeActions(host, composeDeps),
+});
 
 // ─── Exports ───────────────────────────────────────────────────────────
 
@@ -1194,8 +600,8 @@ async function onBeforeEmailSend(email) {
   try {
     if (!email || typeof email !== 'object') return true;
     if (!(await isCapable())) return true;
-    // Resolve the sign intent the way onComposeSend does: the composer-toolbar
-    // slot's stored intent, falling back to prefs. (Encrypt needs no private key.)
+    // Resolve the sign intent the way onComposeSend does: the Options menu's
+    // stored intent, falling back to prefs. (Encrypt needs no private key.)
     const stored = (await host.storage.get(INTENT_KEY)) || {};
     const prefs = await getPrefs();
     const sign = typeof stored.sign === 'boolean' ? stored.sign : prefs.defaultSign;
@@ -1230,10 +636,19 @@ export const hooks = {
     if (settings().lockOnLogout === false) return;
     try { await clearSessionKeys(); } catch (err) { host.log.warn('clearSessionKeys failed', err); }
   },
+  // Each new message starts with Sign / Encrypt as set under "Defaults for
+  // new messages".
+  async onComposerOpen() {
+    if (!(await isCapable())) return;
+    await resetComposeIntent(host, composeDeps);
+  },
+  async onAction(click) {
+    if (!(await isCapable())) return;
+    await handleComposeAction(host, composeDeps, click || {});
+  },
 };
 
 export const slots = {
-  'composer-toolbar': { component: ComposerToolbar, order: 70 },
   'email-banner': { component: EmailBanner, order: 20 },
   'settings-section': { component: SettingsSection, order: 100 },
 };
@@ -1251,5 +666,6 @@ export async function activate(api) {
   try { await clearSessionKeys(); } catch (err) { api.log.warn('S/MIME: clearSessionKeys failed', err); }
   let keyCount = 0;
   try { keyCount = (await listKeyRecords()).length; } catch (err) { api.log.warn('S/MIME: listKeyRecords failed', err); }
+  try { await publishComposeActions(api, composeDeps); } catch (err) { api.log.warn('S/MIME: setActions failed', err); }
   api.log.info(`S/MIME plugin activated (${keyCount} key${keyCount === 1 ? '' : 's'} imported)`);
 }

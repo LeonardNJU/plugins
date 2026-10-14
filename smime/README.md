@@ -14,7 +14,7 @@ material ever leaves the device.
 | **Verify** incoming signatures | `onRenderEmailBody` fetches the CMS blob (`api.jmap.fetchBlob`) — for detached `multipart/signed` mail the raw message, so the signed part is checked byte-for-byte — validates the signature cryptographically, checks validity dates, flags self-signed signers and signer≠From mismatches, and renders the inner body. |
 | **Decrypt** incoming mail | `onRenderEmailBody` decrypts `EnvelopedData` with your unlocked key (RSA-OAEP, with an RSAES-PKCS1-v1_5 + 3DES/RC2 legacy fallback for old Outlook/Thunderbird mail). |
 | **Key management** | `settings-section` slot: import PKCS#12 (`.p12`/`.pfx`), unlock/lock, delete, import recipient certificates, set sign/encrypt defaults. |
-| **Status** | `email-banner` slot shows signature / encryption state; `composer-toolbar` slot has per-message Sign / Encrypt toggles. |
+| **Status** | `email-banner` slot shows signature / encryption state as reader info bars; Sign and Encrypt are check items in the composer's Options menu, per message, starting from the defaults in Settings. |
 
 ## Security model
 
@@ -75,5 +75,5 @@ The `onComposeSend` and `onRenderEmailBody` hook buses and the privileged
 `api.jmap` surface exist in the host (see `lib/plugin-hooks.ts`,
 `lib/plugin-sandbox/host-api.ts`). The send/render **takeover** fires once the
 host emits those buses from the composer and viewer (the migration that retires
-the inline native path). The `settings-section`, `composer-toolbar`, and
-`email-banner` slots are active today.
+the inline native path). The `settings-section` and `email-banner` slots
+and the Options menu entries are active today.
