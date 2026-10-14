@@ -2,12 +2,18 @@
 
     python seed/seed_mail.py [--host localhost] [--port 11587]
 
+Idempotent: subjects already in the mailbox (checked over JMAP) are not sent
+again.
+
 Messages are built to exercise the plugins: an attachment, an invitation-like
 mail, a shipping notice with tracking numbers, a newsletter with
 List-Unsubscribe, and a German mail with a +02:00 Date header.
 """
 import argparse
+import base64
+import json
 import smtplib
+import urllib.request
 from email.message import EmailMessage
 from email.utils import formatdate, make_msgid
 from pathlib import Path
@@ -57,13 +63,41 @@ def build(user):
     ]
 
 
+def existing_subjects(jmap_base, user, password):
+    """Subjects of the messages already in the account, via JMAP."""
+    auth = 'Basic ' + base64.b64encode(f'{user}:{password}'.encode()).decode()
+
+    def call(url, body=None):
+        req = urllib.request.Request(url, data=json.dumps(body).encode() if body else None,
+                                     headers={'Authorization': auth, 'Content-Type': 'application/json'})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return json.load(resp)
+    session = call(f'{jmap_base}/jmap/session')
+    account = session['primaryAccounts']['urn:ietf:params:jmap:mail']
+    using = ['urn:ietf:params:jmap:core', 'urn:ietf:params:jmap:mail']
+    # The session's apiUrl carries the server's public hostname, so post to
+    # the base we were given instead.
+    res = call(f'{jmap_base}/jmap/', {'using': using, 'methodCalls': [
+        ['Email/query', {'accountId': account, 'limit': 1000}, 'q'],
+        ['Email/get', {'accountId': account, 'properties': ['subject'],
+                       '#ids': {'resultOf': 'q', 'name': 'Email/query', 'path': '/ids'}}, 'g'],
+    ]})
+    return {e.get('subject') for e in res['methodResponses'][1][1]['list']}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--host', default='localhost')
     ap.add_argument('--port', type=int, default=11587)
     ap.add_argument('--user', default='alice@example.org')
     ap.add_argument('--password', default='test-pass-123')
+    ap.add_argument('--jmap', default='http://localhost:18025', help='Stalwart HTTP base URL')
     args = ap.parse_args()
+    have = existing_subjects(args.jmap, args.user, args.password)
+    todo = [m for m in build(args.user) if m['Subject'] not in have]
+    if not todo:
+        print('mail: all seed messages already present')
+        return
     with smtplib.SMTP(args.host, args.port, timeout=30) as smtp:
         smtp.ehlo()
         if smtp.has_extn('starttls'):
@@ -74,11 +108,11 @@ def main():
             smtp.starttls(context=ctx)
             smtp.ehlo()
         smtp.login(args.user, args.password)
-        for msg in build(args.user):
+        for msg in todo:
             # The test server lets an authenticated user submit with any From;
             # the envelope sender stays the login.
             smtp.send_message(msg, from_addr=args.user, to_addrs=[args.user])
-            print('sent', msg['Subject'])
+            print('mail: sent', msg['Subject'])
 
 
 if __name__ == '__main__':
