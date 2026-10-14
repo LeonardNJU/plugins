@@ -3,6 +3,7 @@ import { fakeApi, proxyResponse } from '../../test-utils/fake-api.mjs';
 import { vikunja } from '../src/lib/targets/vikunja.js';
 import { todoist } from '../src/lib/targets/todoist.js';
 import { caldav, discoverTaskLists } from '../src/lib/targets/caldav.js';
+import { bulwark } from '../src/lib/targets/bulwark.js';
 import { errorForResponse, errorText, request, toTaskError } from '../src/lib/errors.js';
 
 const TASK = { title: 'Pay invoice', description: 'From: Bob\nOpen the message: https://m/mail/message/M1', due: '2026-10-20', priority: 'high', containerId: '2', link: 'https://m/mail/message/M1' };
@@ -158,6 +159,26 @@ describe('CalDAV', () => {
   });
 });
 
+describe('Bulwark tasks', () => {
+  it('is available only when the task list can be read', async () => {
+    expect(await bulwark.available(fakeApi({ handlers: { 'tasks.list': async () => [] } }))).toBe(true);
+    expect(await bulwark.available(fakeApi({ handlers: { 'tasks.list': async () => { throw new Error('tasks.list: no active session'); } } }))).toBe(false);
+  });
+
+  it('creates through api.tasks with JSCalendar priority', async () => {
+    const api = fakeApi({ handlers: { 'tasks.create': async (input) => ({ id: 'T1', ...input }) } });
+    const out = await bulwark.create({ api }, TASK);
+    expect(api.calls('tasks.create')[0].args[0]).toEqual({ title: 'Pay invoice', description: TASK.description, due: '2026-10-20', priority: 1 });
+    expect(out).toEqual({ taskId: 'T1', url: null });
+  });
+
+  it('reports a server without a task calendar and a plugin that stopped it', async () => {
+    const noCal = fakeApi({ handlers: { 'tasks.create': async () => { throw new Error('tasks.create: there is no calendar to put it in'); } } });
+    await expect(bulwark.create({ api: noCal }, TASK)).rejects.toMatchObject({ code: 'no_task_list' });
+    const stopped = fakeApi({ handlers: { 'tasks.create': async () => null } });
+    await expect(bulwark.create({ api: stopped }, TASK)).rejects.toMatchObject({ code: 'stopped' });
+  });
+});
 
 describe('errors', () => {
   it.each([

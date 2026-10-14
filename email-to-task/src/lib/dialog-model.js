@@ -45,7 +45,9 @@ export async function prepareDialog(api, { emailIds, location = globalThis.locat
   const t = (k, v) => api.i18n.t(k, v);
   const locale = api.i18n.getLocale?.() ?? 'en';
   const ids = [...new Set((emailIds ?? []).filter((id) => typeof id === 'string' && id))];
-  const [config, accounts, prefs] = await Promise.all([loadConfig(api), loadAccounts(api), loadPrefs(api)]);
+  const [config, accounts, prefs, bulwarkAvailable] = await Promise.all([
+    loadConfig(api), loadAccounts(api), loadPrefs(api), TARGETS[0].available(api),
+  ]);
   const base = webmailBase(location);
   const items = [];
   const missing = [];
@@ -65,8 +67,8 @@ export async function prepareDialog(api, { emailIds, location = globalThis.locat
   }
   const targets = TARGETS.map((target) => ({
     id: target.id,
-    name: target.name,
-    available: true,
+    name: target.id === 'bulwark' ? t('target.bulwark') : target.name,
+    available: target.id === 'bulwark' ? bulwarkAvailable : true,
     connected: !target.credentialId || !!accounts[target.credentialId],
   })).filter((target) => target.available);
   const remembered = targets.find((x) => x.id === prefs.target);

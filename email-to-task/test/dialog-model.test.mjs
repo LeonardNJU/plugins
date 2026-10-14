@@ -34,7 +34,16 @@ describe('prepareDialog', () => {
     expect(s.items[1]).toMatchObject({ title: 'URGENT: contract', due: '2026-10-30', priority: 'high' });
   });
 
+  it('offers Bulwark tasks only when the server has them', async () => {
+    expect((await prepareDialog(api(), { emailIds: ['M1'], location: LOCATION })).targets.map((x) => x.id)).toEqual(['bulwark', 'vikunja', 'todoist', 'caldav']);
+    expect((await prepareDialog(api({ tasks: false }), { emailIds: ['M1'], location: LOCATION })).targets.map((x) => x.id)).toEqual(['vikunja', 'todoist', 'caldav']);
+  });
 
+  it('marks which services are connected and picks the last one used', async () => {
+    const s = await prepareDialog(api({ store: { prefs: { target: 'todoist' } } }), { emailIds: ['M1'], location: LOCATION });
+    expect(Object.fromEntries(s.targets.map((x) => [x.id, x.connected]))).toEqual({ bulwark: true, vikunja: true, todoist: false, caldav: false });
+    expect(s.target).toBe('todoist');
+  });
 
   it('starts with a connected service when there is no last choice', async () => {
     const s = await prepareDialog(api({ tasks: false }), { emailIds: ['M1'], location: LOCATION });
@@ -98,4 +107,11 @@ describe('createTasks', () => {
     await expect(createTasks(a, s, { target: 'vikunja', containerId: '2', after: 'none', items: s.items })).rejects.toMatchObject({ code: 'not_connected' });
   });
 
+  it('creates Bulwark tasks without any account', async () => {
+    const a = api({ accounts: [] });
+    const s = await prepareDialog(a, { emailIds: ['M2'], location: LOCATION });
+    const out = await createTasks(a, s, { target: 'bulwark', after: 'keyword', items: s.items });
+    expect(out.created[0].ref).toMatchObject({ target: 'bulwark', taskId: 'T-new' });
+    expect(a.calls('tasks.create')[0].args[0]).toMatchObject({ title: 'URGENT: contract', due: '2026-10-30', priority: 1 });
+  });
 });
