@@ -121,6 +121,8 @@ messages, the ones that worked are created and the others stay in the dialog
 with what went wrong; after a rejected token or a rate limit the rest are not
 tried.
 
+![A refused task, dark](screenshots/error-dark.png)
+
 ## Known limits
 
 - "Archive the message" isn't offered: plugins can't move messages yet.
