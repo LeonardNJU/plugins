@@ -43,19 +43,3 @@ export function fromDhl(code, text = '') {
     default: return 'unknown';
   }
 }
-
-/** Colour token for a status dot (host theme variables). */
-export function statusTone(status) {
-  switch (status) {
-    case 'delivered': return 'var(--color-success)';
-    case 'out_for_delivery':
-    case 'available_for_pickup': return 'var(--color-primary)';
-    case 'failed':
-    case 'exception': return 'var(--color-destructive)';
-    case 'expired':
-    case 'not_found':
-    case 'unknown':
-    case 'pending': return 'var(--color-muted-foreground)';
-    default: return 'var(--color-info, var(--color-primary))';
-  }
-}

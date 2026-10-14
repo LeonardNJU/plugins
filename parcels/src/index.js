@@ -6,15 +6,25 @@
 import host from '@plugin-host';
 import { bannerShouldShow, createBackground } from './lib/background.js';
 import { ParcelCard } from './ui/card.js';
+import { PluginDialog } from './ui/dialog.js';
 import { DeliveriesWidget } from './ui/widget.js';
 
 let background = null;
 const bg = () => (background ??= createBackground(host));
 
+/** The sidebar section's header, drawn by the host, in the user's language. */
+function setTitle() {
+  // Without it (older hosts) the header shows the plugin's name.
+  Promise.resolve()
+    .then(() => host.ui.setSectionTitle(host.i18n.t('widget.title')))
+    .catch((err) => host.log.warn('parcels: could not set the section title', err));
+}
+
 export default {
   slots: {
     'email-banner': { component: ParcelCard, shouldShow: bannerShouldShow },
-    'sidebar-widget': { component: DeliveriesWidget, order: 60 },
+    'sidebar-section': { component: DeliveriesWidget, order: 60 },
+    'plugin-dialog': { component: PluginDialog },
   },
   hooks: {
     // Once a minute; each parcel is asked about at most every 30 minutes.
@@ -22,6 +32,8 @@ export default {
     onNewEmailReceived: (summary) => bg().onNewEmail(summary).then(() => undefined),
   },
   activate() {
+    setTitle();
+    host.i18n.onLocaleChange(setTitle);
     // A first round shortly after start, so parcels don't wait a minute.
     setTimeout(() => { void bg().tick(); }, 5_000);
   },

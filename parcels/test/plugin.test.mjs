@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { fakeApi, proxyResponse } from '../../test-utils/fake-api.mjs';
 import manifest from '../manifest.json' with { type: 'json' };
+import * as kit from '../../test-utils/ui-kit.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -16,7 +17,7 @@ beforeAll(async () => {
   const out = await build({
     entryPoints: [path.join(here, '../src/index.js')],
     bundle: true, format: 'cjs', platform: 'browser', target: 'es2020', write: false, logLevel: 'silent',
-    external: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', '@plugin-host'],
+    external: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', '@plugin-host', '@plugin-host/ui'],
   });
   code = out.outputFiles[0].text;
 });
@@ -25,6 +26,7 @@ function load(api) {
   const mod = { exports: {} };
   const req = (name) => {
     if (name === '@plugin-host') return api;
+    if (name === '@plugin-host/ui') return kit;
     if (name === 'react' || name === 'react/jsx-runtime' || name === 'react-dom') return require(name);
     throw new Error(`module ${name} is not available`);
   };
@@ -72,11 +74,10 @@ function api17({ settings = {}, locale = 'en', statuses = ['InfoReceived', 'InTr
 }
 
 describe('the bundle', () => {
-  it('offers the reader card and the deliveries widget, and the hooks', () => {
+  it('offers the reader card, the deliveries section, its dialogs and the hooks', () => {
     const plugin = load(fakeApi());
-    expect(Object.keys(plugin.slots)).toEqual(['email-banner', 'sidebar-widget']);
-    expect(typeof plugin.slots['email-banner'].component).toBe('function');
-    expect(typeof plugin.slots['sidebar-widget'].component).toBe('function');
+    expect(Object.keys(plugin.slots)).toEqual(['email-banner', 'sidebar-section', 'plugin-dialog']);
+    for (const slot of Object.values(plugin.slots)) expect(typeof slot.component).toBe('function');
     expect(Object.keys(plugin.hooks).sort()).toEqual(['onInterval', 'onNewEmailReceived']);
   });
 

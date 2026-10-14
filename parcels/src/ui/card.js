@@ -1,14 +1,15 @@
-// Reader card (email-banner slot): the parcels a message mentions, with
-// carrier, number, live status and a link to the carrier's tracking page.
+// Reader card (email-banner slot): one info bar per parcel the message
+// mentions, like the reader's own bars (external content, invitations):
+// carrier as the small caps label, the status as the line, the latest scan
+// below, then Track, Refresh and Mark received.
 
 import * as React from 'react';
 import host from '@plugin-host';
+import { BarButton, InfoBar, Row, Text } from '@plugin-host/ui';
 import { detectParcels } from '../lib/detect.js';
 import { applyOutcome, getParcel, rememberParcels, saveParcel, CARD_REFRESH_MS, MANUAL_REFRESH_MS } from '../lib/parcels.js';
 import { createTracker } from '../lib/tracking.js';
-import { statusTone } from '../lib/status.js';
-import { carrierLabel, errorText, eventLine, formatDate, statusLabel } from '../lib/view.js';
-import { CSS } from './styles.js';
+import { carrierLabel, errorText, eventLine, formatDate, shownStatus, statusBarTone, statusIcon, statusLabel } from '../lib/view.js';
 
 const h = React.createElement;
 let tracker = null;
@@ -16,35 +17,29 @@ const getTracker = () => (tracker ??= createTracker(host));
 
 const t = (key, vars) => host.i18n.t(key, vars);
 
-function ParcelRow({ parcel, busy, onRefresh, onReceived, onOpen }) {
+function ParcelBar({ parcel, busy, onRefresh, onReceived, onOpen }) {
   const locale = host.i18n.getLocale();
-  const status = parcel.status;
+  const status = shownStatus(parcel);
   const detail = eventLine(parcel, locale);
   const eta = parcel.eta && status !== 'delivered' ? formatDate(parcel.eta.to || parcel.eta.from, locale) : '';
   const carrier = carrierLabel(t, parcel);
-  return h('div', { className: 'pt-row', 'data-parcel': parcel.number },
-    h('div', { className: 'pt-main' },
-      h('div', { className: 'pt-head' },
-        h('span', { className: 'pt-carrier' }, carrier),
-        h('span', { className: 'pt-number', 'aria-label': t('card.number', { number: parcel.number }) }, parcel.number)),
-      status
-        ? h('div', { className: 'pt-status', 'data-status': status },
-          h('span', { className: 'pt-dot', style: { background: statusTone(status) }, 'aria-hidden': true }),
-          statusLabel(t, status))
-        : null,
-      detail ? h('div', { className: 'pt-detail' }, detail) : null,
-      eta ? h('div', { className: 'pt-detail' }, t('card.eta', { date: eta })) : null,
-      parcel.stopped ? h('div', { className: 'pt-detail' }, t('widget.stopped')) : null,
-      parcel.error ? h('div', { className: 'pt-error', role: 'status' }, errorText(t, parcel.error)) : null),
-    h('div', { className: 'pt-actions' },
-      h('button', { type: 'button', className: 'pt-btn pt-btn-primary', onClick: onOpen }, t('card.track', { carrier })),
-      h('button', { type: 'button', className: 'pt-btn', onClick: onRefresh, disabled: busy, 'aria-busy': busy || undefined },
-        busy ? t('card.refreshing') : (status ? t('card.refresh') : t('card.lookup'))),
-      parcel.received
-        ? h(React.Fragment, null,
-          h('span', { className: 'pt-done' }, t('card.received')),
-          h('button', { type: 'button', className: 'pt-btn', onClick: () => onReceived(false) }, t('card.followAgain')))
-        : h('button', { type: 'button', className: 'pt-btn', onClick: () => onReceived(true) }, t('card.markReceived'))));
+  // The status is the line; until there is one, the number is.
+  const title = status ? h('span', { 'data-status': status }, statusLabel(t, status)) : parcel.number;
+  const numberLine = [status ? parcel.number : '', eta ? t('card.eta', { date: eta }) : ''].filter(Boolean).join(' · ');
+  // A plain wrapper for the e2e tests and to tell the bars apart; no styling.
+  return h('div', { 'data-parcel': parcel.number },
+    h(InfoBar, { tone: statusBarTone(parcel), icon: statusIcon(parcel), eyebrow: carrier, title },
+      detail ? h(Text, { tone: 'muted' }, detail) : null,
+      numberLine ? h(Text, { tone: 'muted' }, numberLine) : null,
+      parcel.stopped ? h(Text, { tone: 'muted' }, t('widget.stopped')) : null,
+      parcel.error ? h('div', { role: 'status' }, h(Text, { tone: 'danger' }, errorText(t, parcel.error))) : null,
+      h(Row, { gap: 2 },
+        h(BarButton, { icon: 'external-link', onClick: onOpen }, t('card.track', { carrier })),
+        h(BarButton, { icon: 'refresh', onClick: onRefresh, busy }, busy ? t('card.refreshing') : (status ? t('card.refresh') : t('card.lookup'))),
+        parcel.received
+          // Pressed while received; pressing it again follows the parcel again.
+          ? h(BarButton, { icon: 'check', active: true, onClick: () => onReceived(false) }, t('card.received'))
+          : h(BarButton, { icon: 'check', onClick: () => onReceived(true) }, t('card.markReceived')))));
 }
 
 export function ParcelCard(props) {
@@ -107,11 +102,9 @@ export function ParcelCard(props) {
   };
   const onOpen = (p) => () => { void host.ui.openExternalUrl(p.trackingUrl); };
 
-  return h('div', { className: 'pt-root' },
-    h('style', null, CSS),
-    h('section', { className: 'pt-card', 'aria-label': t('card.title') },
-      parcels.map((p) => h(ParcelRow, {
-        key: p.number, parcel: p, busy: !!busy[p.number],
-        onRefresh: onRefresh(p), onReceived: onReceived(p), onOpen: onOpen(p),
-      }))));
+  return h(React.Fragment, null,
+    parcels.map((p) => h(ParcelBar, {
+      key: p.number, parcel: p, busy: !!busy[p.number],
+      onRefresh: onRefresh(p), onReceived: onReceived(p), onOpen: onOpen(p),
+    })));
 }

@@ -15,6 +15,48 @@ export function errorText(t, code) {
   return t(`error.${ERROR_CODES.has(code) ? code : 'service'}`);
 }
 
+/** The status a parcel shows: none while an error is all there is. */
+export function shownStatus(parcel) {
+  return parcel.error && !parcel.status ? null : (parcel.status || null);
+}
+
+/** A few words for the sidebar row, next to the parcel's name. */
+export function shortStatus(t, parcel) {
+  if (parcel.stopped) return t('short.stopped');
+  const status = shownStatus(parcel);
+  if (!status && parcel.error) return t('short.error');
+  return t(`short.${STATUSES.includes(status) ? status : 'pending'}`);
+}
+
+const ICONS = {
+  pending: 'package', info_received: 'package', in_transit: 'truck', out_for_delivery: 'truck-delivery',
+  available_for_pickup: 'building-store', delivered: 'circle-check', failed: 'alert-triangle',
+  exception: 'alert-triangle', expired: 'clock', not_found: 'help-circle', unknown: 'help-circle',
+};
+
+/** App icon name (UI kit Icon) for a parcel's state. */
+export function statusIcon(parcel) {
+  const status = shownStatus(parcel);
+  if (!status && parcel.error) return 'alert-triangle';
+  return ICONS[status] ?? 'package';
+}
+
+/** Tone of the reader's info bar (UI kit InfoBar) for a parcel's state. */
+export function statusBarTone(parcel) {
+  const status = shownStatus(parcel);
+  if (!status) return parcel.error ? 'warning' : 'neutral';
+  switch (status) {
+    case 'delivered': return 'success';
+    case 'out_for_delivery':
+    case 'available_for_pickup': return 'primary';
+    case 'failed':
+    case 'exception': return 'danger';
+    case 'info_received':
+    case 'in_transit': return 'info';
+    default: return 'neutral';
+  }
+}
+
 export function carrierLabel(t, parcel) {
   return parcel.carrierName || t('carrier.other');
 }

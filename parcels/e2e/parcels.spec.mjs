@@ -11,7 +11,12 @@ const CHANGING = 'JJD000390007878901234';
 const STEPS = ['Label created', 'In transit', 'Out for delivery', 'Delivered'];
 
 const banner = (page) => page.frameLocator(`[data-plugin-iframe-slot="${ID}:email-banner"] iframe`);
-const widget = (page) => page.frameLocator(`[data-plugin-iframe-slot="${ID}:sidebar-widget"] iframe`);
+// The deliveries section in the mail sidebar; the host draws its header.
+const widget = (page) => page.frameLocator(`[data-plugin-iframe-slot="${ID}:sidebar-section"] iframe`);
+const sectionHeader = (page) => page.locator(`[data-plugin-sidebar-section="${ID}"] > button`);
+// The plugin-dialog slot inside the host's dialog, and the buttons the host draws in its footer.
+const dialogFrame = (page) => page.frameLocator('div[role="dialog"] iframe').first();
+const footerButton = (page, name) => page.locator('[data-plugin-dialog-buttons]').getByRole('button', { name, exact: true });
 
 async function setUp({ token = 'test-17track-token', dhlKey = 'test-dhl-key' } = {}) {
   const api = await adminApi();
@@ -109,10 +114,13 @@ test('reader card shows carrier, number and live status of the seeded shipping m
       await expect(widget(page).locator('[data-parcel="00340434161094042557"]')).toBeVisible({ timeout: 30_000 });
       await shoot(page, ID, 'reader-card', theme);
 
-      // Mark received: gone from the widget, card says so.
+      // The section header is the host's, with the plugin's translated title.
+      await expect(sectionHeader(page)).toHaveText('Deliveries');
+
+      // Mark received: gone from the section, the card's button stays pressed.
       if (theme === 'light') {
         await ups.getByRole('button', { name: 'Mark received' }).click();
-        await expect(ups.getByText('Received', { exact: true })).toBeVisible();
+        await expect(ups.getByRole('button', { name: 'Received', pressed: true })).toBeVisible();
         await expect(widget(page).locator('[data-parcel="1Z999AA10123456784"]')).toHaveCount(0, { timeout: 30_000 });
       }
       await context.close();
@@ -196,6 +204,61 @@ test('a new shipping mail is followed and its status change notifies', async ({ 
     await expect(row.getByText('DHL', { exact: true })).toBeVisible();
   } finally {
     if (sent) await findBySubject(subject).then((ids) => ids.length && destroyMail(ids)).catch(() => {});
+    await uninstallPlugin(api, ID);
+  }
+});
+
+test('a number added by hand is followed, and a parcel opens in a dialog', async ({ browser }) => {
+  const api = await setUp();
+  const NUMBER = '00340434161094042557';
+  try {
+    for (const theme of ['light', 'dark']) {
+      const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, colorScheme: theme });
+      const page = await context.newPage();
+      await preparePage(page, { theme });
+      await pinTheme(page, theme);
+      await signIn(page);
+      await waitForPlugin(page, ID);
+
+      // Nothing followed yet in this browser.
+      const section = widget(page);
+      await expect(section.getByText('No parcels on the way.')).toBeVisible({ timeout: 30_000 });
+      await section.getByRole('button', { name: 'Add tracking number' }).click();
+
+      // The add dialog: the field in the frame, Cancel and Add in the host's footer.
+      const dialog = page.getByRole('dialog');
+      await expect(dialog).toContainText('Add tracking number');
+      const field = dialogFrame(page).getByLabel('Tracking number');
+      await expect(field).toBeVisible();
+      await expect(footerButton(page, 'Add')).toBeDisabled();
+      await field.fill('12345');
+      await footerButton(page, 'Add').click();
+      await expect(dialogFrame(page).getByText("That doesn't look like a tracking number.")).toBeVisible();
+      await field.fill(NUMBER);
+      await shoot(page, ID, 'add-dialog', theme);
+      await footerButton(page, 'Add').click();
+      await expect(dialog).toBeHidden();
+
+      // Looked up right away: the DHL mock says in transit.
+      const item = section.locator(`[data-parcel="${NUMBER}"]`);
+      await expect(item).toHaveAttribute('data-status', 'in_transit', { timeout: 30_000 });
+      await expect(item).toContainText('In transit');
+      await shoot(page, ID, 'deliveries', theme);
+
+      // The row opens the parcel; Mark received in the footer takes it off the list.
+      await item.getByRole('button').click();
+      await expect(dialogFrame(page).locator('[data-status="in_transit"]')).toHaveText('In transit');
+      await expect(footerButton(page, 'Track at DHL')).toBeVisible();
+      await shoot(page, ID, 'parcel-dialog', theme);
+      if (theme === 'light') {
+        await footerButton(page, 'Mark received').click();
+        await expect(dialog).toBeHidden();
+        await expect(item).toHaveCount(0, { timeout: 30_000 });
+        await expect(section.getByText('No parcels on the way.')).toBeVisible();
+      }
+      await context.close();
+    }
+  } finally {
     await uninstallPlugin(api, ID);
   }
 });

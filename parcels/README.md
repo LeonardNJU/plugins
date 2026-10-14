@@ -2,23 +2,27 @@
 
 Finds tracking numbers in your mail and shows where each parcel is.
 
-- **Reader card**: above the text of a shipping mail, one row per parcel with
-  the carrier, the tracking number, the current status and the latest scan
-  ("In transit · The shipment has been processed in the parcel center ·
-  Hannover, DE"), the expected delivery day when the carrier gives one, a
-  button to open the carrier's own tracking page, *Refresh* and *Mark
-  received*.
-- **Deliveries widget** at the bottom of the mail sidebar: every parcel you
-  follow that you haven't marked received, newest activity first, with a
-  link to the tracking page and a *Mark received* button. You can also type a
-  tracking number in there to follow it.
+- **Reader card**: above the text of a shipping mail, one info bar per
+  parcel, like the reader's own bars: the carrier, the current status and the
+  latest scan ("The shipment has been processed in the parcel center ·
+  Hannover, DE"), the tracking number and the expected delivery day when the
+  carrier gives one, then *Track at <carrier>* (the carrier's own tracking
+  page), *Refresh* and *Mark received*.
+- **Deliveries** section in the mail sidebar, below the folders and tags:
+  every parcel you follow that you haven't marked received, newest activity
+  first, one row each with a short status. A row opens the parcel with its
+  full status, *Track* and *Mark received*. *Add tracking number* at the end
+  follows a number by hand.
 - **Notifications** when a parcel's status changes (for example from *In
   transit* to *Out for delivery*), as a system notification when you allowed
   them for the webmail, otherwise as a message in the app.
 
 ![Reader card, light](screenshots/reader-card-light.png)
 ![Reader card, dark](screenshots/reader-card-dark.png)
-![Status change notification and the deliveries widget](screenshots/status-notification-light.png)
+![Status change notification and the deliveries section](screenshots/status-notification-light.png)
+![Deliveries section](screenshots/deliveries-light.png)
+![Adding a tracking number](screenshots/add-dialog-light.png)
+![A parcel opened from the sidebar](screenshots/parcel-dialog-light.png)
 ![Reader card on a phone](screenshots/reader-card-phone-light.png)
 
 ## Carriers and number formats
@@ -80,9 +84,9 @@ the API key. The keys never reach the browser.
   is set up. When DHL doesn't know a number (or isn't set up), 17TRACK is
   asked.
 
-Without either, the card and the widget still show the carrier, the number
-and the link to the carrier's tracking page, and say that live status isn't
-set up.
+Without either, the card and the sidebar section still show the carrier,
+the number and the link to the carrier's tracking page, and say that live
+status isn't set up.
 
 ### Polling
 
@@ -140,7 +144,7 @@ For each user (Settings → Plugins → Package tracking):
 | --- | --- |
 | `email:read` | Read the open message (and new shipping mail) to find tracking numbers. |
 | `ui:email-banner` | The reader card. |
-| `ui:sidebar-widget` | The deliveries widget. |
+| `ui:sidebar-widget` | The deliveries section in the sidebar (and its title). |
 | `ui:notifications` | Tell you when a status changes. |
 | `http:proxy` | Ask 17TRACK / DHL with the keys the administrator stored on the server. |
 
@@ -151,9 +155,9 @@ The tracking service addresses the administrator set are read with
 
 - New shipping mail is followed automatically and statuses are looked up
   when a message is opened; both can be turned off per user.
-- Delivered parcels stay in the widget until you mark them received, so a
+- Delivered parcels stay in the sidebar until you mark them received, so a
   parcel left at a neighbour doesn't vanish.
-- A number typed into the widget whose format several carriers share (plain
+- A number added by hand whose format several carriers share (plain
   digits) gets no carrier; the tracking service works it out and the link
   goes to 17TRACK's public tracking page.
 
