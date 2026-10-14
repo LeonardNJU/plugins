@@ -30,6 +30,9 @@ async function setUserSettings(page, values) {
   await expect.poll(() => readMirror(page), { timeout: 60_000 }).not.toBe('');
   const card = page.getByRole('button', { name: /Time zone helper.*From your administrator/s });
   if ((await card.getAttribute('aria-expanded')) !== 'true') await card.click();
+  // Plugin settings sync through the server too; a reload before the change
+  // got there would load the old values back.
+  const synced = page.waitForEvent('console', { predicate: (m) => /Settings synced to server/.test(m.text()), timeout: 15_000 }).catch(() => {});
   for (const [label, value] of Object.entries(values)) {
     if (typeof value === 'boolean') {
       const sw = page.getByRole('switch', { name: label });
@@ -45,6 +48,7 @@ async function setUserSettings(page, values) {
   // Slots opened from now on start from the copy the background keeps
   // (see mirrorSettings); wait until it has the new values.
   await expect.poll(() => readMirror(page), { timeout: 60_000 }).toContain(JSON.stringify(Object.values(values).at(-1)).slice(1, -1));
+  await synced;
 }
 
 /** The settings copy the background keeps in the plugin's storage ('' before it started). */
@@ -138,8 +142,8 @@ for (const theme of ['light', 'dark']) {
     await preparePage(page, { theme });
     await signIn(page);
     await waitForPlugin(page, ID);
-    await useTheme(page, theme);
     await setUserSettings(page, { 'Favourite time zones': 'New York, Tokio, Asia/Tokyo', 'Your time zone': 'Europe/Berlin' });
+    await useTheme(page, theme);
     const frame = await openPluginSettingsPage(page);
     await expect(frame.locator('[data-tz="favourites"]')).toContainText('America/New_York');
     await expect(frame.locator('[data-tz="favourites"]')).toContainText('Asia/Tokyo');
@@ -156,9 +160,10 @@ for (const theme of ['light', 'dark']) {
   });
 }
 
-/** Plugins start with the mail page; go to another part of the app the way a user does. */
-async function openFromRail(page, name) {
-  await page.locator(`nav [aria-label="${name}"]`).first().click();
+/** Open a part of the app and wait for the plugin there. */
+async function openApp(page, path) {
+  await page.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
+  await waitForPlugin(page, ID);
 }
 
 for (const theme of ['light', 'dark']) {
@@ -166,9 +171,9 @@ for (const theme of ['light', 'dark']) {
     await preparePage(page, { theme });
     await signIn(page);
     await waitForPlugin(page, ID);
-    await useTheme(page, theme);
     await setUserSettings(page, { 'Favourite time zones': 'New York', 'Your time zone': 'Europe/Berlin' });
-    await openFromRail(page, 'Calendar');
+    await useTheme(page, theme);
+    await openApp(page, '/calendar');
     await page.getByRole('button', { name: 'Create event' }).click();
     await page.getByPlaceholder('Title').fill('Planning call');
     await page.locator('input[type="time"]').first().fill('15:00');
@@ -301,9 +306,12 @@ for (const theme of ['light', 'dark']) {
     await dialog.getByRole('button', { name: 'Insert' }).click();
     const body = page.locator('[contenteditable="true"]').first();
     await expect(body).toContainText(/3:00\sPM Berlin \/ 9:00\sAM New York/);
-    await page.getByRole('button', { name: 'Discard' }).click();
-    const confirm = page.getByRole('button', { name: /^(Discard|Delete)$/ }).last();
-    if (await confirm.isVisible().catch(() => false)) await confirm.click();
+    // Clean up: throw the draft away (best effort, the test already passed).
+    try {
+      await page.getByRole('button', { name: 'Discard', exact: true }).click({ timeout: 10_000, force: true });
+      const confirm = page.getByRole('button', { name: /^(Discard|Delete)$/ }).last();
+      if (await confirm.isVisible().catch(() => false)) await confirm.click({ timeout: 10_000 });
+    } catch { /* the draft stays in Drafts */ }
   });
 }
 
