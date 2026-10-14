@@ -159,8 +159,17 @@ async function openSettings(page) {
 
 /** Install with the given admin settings, sign in and wait for the plugin. */
 async function start(page, { token = true, theme = 'light' } = {}) {
-  const admin = await adminApi();
-  await installPlugin(admin, PLUGIN);
+  let admin = await adminApi();
+  try {
+    await installPlugin(admin, PLUGIN);
+  } catch (err) {
+    // The saved admin session can end (another suite signed out); sign in again once.
+    if (!/HTTP 401/.test(String(err))) throw err;
+    adminContext = null;
+    fs.rmSync(SESSION_FILE, { force: true });
+    admin = await adminApi();
+    await installPlugin(admin, PLUGIN);
+  }
   await setPluginConfig(admin, PLUGIN, 'serverUrl', PAPERLESS);
   await setPluginConfig(admin, PLUGIN, 'apiToken', token ? TOKEN : '');
   await preparePage(page, { theme });
