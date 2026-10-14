@@ -1,8 +1,9 @@
 import { vikunja } from './vikunja.js';
 import { todoist } from './todoist.js';
+import { caldav } from './caldav.js';
 
 /** In the order the dialog lists them. */
-export const TARGETS = [vikunja, todoist];
+export const TARGETS = [vikunja, todoist, caldav];
 
 export function targetById(id) {
   return TARGETS.find((t) => t.id === id) ?? null;

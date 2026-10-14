@@ -5,6 +5,7 @@ import * as React from 'react';
 import { connectTarget, containersFor, createTasks, prepareDialog } from '../lib/dialog-model.js';
 import { errorText, RECONNECT_CODES, toTaskError } from '../lib/errors.js';
 import { PRIORITIES } from '../lib/priority.js';
+import { savePrefs } from '../lib/task-store.js';
 
 const h = React.createElement;
 const { useEffect, useMemo, useRef, useState } = React;
@@ -63,6 +64,7 @@ export function TaskDialog({ api, emailIds, onResult }) {
   const [target, setTarget] = useState(null);
   const [containers, setContainers] = useState({ status: 'idle', list: [], error: null });
   const [containerId, setContainerId] = useState('');
+  const [manualUrl, setManualUrl] = useState('');
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState(null);
   const firstField = useRef(null);
@@ -78,6 +80,7 @@ export function TaskDialog({ api, emailIds, onResult }) {
         setState(s);
         setItems(s.items.map((i) => ({ ...i, include: true })));
         setTarget(s.target);
+        setManualUrl(s.prefs.caldavUrl || '');
       } catch (err) {
         if (!cancelled) setLoadError(toTaskError(err));
       }
@@ -136,13 +139,19 @@ export function TaskDialog({ api, emailIds, onResult }) {
     }
   };
 
+  const searchAgain = async () => {
+    const prefs = await savePrefs(api, { caldavUrl: manualUrl.trim() });
+    const next = { ...state, prefs };
+    setState(next);
+  };
 
   const update = (emailId, patch) => setItems((now) => now.map((i) => (i.emailId === emailId ? { ...i, ...patch } : i)));
 
   const chosen = items.filter((i) => i.include);
   const needsContainer = target === 'vikunja';
   const canCreate = !!state && !!targetInfo?.connected && !busy && chosen.length > 0
-    && containers.status !== 'loading' && (!needsContainer || !!containerId);
+    && containers.status !== 'loading' && (!needsContainer || !!containerId)
+    && !(target === 'caldav' && !containerId);
 
   const create = async () => {
     setError(null);
@@ -218,6 +227,13 @@ export function TaskDialog({ api, emailIds, onResult }) {
       containerField = h('label', { className: 'field' }, t(CONTAINER_LABEL[target]),
         h('select', { value: containerId, disabled: !!busy, onChange: (e) => setContainerId(e.target.value) },
           containers.list.map((c) => h('option', { key: c.id, value: c.id }, c.name))));
+    } else if (target === 'caldav' && containers.status === 'ready') {
+      containerField = h('div', { className: 'note warn' },
+        h('p', { style: { margin: '0 0 8px' } }, t('caldav.none_found')),
+        h('label', { className: 'field' }, t('caldav.address'),
+          h('input', { type: 'url', value: manualUrl, placeholder: 'https://', onChange: (e) => setManualUrl(e.target.value) })),
+        h('div', { className: 'actions', style: { marginTop: '8px' } },
+          h('button', { type: 'button', onClick: searchAgain }, t('caldav.search_again'))));
     }
   }
 

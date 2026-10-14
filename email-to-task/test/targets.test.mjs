@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { fakeApi, proxyResponse } from '../../test-utils/fake-api.mjs';
 import { vikunja } from '../src/lib/targets/vikunja.js';
 import { todoist } from '../src/lib/targets/todoist.js';
+import { caldav, discoverTaskLists } from '../src/lib/targets/caldav.js';
 import { errorForResponse, errorText, request, toTaskError } from '../src/lib/errors.js';
 
 const TASK = { title: 'Pay invoice', description: 'From: Bob\nOpen the message: https://m/mail/message/M1', due: '2026-10-20', priority: 'high', containerId: '2', link: 'https://m/mail/message/M1' };
@@ -92,6 +93,70 @@ describe('Todoist', () => {
   });
 });
 
+// A small CalDAV server: Stalwart's layout, where /.well-known/caldav answers
+// 307 (which the proxy can't follow with a PROPFIND body).
+function davServer({ puts = [], status = {} } = {}) {
+  const ms = (inner) => proxyResponse(`<?xml version="1.0"?><D:multistatus xmlns:D="DAV:" xmlns:A="urn:ietf:params:xml:ns:caldav">${inner}</D:multistatus>`, { status: 207 });
+  return proxyApi((id, url, init) => {
+    expect(id).toBe('caldav');
+    const path = new URL(url).pathname;
+    if (status[path]) return proxyResponse('', { status: status[path] });
+    if (init.method === 'PUT') { puts.push({ url, init }); return proxyResponse('', { status: 201 }); }
+    if (path === '/.well-known/caldav') return { status: 502, ok: false, headers: {}, proxyError: 'redirect_with_body', body: 'The server redirected an upload' };
+    if (path === '/') return proxyResponse('', { status: 405 });
+    if (path === '/dav/') return proxyResponse('not dav', { status: 200 });
+    if (path === '/dav/cal/') {
+      return ms('<D:response><D:href>/dav/cal/</D:href><D:propstat><D:prop><D:current-user-principal><D:href>/dav/pal/alice%40example.org/</D:href></D:current-user-principal></D:prop><D:status>HTTP/1.1 200 OK</D:status></D:propstat></D:response>');
+    }
+    if (path === '/dav/pal/alice%40example.org/') {
+      return ms('<D:response><D:href>/dav/pal/alice%40example.org/</D:href><D:propstat><D:prop><A:calendar-home-set><D:href>/dav/cal/alice%40example.org/</D:href></A:calendar-home-set></D:prop><D:status>HTTP/1.1 200 OK</D:status></D:propstat></D:response>');
+    }
+    if (path === '/dav/cal/alice%40example.org/') {
+      expect(init.headers.Depth).toBe('1');
+      return ms('<D:response><D:href>/dav/cal/alice%40example.org/default/</D:href><D:propstat><D:prop><D:resourcetype><D:collection/><A:calendar/></D:resourcetype><D:displayname>Calendar</D:displayname><A:supported-calendar-component-set><A:comp name="VEVENT"/><A:comp name="VTODO"/></A:supported-calendar-component-set></D:prop><D:status>HTTP/1.1 200 OK</D:status></D:propstat></D:response>'
+        + '<D:response><D:href>/dav/cal/alice%40example.org/tasks/</D:href><D:propstat><D:prop><D:resourcetype><D:collection/><A:calendar/></D:resourcetype><D:displayname>Tasks</D:displayname><A:supported-calendar-component-set><A:comp name="VTODO"/></A:supported-calendar-component-set></D:prop><D:status>HTTP/1.1 200 OK</D:status></D:propstat></D:response>'
+        + '<D:response><D:href>http://evil.example/dav/x/</D:href><D:propstat><D:prop><D:resourcetype><D:collection/><A:calendar/></D:resourcetype></D:prop><D:status>HTTP/1.1 200 OK</D:status></D:propstat></D:response>');
+    }
+    return proxyResponse('', { status: 404 });
+  });
+}
+
+describe('CalDAV', () => {
+  const ORIGIN = 'http://localhost:18025';
+
+  it('finds task lists through the principal and calendar home, past a 307 on .well-known', async () => {
+    const lists = await discoverTaskLists({ api: davServer(), origin: ORIGIN, config: {} });
+    // The list made for tasks comes first; the one on another server is left out.
+    expect(lists).toEqual([
+      { id: `${ORIGIN}/dav/cal/alice%40example.org/tasks/`, name: 'Tasks' },
+      { id: `${ORIGIN}/dav/cal/alice%40example.org/default/`, name: 'Calendar' },
+    ]);
+  });
+
+  it('stops at a wrong password instead of trying every path', async () => {
+    const api = davServer({ status: { '/.well-known/caldav': 401 } });
+    await expect(caldav.containers({ api, origin: ORIGIN, config: {} })).rejects.toMatchObject({ code: 'auth' });
+    expect(api.calls('proxy.fetch')).toHaveLength(1);
+  });
+
+  it('puts a VTODO into the chosen list, never overwriting', async () => {
+    const puts = [];
+    const api = davServer({ puts });
+    const out = await caldav.create({ api, origin: ORIGIN, config: {} }, { ...TASK, containerId: `${ORIGIN}/dav/cal/alice%40example.org/tasks/` });
+    expect(puts).toHaveLength(1);
+    expect(puts[0].url).toMatch(/^http:\/\/localhost:18025\/dav\/cal\/alice%40example\.org\/tasks\/[0-9a-f]{32}%40bulwark-email-to-task\.ics$/);
+    expect(puts[0].init.headers['If-None-Match']).toBe('*');
+    expect(puts[0].init.headers['Content-Type']).toMatch(/^text\/calendar/);
+    expect(puts[0].init.body).toContain('SUMMARY:Pay invoice');
+    expect(puts[0].init.body).toContain('DUE;VALUE=DATE:20261020');
+    expect(puts[0].init.body).toContain('PRIORITY:1');
+    expect(out.taskId).toBe(puts[0].url);
+  });
+
+  it('refuses a list on another server', async () => {
+    await expect(caldav.create({ api: davServer(), origin: ORIGIN, config: {} }, { ...TASK, containerId: 'https://other.example/tasks/' })).rejects.toMatchObject({ code: 'no_task_list' });
+  });
+});
 
 
 describe('errors', () => {

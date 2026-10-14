@@ -99,6 +99,17 @@ describe('TaskDialog', () => {
     await waitFor(() => expect(onResult).toHaveBeenCalledWith({ created: ['M1'] }));
   });
 
+  it('asks for a task list address when CalDAV has none, and does not create meanwhile', async () => {
+    const api = makeApi({
+      accounts: [{ credentialId: 'caldav', origin: 'http://localhost:18025', connected: true }],
+      fetch: async () => proxyResponse('', { status: 404 }),
+    });
+    await open(api);
+    fireEvent.change(screen.getByLabelText('Add to'), { target: { value: 'caldav' } });
+    expect(await screen.findByText(/No task list was found on this server/)).toBeTruthy();
+    expect(screen.getByLabelText('Task list address')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Create task' }).disabled).toBe(true);
+  });
 
   it('speaks German', async () => {
     const api = makeApi({ locale: 'de' });
