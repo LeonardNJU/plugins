@@ -1,57 +1,26 @@
 // Slot showcase: fills every plugin surface of the webmail with something you
 // can see, for the docs screenshots and for checking a layout by hand.
 //
-// - Every frame slot renders a labelled box that names the slot and the props
-//   it received (names only, and the length of any list).
+// - Every frame slot shows the app's UI kit component an author would use
+//   there (src/lib/surfaces.js): info bars in the reader, sidebar rows in the
+//   sidebar, a form with footer buttons in the dialog, setting rows in
+//   Settings, a toolbar and list on the page. Each names its slot and the
+//   props it received.
 // - Every action surface gets one or two buttons; a click shows a toast with
 //   the surface and the context keys the host passed.
 // - Day labels on today and a few days after, and one page of its own.
 //
-// The lists below follow lib/plugin-slot-catalog.ts in the webmail.
+// The lists follow lib/plugin-slot-catalog.ts in the webmail.
 
-import { createElement as h } from 'react';
+import { SURFACES, describeProps } from './lib/surfaces.js';
 
 const api = require('@plugin-host');
 
-// Frame slots. `inline` ones sit in a row of host buttons, so they get a
-// small chip instead of a box.
-const FRAME_SLOTS = {
-  'app-top-banner': {},
-  'plugin-dialog': {},
-  'navigation-rail-bottom': { compact: true },
-  'sidebar-widget': {},
-  'sidebar-section': {},
-  'app-page': { page: true },
-  'message-list-header': {},
-  'message-list-empty': {},
-  'context-menu-email': {},
-  'toolbar-actions': { inline: true },
-  'reader-header': {},
-  'reader-below-subject': {},
-  'email-banner': {},
-  'reader-above-quote': {},
-  'email-footer': {},
-  'thread-summary': {},
-  'email-detail-sidebar': {},
-  'email-details-section': {},
-  'attachment-actions': { inline: true },
-  'composer-toolbar': { inline: true },
-  'composer-above-body': {},
-  'composer-below-body': {},
-  'composer-sidebar': {},
-  'composer-sidebar-right': {},
-  'composer-attachment-source': { inline: true },
-  'calendar-event-actions': { inline: true },
-  'calendar-event-detail': {},
-  'calendar-event-form': {},
-  'contact-cryptokeys': {},
-  'contact-detail-section': {},
-  'task-detail-section': {},
-  'file-preview-section': {},
-  'settings-section': {},
-  'settings-page': {},
-  'admin-plugin-page': {},
-};
+// A check item in the composer's Options menu; a click flips it.
+function optionEntries(checked) {
+  return [{ id: 'option', label: 'Showcase option', icon: 'flask-2', checked, description: 'A check item with a description' }];
+}
+let optionChecked = true;
 
 // Action surfaces and the buttons the showcase puts on each.
 const ACTIONS = {
@@ -69,70 +38,18 @@ const ACTIONS = {
   'attachment-menu': [{ id: 'attachment', label: 'Showcase attachment action', icon: 'flask-2' }],
   'composer-send-menu': [{ id: 'send', label: 'Showcase send option', icon: 'flask-2' }],
   'composer-attach-menu': [{ id: 'attach', label: 'Showcase attach source', icon: 'flask-2' }],
+  'composer-toolbar-actions': [{ id: 'composer', label: 'Showcase', icon: 'flask-2', shortcut: 'Alt+Shift+S' }],
+  'composer-options-menu': optionEntries(true),
   'contact-list-actions': [{ id: 'contacts', label: 'Showcase', icon: 'flask-2' }],
   'task-list-actions': [{ id: 'tasks', label: 'Showcase', icon: 'flask-2' }],
   'file-actions': [{ id: 'files', label: 'Showcase file action', icon: 'flask-2' }],
 };
 
-/** "email", "emailIds[3]", "onResult()" */
-function describeProps(props) {
-  return Object.keys(props || {}).sort().map((key) => {
-    const value = props[key];
-    if (Array.isArray(value)) return `${key}[${value.length}]`;
-    if (typeof value === 'function') return `${key}()`;
-    return key;
-  });
-}
-
-const BOX = {
-  boxSizing: 'border-box',
-  border: '1px dashed var(--color-primary)',
-  borderRadius: 6,
-  background: 'color-mix(in srgb, var(--color-primary) 8%, var(--color-background))',
-  color: 'var(--color-foreground)',
-  padding: '6px 10px',
-  fontSize: 12,
-  lineHeight: 1.4,
-  overflowWrap: 'anywhere',
-};
-
-function SlotBox({ name, spec, props }) {
-  const keys = describeProps(props);
-  if (spec.inline) {
-    return h('span', {
-      style: { ...BOX, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 8px', whiteSpace: 'nowrap' },
-      title: keys.length ? `props: ${keys.join(', ')}` : 'no props',
-    },
-    h('strong', null, `slot: ${name}`),
-    keys.length ? h('span', { style: { color: 'var(--color-muted-foreground)' } }, keys.join(', ')) : null);
-  }
-  if (spec.compact) {
-    return h('div', { style: { ...BOX, padding: 4, fontSize: 10, textAlign: 'center' }, title: `slot: ${name}` }, 'slot: rail');
-  }
-  // Padding, not margin: the host measures this element, and an outer margin
-  // would not count towards the slot's height.
-  const box = h('div', { style: { ...BOX, ...(spec.page ? { padding: 16, fontSize: 14 } : {}) } },
-    h('div', { style: { fontWeight: 600 } }, `slot: ${name}`),
-    h('div', { style: { color: 'var(--color-muted-foreground)' } },
-      keys.length ? `props: ${keys.join(', ')}` : 'no props'),
-    name === 'plugin-dialog' && typeof props.onResult === 'function'
-      ? h('button', {
-          type: 'button',
-          onClick: () => props.onResult('closed by the showcase'),
-          style: {
-            marginTop: 8, font: 'inherit', padding: '4px 10px', borderRadius: 6, cursor: 'pointer',
-            border: '1px solid var(--color-border)', background: 'var(--color-background)', color: 'var(--color-foreground)',
-          },
-        }, 'Close with onResult')
-      : null);
-  return spec.page ? h('div', { style: { padding: 16 } }, box) : box;
-}
-
 const slots = {};
-for (const [name, spec] of Object.entries(FRAME_SLOTS)) {
-  slots[name] = { component: (props) => h(SlotBox, { name, spec, props }) };
+for (const [name, component] of Object.entries(SURFACES)) {
+  slots[name] = { component };
 }
-// The details panel asks once per category; show the box once, at the bottom.
+// The details panel asks once per category; show the section once, at the bottom.
 slots['email-details-section'].shouldShow = (ctx) => ctx?.category == null;
 
 function isoDay(offset) {
@@ -157,6 +74,11 @@ export async function activate() {
     { date: isoDay(5), dot: true, title: 'Dot only' },
   ]);
   await api.ui.setPages([{ id: 'showcase', title: 'Showcase', icon: 'layout-grid' }]);
+  try {
+    await api.ui.setSectionTitle('Showcase section');
+  } catch (err) {
+    api.log.warn(`setSectionTitle failed: ${err.message}`);
+  }
 }
 
 export const hooks = {
@@ -169,6 +91,10 @@ export const hooks = {
     if (actionId === 'notify') {
       await api.notifications.show({ title: 'Slot showcase', body: 'A notification from api.notifications.show', tag: 'showcase' });
       return;
+    }
+    if (actionId === 'option') {
+      optionChecked = !optionChecked;
+      await api.ui.setActions('composer-options-menu', optionEntries(optionChecked));
     }
     const keys = describeProps(context);
     api.toast.info(`${surface} (${actionId}): ${keys.length ? keys.join(', ') : 'no context'}`);
