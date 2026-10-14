@@ -1,0 +1,11 @@
+{
+  "name": "bulwark-plugin-timezones",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Time zone helper for Bulwark Webmail",
+  "scripts": {
+    "build": "node ../scripts/build.mjs timezones",
+    "test": "node ../node_modules/vitest/vitest.mjs run --root .. timezones"
+  }
+}
