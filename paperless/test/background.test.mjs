@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { fakeApi, proxyResponse } from '../../test-utils/fake-api.mjs';
 import { createBackground, LINKS_KEY, REMEMBERED_KEY } from '../src/lib/background.js';
+import { RULES_KEY, PROCESSED_KEY } from '../src/lib/rules.js';
 import { TASKS_KEY } from '../src/lib/tasks.js';
 import { activate, hooks, slots } from '../src/index.js';
 
@@ -132,6 +133,33 @@ describe('when a task finishes', () => {
     await bg.reportDone({ name: 'x' }, { state: 'failure', error: 'Unsupported mime type' });
     expect(a.calls('notifications.show')).toHaveLength(0);
     expect(a.calls('toast.error').map((c) => c.args[0])).toEqual(['failed.title: failed.duplicate', 'failed.title: failed.body']);
+  });
+});
+
+describe('rules on new mail', () => {
+  const rule = { id: 'r', from: '@acme.example', enabled: true, enabledAt: Date.parse('2026-10-14T09:00:00Z'), tags: [5], correspondent: 1 };
+
+  it('sends the attachments of matching new mail without a dialog, once', async () => {
+    const { api: a, uploads } = api();
+    await a.storage.set(RULES_KEY, [rule]);
+    const bg = createBackground(a, { setTimer: noTimer });
+    const email = { ...view, hasAttachment: true };
+    expect(await bg.onNewEmail(email)).toEqual({ sent: 1, failed: 0 });
+    expect(await bg.onNewEmail(email)).toBeNull();
+    expect(uploads).toHaveLength(1);
+    expect(a.calls('ui.openDialog')).toHaveLength(0);
+    const body = new TextDecoder().decode(uploads[0].init.body);
+    expect(body).toContain('filename="inv.pdf"');
+    expect(body).toContain('name="tags"\r\n\r\n5');
+    expect(await a.storage.get(PROCESSED_KEY)).toEqual(['e1']);
+  });
+
+  it('leaves mail alone when the rule is off or does not fit', async () => {
+    const { api: a, uploads } = api();
+    await a.storage.set(RULES_KEY, [{ ...rule, enabled: false }, { ...rule, from: '@other.example' }]);
+    expect(await createBackground(a, { setTimer: noTimer }).onNewEmail({ ...view, hasAttachment: true })).toBeNull();
+    expect(uploads).toHaveLength(0);
+    expect(a.calls('email.getRaw')).toHaveLength(0);
   });
 });
 

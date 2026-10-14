@@ -24,6 +24,9 @@ export const hooks = {
   onAction(event) {
     if (background) void Promise.resolve(background.onAction(event)).catch(() => {});
   },
+  onNewEmailReceived(email) {
+    if (background) void background.onNewEmail(email).catch(() => {});
+  },
   onNotificationClick(event) {
     if (background) void background.onNotificationClick(event).catch(() => {});
   },

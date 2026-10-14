@@ -1,9 +1,10 @@
 // The background side: buttons on the mail surfaces, the send flow, the
-// task follow-up. index.js wires it to the host.
+// task follow-up and the rules on new mail. index.js wires it to the host.
 
 import { createClient } from './client.js';
 import { clientFor, connectPersonal, resolveConnection } from './connection.js';
 import { errorText, toPaperlessError } from './errors.js';
+import { PROCESSED_KEY, RULES_KEY, findRule, markProcessed } from './rules.js';
 import { collectAttachment, collectMessage, collectMessages, forDialog, plannedUploads } from './send.js';
 import { rememberChoice } from './suggest.js';
 import { createPoller, createTaskTracker } from './tasks.js';
@@ -153,6 +154,35 @@ export function createBackground(api, { setTimer = setTimeout } = {}) {
     return null;
   }
 
+  /** A rule the user switched on sends matching new mail without a dialog. */
+  async function onNewEmail(email) {
+    if (!email?.id) return null;
+    const rules = await api.storage.get(RULES_KEY).catch(() => null);
+    const rule = findRule(rules, email);
+    if (!rule) return null;
+    const processed = await api.storage.get(PROCESSED_KEY).catch(() => null);
+    const mark = markProcessed(processed, email.id);
+    if (!mark.added) return null;
+    await api.storage.set(PROCESSED_KEY, mark.list);
+    try {
+      const connection = await resolveConnection(api);
+      if (connection.state !== 'connected') return null;
+      const group = await collectMessage(api, email.id);
+      const items = rule.what === 'message'
+        ? group.items.filter((i) => i.kind === 'eml')
+        : group.items.filter((i) => i.kind === 'file' && i.support === 'yes');
+      if (!items.length) return null;
+      const choice = {
+        selected: items.map((i) => i.key), correspondent: rule.correspondent, documentType: rule.documentType,
+        storagePath: rule.storagePath, tags: rule.tags,
+      };
+      return await upload(connection, [group], choice);
+    } catch (err) {
+      toastError(err);
+      return null;
+    }
+  }
+
   async function onNotificationClick({ tag } = {}) {
     if (typeof tag !== 'string' || !tag.startsWith('doc-')) return;
     const links = (await api.storage.get(LINKS_KEY).catch(() => null)) || {};
@@ -176,5 +206,5 @@ export function createBackground(api, { setTimer = setTimeout } = {}) {
     if (open.length) poller.start();
   }
 
-  return { onAction, onNotificationClick, registerUi, resume, tracker, poller, sendFlow, upload, reportDone };
+  return { onAction, onNewEmail, onNotificationClick, registerUi, resume, tracker, poller, sendFlow, upload, reportDone };
 }
