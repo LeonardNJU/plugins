@@ -7,32 +7,35 @@
 // the send hook gets no composer id to look it up by. A new composer starts
 // from the defaults in Settings again (resetComposeIntent).
 
+import { translator } from './i18n.js';
+
 export const OPTIONS_SURFACE = 'composer-options-menu';
 export const INTENT_KEY = 'composeIntent.v1';
 
-const NO_KEY = 'Import your S/MIME key under Settings → Plugins → S/MIME first.';
-
 /** The Options menu entries for an intent. `ready` is false without a key. */
-export function composeActions({ intent, ready, detached }) {
+export function composeActions({ intent, ready, detached, t }) {
+  const sign = t('compose.sign');
+  const encrypt = t('compose.encrypt');
   if (!ready) {
+    const noKey = t('compose.noKey');
     return [
-      { id: 'sign', label: 'Sign (S/MIME)', icon: 'signature', checked: false, description: NO_KEY, order: 70 },
-      { id: 'encrypt', label: 'Encrypt (S/MIME)', icon: 'lock', checked: false, description: NO_KEY, order: 71 },
+      { id: 'sign', label: sign, icon: 'signature', checked: false, description: noKey, order: 70 },
+      { id: 'encrypt', label: encrypt, icon: 'lock', checked: false, description: noKey, order: 71 },
     ];
   }
   const signHow = intent.encrypt
-    ? 'Signature goes inside the encryption.'
+    ? t('compose.signInside')
     : detached
-      ? 'Detached: readable in mail apps without S/MIME.'
-      : 'Opaque: only S/MIME mail apps show the text.';
+      ? t('compose.signDetached')
+      : t('compose.signOpaque');
   return [
-    { id: 'sign', label: 'Sign (S/MIME)', icon: 'signature', checked: !!intent.sign, description: signHow, order: 70 },
+    { id: 'sign', label: sign, icon: 'signature', checked: !!intent.sign, description: signHow, order: 70 },
     {
       id: 'encrypt',
-      label: 'Encrypt (S/MIME)',
+      label: encrypt,
       icon: 'lock',
       checked: !!intent.encrypt,
-      description: 'Needs a certificate for every recipient.',
+      description: t('compose.encryptHint'),
       order: 71,
     },
   ];
@@ -51,7 +54,7 @@ export async function publishComposeActions(host, deps) {
   };
   let ready = false;
   try { ready = (await deps.listKeyRecords()).length > 0; } catch { ready = false; }
-  await host.ui.setActions(OPTIONS_SURFACE, composeActions({ intent, ready, detached: deps.detached() }));
+  await host.ui.setActions(OPTIONS_SURFACE, composeActions({ intent, ready, detached: deps.detached(), t: translator(host) }));
   return { intent, ready };
 }
 
@@ -66,7 +69,7 @@ export async function handleComposeAction(host, deps, { surface, actionId }) {
   if (surface !== OPTIONS_SURFACE || (actionId !== 'sign' && actionId !== 'encrypt')) return false;
   const { intent, ready } = await publishComposeActions(host, deps);
   if (!ready) {
-    host.toast.info(NO_KEY);
+    host.toast.info(translator(host)('compose.noKey'));
     return true;
   }
   const next = { ...intent, [actionId]: !intent[actionId] };

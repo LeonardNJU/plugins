@@ -31,6 +31,7 @@ import { importPkcs12, unlockPrivateKey } from './pkcs12.js';
 import { parseCertificatePemOrDer, extractCertificateInfo } from './certificate-utils.js';
 import { generateUUID } from './util.js';
 import { makeUi } from './ui.js';
+import { errorMessage, translator } from './i18n.js';
 import {
   INTENT_KEY, publishComposeActions, resetComposeIntent, handleComposeAction,
 } from './compose-actions.js';
@@ -39,6 +40,8 @@ import {
   savePublicCert, listPublicCerts, deletePublicCert,
   saveSessionKeys, getSessionKeys, deleteSessionKeys, clearSessionKeys,
 } from './key-storage.js';
+
+const t = translator(host);
 
 // ─── Shared preferences (api.storage; shared across iframes) ──────────
 
@@ -76,6 +79,7 @@ function useDetachedSignature() {
 // `indexedDB.open` throws "The operation is insecure" and `crypto.subtle` is
 // absent. We probe once and degrade with a clear message instead of letting a
 // raw IndexedDB error crash activate() (which would trip the circuit breaker).
+// This English text goes to the plugin log; users see settings.notPrivileged.
 
 const NOT_PRIVILEGED_MSG =
   'S/MIME could not start: it is running in the restricted (untrusted) plugin ' +
@@ -170,11 +174,11 @@ async function ensureKeyUnlocked(keyRecord) {
   if (existing && existing.signingKey) return existing;
 
   const answers = await host.ui.prompt({
-    title: 'Unlock S/MIME key',
-    message: `Your key for ${keyRecord.email || 'this identity'} is locked. Enter its storage passphrase to sign and send.`,
-    confirmLabel: 'Unlock & send',
+    title: t('unlock.title'),
+    message: keyRecord.email ? t('unlock.sendMessage', { email: keyRecord.email }) : t('unlock.sendMessageNoEmail'),
+    confirmLabel: t('unlock.confirmSend'),
     fields: [
-      { name: 'pass', label: 'Storage passphrase', type: 'password', required: true },
+      { name: 'pass', label: t('unlock.passphrase'), type: 'password', required: true },
     ],
   });
   if (!answers) return null; // cancelled
@@ -186,7 +190,7 @@ async function ensureKeyUnlocked(keyRecord) {
     await saveSessionKeys({ id: keyRecord.id, signingKey, decryptionKey, legacyDecryptionKey });
     return await getSessionKeys(keyRecord.id);
   } catch (err) {
-    host.toast.error(err && err.message ? err.message : 'Unlock failed — wrong passphrase?');
+    host.toast.error(err && err.message ? errorMessage(t, err) : t('unlock.failedWrongPassphrase'));
     return null;
   }
 }
@@ -251,7 +255,7 @@ async function fetchAttachments(req) {
       });
     } catch (err) {
       host.log.warn('attachment fetch failed', att.name, err);
-      throw new Error(`Could not read attachment "${att.name || ''}" for encryption`);
+      throw new Error(t('send.attachmentFailed', { name: att.name || '' }));
     }
   }
   return out;
@@ -262,7 +266,6 @@ async function fetchAttachments(req) {
 // keeps the message open with its draft. Every refusal below shows the user
 // why before returning ABORT.
 const ABORT = { abort: true };
-const KEY_LOCKED_MESSAGE = 'Not sent: your S/MIME key is still locked.';
 
 async function onComposeSend(req) {
   if (!req || typeof req !== 'object') return undefined;
@@ -271,16 +274,16 @@ async function onComposeSend(req) {
   if (!sign && !encrypt) return undefined; // not our job — host sends normally
 
   if (!(await isCapable())) {
-    host.toast.error('Cannot sign/encrypt: S/MIME is not running in the privileged tier.');
+    host.toast.error(t('send.notPrivileged'));
     return ABORT; // refuse rather than send plaintext when sign/encrypt was requested
   }
 
   try {
     const identityId = req.identityId || req.identity || '';
-    if (!identityId) throw new Error('No sending identity available');
+    if (!identityId) throw new Error(t('send.noIdentity'));
 
     const from = parseAddr(req.fromEmail || req.from || (addrList(req.from)[0] || {}).email || '');
-    if (!from.email) throw new Error('Could not determine sender address');
+    if (!from.email) throw new Error(t('send.noSender'));
 
     const to = addrList(req.to);
     const cc = addrList(req.cc);
@@ -289,7 +292,7 @@ async function onComposeSend(req) {
 
     const keyRecord = (sign || encrypt) ? await signingKeyRecordForEmail(from.email) : undefined;
     if ((sign || encrypt) && !keyRecord) {
-      host.toast.error(`No S/MIME key for ${from.email}. Import one in Settings → Plugins → S/MIME.`);
+      host.toast.error(t('send.noKey', { email: from.email }));
       return ABORT;
     }
 
@@ -312,7 +315,7 @@ async function onComposeSend(req) {
       // multipart/signed stays readable in clients without S/MIME.
       const session = await ensureKeyUnlocked(keyRecord);
       if (!session || !session.signingKey) {
-        host.toast.error(KEY_LOCKED_MESSAGE);
+        host.toast.error(t('send.keyLocked'));
         return ABORT; // refuse rather than send unsigned
       }
       const entityBytes = buildMimeEntity(mimeInput);
@@ -335,13 +338,10 @@ async function onComposeSend(req) {
     if (req.delayedUntil) sendOpts.delayedUntil = req.delayedUntil;
     await host.jmap.sendRaw(bytesArrayBuffer(rawBytes), identityId, sendOpts);
 
-    const sent = req.delayedUntil ? 'scheduled' : 'sent';
-    host.toast.success(
-      encrypt && sign ? `Message signed, encrypted and ${sent}`
-        : encrypt ? `Message encrypted and ${sent}`
-          : useDetachedSignature() ? `Message signed (detached) and ${sent}`
-            : `Message signed (opaque) and ${sent}`,
-    );
+    const how = encrypt && sign ? 'signedEncrypted'
+      : encrypt ? 'encrypted'
+        : useDetachedSignature() ? 'signedDetached' : 'signedOpaque';
+    host.toast.success(t(`${req.delayedUntil ? 'scheduled' : 'sent'}.${how}`));
     // Clear the per-message intent so the next compose starts from defaults.
     // The mail is already out, so a storage error must not turn into an abort.
     await host.storage.set(INTENT_KEY, {}).catch((err) => host.log.warn('clearing send intent failed', err));
@@ -349,7 +349,7 @@ async function onComposeSend(req) {
     return false; // we handled the send
   } catch (err) {
     host.log.error('onComposeSend failed', err);
-    host.toast.error(`S/MIME send failed: ${err && err.message ? err.message : String(err)}`);
+    host.toast.error(t('send.failed', { error: errorMessage(t, err) }));
     return ABORT; // nothing was sent: keep the draft, and never fall back to plaintext
   }
 }
@@ -364,7 +364,7 @@ async function buildOpaqueMessage(mimeInput, { sign, encrypt, keyRecord, allReci
     // fallback for that path not having run; cancelling here keeps the draft.
     const session = await ensureKeyUnlocked(keyRecord);
     if (!session || !session.signingKey) {
-      host.toast.error(KEY_LOCKED_MESSAGE);
+      host.toast.error(t('send.keyLocked'));
       return null; // refuse rather than send unsigned
     }
     const signedBlob = await smimeSign(
@@ -382,7 +382,7 @@ async function buildOpaqueMessage(mimeInput, { sign, encrypt, keyRecord, allReci
   if (encrypt) {
     const { found, missing } = await recipientCertsFor(allRecipientEmails);
     if (missing.length > 0) {
-      host.toast.error(`Missing encryption certificate for: ${missing.join(', ')}`);
+      host.toast.error(t('send.missingCertificates', { emails: missing.join(', ') }));
       return null;
     }
     const envBlob = await smimeEncrypt(payloadBytes, found, keyRecord.certificate, useAes128());
@@ -658,7 +658,7 @@ export async function activate(api) {
   // NOT throw, or the circuit breaker disables the plugin after a raw IDB error.
   if (!(await isCapable())) {
     api.log.error(NOT_PRIVILEGED_MSG);
-    try { api.toast.error('S/MIME needs the privileged tier — see plugin logs / contact your admin.'); } catch { /* ignore */ }
+    try { api.toast.error(api.i18n.t('activate.notPrivileged')); } catch { /* ignore */ }
     return;
   }
   // Enforce session scope for unlocked keys: wipe any left over from a prior
@@ -667,5 +667,7 @@ export async function activate(api) {
   let keyCount = 0;
   try { keyCount = (await listKeyRecords()).length; } catch (err) { api.log.warn('S/MIME: listKeyRecords failed', err); }
   try { await publishComposeActions(api, composeDeps); } catch (err) { api.log.warn('S/MIME: setActions failed', err); }
+  // The Options entries carry translated labels: redraw them in the new language.
+  api.i18n.onLocaleChange?.(() => { void publishComposeActions(api, composeDeps).catch(() => {}); });
   api.log.info(`S/MIME plugin activated (${keyCount} key${keyCount === 1 ? '' : 's'} imported)`);
 }
