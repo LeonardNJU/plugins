@@ -82,6 +82,22 @@ export async function preparePage(page, { theme = 'light' } = {}) {
     } catch { /* storage blocked */ }
   }, theme);
   await page.setExtraHTTPHeaders({ 'Accept-Language': 'en-US,en;q=0.9' });
+  // The account's settings are synced from the server and win over
+  // localStorage after load, so a run that switched the theme leaves it for
+  // the next. Answer this page's settings reads with the theme it asked for;
+  // writes pass through untouched.
+  await page.route(/\/api\/settings(\?.*)?$/, async (route) => {
+    if (route.request().method() !== 'GET') { await route.continue(); return; }
+    const response = await route.fetch();
+    let json = null;
+    try { json = await response.json(); } catch { /* not JSON */ }
+    if (json && json.settings && typeof json.settings === 'object') {
+      json.settings.theme = theme;
+      await route.fulfill({ response, json });
+    } else {
+      await route.fulfill({ response });
+    }
+  });
 }
 
 /** Sign in through the login form and wait for the mail view. */
