@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fakeApi, proxyResponse } from '../../test-utils/fake-api.mjs';
+import { SlotPropsContext } from '@plugin-host/ui';
 import { TaskDialog } from '../src/ui/task-dialog.js';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -15,13 +16,14 @@ const DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { locales } = JSON.parse(fs.readFileSync(path.join(DIR, 'manifest.json'), 'utf8'));
 
 const EMAIL = { id: 'M1', subject: 'Re: Quarterly report', from: [{ name: 'Carol', email: 'carol@example.org' }], receivedAt: '2026-10-14T09:00:00', text: 'Could you send the report by Friday?', headers: {} };
+const EMAIL2 = { id: 'M2', subject: 'Contract draft', from: [{ name: 'Bob', email: 'bob@example.org' }], receivedAt: '2026-10-14T10:00:00', text: 'Comments until 2026-11-02 please.', headers: {} };
 
 function makeApi({ accounts = [{ credentialId: 'vikunja', origin: 'http://localhost:18456', connected: true }], fetch, locale = 'en', connect } = {}) {
   return fakeApi({
     locale,
     translations: locales,
     handlers: {
-      'email.get': async (id) => (id === 'M1' ? EMAIL : null),
+      'email.get': async (id) => ({ M1: EMAIL, M2: EMAIL2 })[id] ?? null,
       'proxy.accounts': async () => (typeof accounts === 'function' ? accounts() : accounts),
       'admin.getAllConfig': async () => ({}),
       'tasks.list': async () => { throw new Error('no calendars'); },
@@ -118,5 +120,51 @@ describe('TaskDialog', () => {
     expect(await screen.findByLabelText('Titel')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Aufgabe erstellen' })).toBeTruthy();
     expect(screen.getByLabelText('Fälligkeitsdatum').value).toBe('2026-10-16');
+  });
+
+  it('hands Cancel and Create to the host footer instead of drawing them', async () => {
+    const api = makeApi();
+    const setDialogButtons = vi.fn();
+    const onResult = vi.fn();
+    await act(async () => {
+      render(React.createElement(SlotPropsContext.Provider, { value: { setDialogButtons } },
+        React.createElement(TaskDialog, { api, emailIds: ['M1'], onResult })));
+    });
+    await screen.findByRole('option', { name: 'Bulwark inbox' });
+    // Nothing drawn in the frame: the host draws the footer.
+    expect(screen.queryByRole('button', { name: 'Create task' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
+    // While loading, Create was there but disabled; now it can be used.
+    expect(setDialogButtons.mock.calls[0][0][1]).toMatchObject({ id: 'create', disabled: true });
+    const last = setDialogButtons.mock.calls.at(-1)[0];
+    expect(last.map((b) => [b.id, b.label, b.variant])).toEqual([['cancel', 'Cancel', 'secondary'], ['create', 'Create task', 'primary']]);
+    expect(last[1].disabled).toBeFalsy();
+  });
+
+  it('closes with nothing on Cancel', async () => {
+    const api = makeApi();
+    const onResult = await open(api);
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(onResult).toHaveBeenCalledWith(null);
+    expect(api.calls('proxy.fetch').some((c) => c.args[2]?.method === 'PUT')).toBe(false);
+  });
+
+  it('creates a task only for the messages left ticked', async () => {
+    const api = makeApi();
+    const onResult = vi.fn();
+    await act(async () => { render(React.createElement(TaskDialog, { api, emailIds: ['M1', 'M2'], onResult })); });
+    await screen.findByRole('option', { name: 'Bulwark inbox' });
+    expect(screen.getByLabelText('Due date for “Contract draft”').value).toBe('2026-11-02');
+    const box = screen.getByRole('checkbox', { name: 'Create a task for “Re: Quarterly report”' });
+    expect(box.getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Create 2 tasks' })).toBeTruthy();
+    fireEvent.click(box);
+    expect(box.getAttribute('aria-checked')).toBe('false');
+    // An unticked message has no fields to fill in.
+    expect(screen.queryByLabelText('Task title for “Re: Quarterly report”')).toBeNull();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create task' })); });
+    await waitFor(() => expect(onResult).toHaveBeenCalledWith({ created: ['M2'] }));
+    const puts = api.calls('proxy.fetch').filter((c) => c.args[2]?.method === 'PUT');
+    expect(puts.map((c) => JSON.parse(c.args[2].body).title)).toEqual(['Contract draft']);
   });
 });

@@ -5,9 +5,9 @@
 // seeded mail other plugins rely on stays untouched), creates tasks through
 // the UI, checks them in the service and removes them again.
 
-import { test, expect, request as playwrightRequest } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import fs from 'node:fs';
-import { BASE, installPlugin, preparePage, setPluginConfig, shoot, signIn, uninstallPlugin, waitForPlugin } from '../../e2e/helpers.mjs';
+import { BASE, adminApi, installPlugin, preparePage, setPluginConfig, shoot, signIn, uninstallPlugin, waitForPlugin } from '../../e2e/helpers.mjs';
 
 const ID = 'email-to-task';
 const SECRETS = 'C:/Users/info/worktrees/plugins-audit/test-env/.secrets';
@@ -22,37 +22,6 @@ const RUN = Date.now().toString(36);
 test.describe.configure({ mode: 'serial' });
 
 // ─── Service helpers ──────────────────────────────────────────
-
-/**
- * Admin session. Sign-in is limited to 5 attempts per 15 minutes per address,
- * shared with every other test run on this machine, so the session cookie is
- * kept in the scratch folder and reused while it is valid.
- */
-const ADMIN_STATE = process.env.E2T_ADMIN_STATE || 'C:/Users/info/worktrees/plugin-audit-data/scratch-email-to-task/admin-state.json';
-
-async function adminApi() {
-  if (fs.existsSync(ADMIN_STATE)) {
-    const api = await playwrightRequest.newContext({ baseURL: BASE, storageState: ADMIN_STATE });
-    if ((await api.get('/api/admin/plugins')).ok()) return api;
-    await api.dispose();
-  }
-  const password = process.env.BULWARK_ADMIN_PASSWORD;
-  if (!password) throw new Error('Set BULWARK_ADMIN_PASSWORD');
-  const deadline = Date.now() + 17 * 60_000;
-  while (Date.now() < deadline) {
-    const api = await playwrightRequest.newContext({ baseURL: BASE });
-    const res = await api.post('/api/admin/auth', { data: { password } });
-    if (res.ok()) {
-      await api.storageState({ path: ADMIN_STATE });
-      return api;
-    }
-    await api.dispose();
-    if (res.status() !== 429) throw new Error(`Admin sign-in failed: HTTP ${res.status()}`);
-    const wait = Number(res.headers()['retry-after'] ?? 30);
-    await new Promise((r) => setTimeout(r, Math.min(wait, 120) * 1000 + Math.random() * 5000));
-  }
-  throw new Error('Admin sign-in still rate limited');
-}
 
 async function jmap(methodCalls, using = ['urn:ietf:params:jmap:core', 'urn:ietf:params:jmap:mail']) {
   const res = await fetch(`${STALWART}/jmap/`, {
@@ -163,6 +132,11 @@ async function openMessage(page, subject) {
   await expect(page.getByRole('heading', { name: subject }).first()).toBeVisible({ timeout: 30_000 });
 }
 
+/** A button in the dialog's footer, which the host draws for the plugin. */
+function footerButton(page, name) {
+  return page.locator('[data-plugin-dialog-buttons]').getByRole('button', { name, exact: true });
+}
+
 /** The plugin's button in the open message's toolbar. */
 function readerButton(page) {
   return page.locator('[data-plugin-actions="reader-actions"]').getByRole('button', { name: 'Create task' }).first();
@@ -238,8 +212,10 @@ test('reader: a message becomes a Vikunja task with a link back, and the row get
 
     await frame.getByLabel('Project').selectOption({ label: vikunjaSecrets.project });
     await frame.getByLabel('Priority').selectOption('high');
+    // One surface: the buttons sit in the host's footer, none in the frame.
+    await expect(frame.getByRole('button', { name: 'Create task' })).toHaveCount(0);
     await shoot(page, ID, 'dialog', 'light');
-    await frame.getByRole('button', { name: 'Create task' }).click();
+    await footerButton(page, 'Create task').click();
     await expect(page.getByText('Task created in Vikunja')).toBeVisible();
 
     const tasks = await vikunja(`/projects/${vikunjaSecrets.projectId}/tasks?s=${encodeURIComponent(RUN)}`);
@@ -261,7 +237,8 @@ test('reader: a message becomes a Vikunja task with a link back, and the row get
     // Asking again for the same message says there is a task already.
     await readerButton(page).click();
     await expect(frame.getByText(`This message already has a task in Vikunja: “Quarterly report ${RUN}”.`)).toBeVisible();
-    await frame.getByRole('button', { name: 'Cancel' }).click();
+    await footerButton(page, 'Cancel').click();
+    await expect(page.getByRole('dialog')).toBeHidden();
   } finally {
     if (taskId) await vikunja(`/tasks/${taskId}`, { method: 'DELETE' });
     await disconnectAll(page).catch(() => {});
@@ -278,7 +255,8 @@ test('row menu: a German message becomes a Todoist task with its German deadline
     await disconnectAll(page);
     const row = page.getByText(subject, { exact: true }).first();
     await expect(row).toBeVisible({ timeout: 60_000 });
-    await row.click({ button: 'right' });
+    // The left end: the row's hover buttons sit over the right part of the text.
+    await row.click({ button: 'right', position: { x: 4, y: 4 } });
     await page.getByRole('menuitem', { name: 'Create task' }).click();
 
     const frame = dialogFrame(page);
@@ -289,21 +267,16 @@ test('row menu: a German message becomes a Todoist task with its German deadline
     await expect(frame.getByLabel('Project')).toHaveValue('6Xt00000000inbox');
     await frame.getByLabel('Then').selectOption('read');
     await shoot(page, ID, 'dialog', 'dark');
-    await frame.getByRole('button', { name: 'Create task' }).click();
-    const done = page.getByText('Task created in Todoist');
-    const refused = frame.locator('.error[role="alert"]');
-    // The dialog sits in a frame, so .or() can't combine these.
-    await expect(async () => {
-      expect((await done.isVisible()) || (await refused.isVisible())).toBe(true);
-    }).toPass({ timeout: 20_000 });
-    if (await refused.isVisible()) {
-      // Older copies of the mock read only Content-Length bodies, and some
-      // host versions stream the body through the proxy: the user gets plain words.
-      await expect(refused).toHaveText('Todoist did not accept the task. Check the title and the due date.');
-      test.info().annotations.push({ type: 'pending', description: 'Todoist mock could not read the streamed body; restart bpt-mocks with the fixed server.py' });
-      await shoot(page, ID, 'error', 'dark');
-      return;
-    }
+    // Todoist refuses the first try: the dialog says so in plain words and
+    // keeps everything filled in, so the second try goes through.
+    const isCreate = (url) => url.pathname.endsWith('/api/plugin-proxy') && /\/tasks$/.test(url.searchParams.get('url') ?? '');
+    await page.route(isCreate, (route) => route.fulfill({ status: 400, contentType: 'application/json', body: '{"error":"invalid argument"}' }), { times: 1 });
+    await footerButton(page, 'Create task').click();
+    await expect(frame.getByRole('alert').filter({ hasText: 'Todoist' })).toHaveText('Todoist did not accept the task. Check the title and the due date.');
+    await shoot(page, ID, 'error', 'dark');
+    await page.unroute(isCreate);
+    await footerButton(page, 'Create task').click();
+    await expect(page.getByText('Task created in Todoist')).toBeVisible();
 
     const { results } = await todoist('/tasks');
     created = results.filter((x) => x.content === subject);
@@ -334,7 +307,15 @@ test('selection toolbar: two messages become two tasks in the CalDAV task list',
     // Select both rows (Ctrl+click), then use the selection toolbar.
     await page.getByText(subjects[0], { exact: true }).first().click({ modifiers: ['Control'], position: { x: 4, y: 4 } });
     await page.getByText(subjects[1], { exact: true }).first().click({ modifiers: ['Control'], position: { x: 4, y: 4 } });
-    await page.locator('[data-plugin-actions="message-bulk-actions"]').getByRole('button', { name: 'Create tasks' }).first().click();
+    // A narrow list keeps plugin actions behind the toolbar's "More actions".
+    const bulk = page.locator('[data-plugin-actions="message-bulk-actions"]').first();
+    await expect(bulk).toBeVisible();
+    if (await bulk.getAttribute('data-plugin-actions-overflow') !== null) {
+      await bulk.getByRole('button', { name: 'More actions' }).click();
+      await page.getByRole('menuitem', { name: 'Create tasks' }).click();
+    } else {
+      await bulk.getByRole('button', { name: 'Create tasks' }).click();
+    }
 
     const frame = dialogFrame(page);
     await frame.getByLabel('Add to').selectOption('caldav');
@@ -343,7 +324,7 @@ test('selection toolbar: two messages become two tasks in the CalDAV task list',
     await expect(frame.getByLabel('Task list')).toHaveValue(caldavSecrets.taskList);
     await expect(frame.getByLabel(`Due date for “${subjects[1]}”`)).toHaveValue('2026-11-02');
     await shoot(page, ID, 'bulk', 'light');
-    await frame.getByRole('button', { name: 'Create 2 tasks' }).click();
+    await footerButton(page, 'Create 2 tasks').click();
     await expect(page.getByText('2 tasks created in CalDAV')).toBeVisible();
 
     const mine = (await caldavTasks()).filter((x) => x.ics.includes(RUN));
@@ -362,6 +343,8 @@ test('selection toolbar: two messages become two tasks in the CalDAV task list',
 test('keyboard: Alt+Shift+T puts the open message into Bulwark tasks on the mail server', async ({ page }) => {
   const subject = `Pay the ACME invoice ${RUN}`;
   const emailId = await importMail({ subject, body: 'Invoice attached. Payment due 2026-11-15.', from: 'ACME <billing@acme.example>' });
+  const other = `Lunch on Friday ${RUN}`;
+  const otherId = await importMail({ subject: other, body: 'Shall we have lunch?', date: new Date(Date.now() - 60_000) });
   let mine = [];
   let tasks;
   try {
@@ -373,13 +356,21 @@ test('keyboard: Alt+Shift+T puts the open message into Bulwark tasks on the mail
     await expect(async () => {
       await page.getByRole('heading', { name: subject }).first().click();
       await page.keyboard.press('Alt+Shift+T');
-      await expect(frame.getByLabel('Add to')).toBeVisible({ timeout: 3000 });
-    }).toPass({ timeout: 30_000 });
+      try {
+        await expect(frame.getByLabel('Add to')).toBeVisible({ timeout: 3000 });
+      } catch (err) {
+        // The plugin can miss the message opening while it is still starting
+        // up ("Open a message first"): open another one and this one again.
+        await openMessage(page, other);
+        await openMessage(page, subject);
+        throw err;
+      }
+    }).toPass({ timeout: 45_000 });
     await expect(frame.getByLabel('Add to')).toBeVisible();
     // Stalwart keeps tasks in its calendars, so the target is offered and needs no account.
     await frame.getByLabel('Add to').selectOption('bulwark');
     await expect(frame.getByLabel('Due date')).toHaveValue('2026-11-15');
-    await frame.getByRole('button', { name: 'Create task' }).click();
+    await footerButton(page, 'Create task').click();
     await expect(page.getByText('Task created in Tasks (Bulwark)')).toBeVisible();
     tasks = await bulwarkTasks();
     mine = tasks.list.filter((x) => x.title === subject);
@@ -387,6 +378,6 @@ test('keyboard: Alt+Shift+T puts the open message into Bulwark tasks on the mail
     expect(String(mine[0].due)).toMatch(/^2026-11-15/);
   } finally {
     if (tasks && mine.length) await tasks.destroy(mine.map((x) => x.id));
-    await destroyMail([emailId]);
+    await destroyMail([emailId, otherId]);
   }
 });
