@@ -5,11 +5,13 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "build:check": "node scripts/build.mjs --check",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test -c e2e/playwright.config.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.1",
     "jszip": "^3.10.1",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "@playwright/test": "^1.59.1"
   }
 }
