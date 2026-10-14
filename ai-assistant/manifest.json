@@ -9,6 +9,7 @@
     "email:read",
     "http:proxy",
     "admin:config",
+    "ui:email-banner",
     "ui:composer-toolbar",
     "ui:settings-section"
   ],
@@ -196,7 +197,24 @@
       "grammar.accept_all": "Accept all",
       "grammar.done": "Done",
       "grammar.accept_label": "Accept: {from} → {to}",
-      "grammar.skip_label": "Keep: {from}"
+      "grammar.skip_label": "Keep: {from}",
+      "reader.toolbar": "AI assistant",
+      "reader.label": "AI",
+      "reader.summary": "Summarize",
+      "reader.actions": "To-dos and dates",
+      "reader.replies": "Reply ideas",
+      "reader.result.summary": "Summary",
+      "reader.result.actions": "To-dos and dates",
+      "reader.result.replies": "Reply ideas",
+      "reader.todos": "To-dos",
+      "reader.dates": "Dates",
+      "reader.nothing_to_do": "Nothing to do and no dates in this message.",
+      "reader.copy_list": "Copy list",
+      "reader.tasks_hint": "Paste it into your tasks, or use Make task if you have the Email to task plugin.",
+      "reader.use_reply": "Copy",
+      "reader.reply_copied": "Copied. Click Reply and paste it.",
+      "thread.summarize": "Summarize this conversation ({count} messages)",
+      "thread.title": "Conversation summary ({count} messages)"
     }
   }
 }

@@ -9,6 +9,7 @@ import { createBackground } from './lib/background.js';
 import { SettingsPanel } from './ui/SettingsPanel.jsx';
 import { ComposerButton } from './ui/Composer.jsx';
 import { Dialog } from './ui/Dialog.jsx';
+import { ReaderBar, ThreadSummary } from './ui/Reader.jsx';
 
 let background = null;
 const bg = () => background ?? { shouldShow: { reader: () => false, thread: () => false, composer: () => false }, hooks: {} };
@@ -25,6 +26,8 @@ export default {
     onEmailOpen: () => bg().hooks.onEmailOpen?.(),
   },
   slots: {
+    'email-banner': { component: ReaderBar, shouldShow: () => bg().shouldShow.reader() },
+    'thread-summary': { component: ThreadSummary, shouldShow: (ctx) => bg().shouldShow.thread(ctx) },
     'composer-toolbar': { component: ComposerButton, shouldShow: () => bg().shouldShow.composer() },
     'plugin-dialog': { component: Dialog },
     'settings-section': { component: SettingsPanel },
