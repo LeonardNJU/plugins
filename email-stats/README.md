@@ -1,17 +1,18 @@
 # Email Stats Plugin
 
-A sidebar widget that tracks email activity during your session.
+A sidebar section that tracks email activity.
 
 ## Features
 
 - Counts emails opened, sent, and received in the current session
 - Persists lifetime totals across sessions using plugin storage
 - Configurable via settings (toggle tracking of opens and sends)
-- Real-time counter updates in the sidebar widget
+- Counters as sidebar rows, the number where a folder shows its count
 
 ## Demonstrates
 
-- `api.ui.registerSidebarWidget()` — adding a React widget to the sidebar
+- `slots['sidebar-section']` — a section in the mail sidebar; the host draws its header
+- `@plugin-host/ui` — `SidebarRow` and `SidebarEmpty` from the app's UI kit
 - `api.hooks.onEmailOpen()` — tracking email opens
 - `api.hooks.onAfterEmailSend()` — tracking sent emails
 - `api.hooks.onNewEmailReceived()` — tracking incoming emails
