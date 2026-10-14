@@ -949,6 +949,12 @@ its buttons. At most 8 actions per surface. An action has:
 - `mimeTypes` (optional): show it only for attachments or files of these
   types; `image/` or `image/*` matches all images;
 - `danger` (optional): draw it in red;
+- `checked` (optional, the composer's Options and Send menus): draw the entry
+  as a check item, ticked or not, like the menu's own options; it stays open
+  on click, and ticked entries count in the Options badge. Call `setActions`
+  again with the new value after a click;
+- `description` (optional, menus): a second line under the label, up to 120
+  characters;
 - `shortcut` (optional, `composer-toolbar-actions` only): a key combination
   such as `Alt+A` that runs the action while the composer has focus. It needs
   Alt, Ctrl/Cmd+Shift or Ctrl/Cmd+Alt, shows in the button's tooltip and is
