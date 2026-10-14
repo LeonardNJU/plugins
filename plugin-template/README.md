@@ -36,6 +36,42 @@ Upload the ZIP via **Admin → Plugins** in Bulwark Mail.
 2. **src/index.js**: Keep the slot, hooks and settings you need and remove the rest
 3. **package.json**: Update `name` to match your plugin
 
+## Drawing UI
+
+Draw everything with the app's UI kit. It is the app's own set of controls,
+so your plugin looks like the rest of Bulwark in light, dark and custom
+themes:
+
+```js
+import { SidebarRow, Field, Input, DialogButtons } from '@plugin-host/ui';
+```
+
+The host provides the kit at run time, like React, so it is not bundled.
+The plugin iframe has CSS for kit components only: no Tailwind classes, no
+stylesheets of your own, no hard-coded colours. Lay things out with
+`Stack`, `Row`, `Text` and `Heading`.
+
+The template shows the common pieces:
+
+- a sidebar section (`sidebar-section`): the host draws the header, titled
+  with `api.ui.setSectionTitle`, and the plugin draws `SidebarRow`s,
+  `SidebarEmpty` and an "add" row with a plus
+- a dialog (`api.ui.openDialog` with the `plugin-dialog` slot): the body
+  starts with `Field`s, and the buttons go to the host's footer through
+  `DialogButtons`, Cancel first
+- a host-drawn command palette entry (`api.ui.setActions`): buttons and menu
+  entries on the app's surfaces are declared as data, not drawn in an iframe
+
+Reader banners use `InfoBar`, settings use `Section` and `SettingRow`, full
+pages use `Page` and `PageHeader`. Each component in the kit names the app
+screen it copies.
+
+## Tests
+
+`test/ui.test.mjs` renders the section and the dialog with a fake api
+(`test-utils/fake-api.mjs` in the plugins repo) and a stand-in for the kit.
+Run it with `npx vitest run plugin-template` from the repo root.
+
 ## Plugin Types
 
 - **`hook`** — Event-driven, no visible UI. Reacts to emails, calendar events, etc.
