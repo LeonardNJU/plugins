@@ -1,7 +1,7 @@
 {
   "id": "translate",
   "name": "Translate",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "author": "Bulwark Mail Community",
   "description": "Translate received emails into your preferred language using a free public translation API (MyMemory by default, LibreTranslate optional).",
   "type": "ui-extension",
