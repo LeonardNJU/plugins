@@ -308,3 +308,31 @@ for (const theme of ['light', 'dark']) {
     if (await confirm.isVisible().catch(() => false)) await confirm.click();
   });
 }
+
+// ─── World clock ─────────────────────────────────────────────
+
+for (const theme of ['light', 'dark']) {
+  test(`world clock in the sidebar, only when turned on (${theme})`, async ({ page }) => {
+    await preparePage(page, { theme });
+    await signIn(page);
+    await waitForPlugin(page, ID);
+    await setUserSettings(page, { 'World clock in the sidebar': false, 'Favourite time zones': 'New York, Tokyo', 'Your time zone': 'Europe/Berlin' });
+    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await waitForPlugin(page, ID);
+    await expect.poll(() => readMirror(page), { timeout: 60_000 }).not.toBe('');
+    await expect(page.locator(`[data-plugin-sidebar-section="${ID}"]`)).toHaveCount(0);
+
+    try {
+      await setUserSettings(page, { 'World clock in the sidebar': true, 'Your time zone': 'Europe/Berlin' });
+      await useTheme(page, theme);
+      await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+      const clock = slotFrame(page, 'sidebar-section');
+      await expect(clock.locator('[data-zone="Europe/Berlin"]')).toBeVisible({ timeout: 60_000 });
+      await expect(clock.locator('[data-zone="America/New_York"]')).toContainText('New York');
+      await expect(clock.locator('[data-zone="Asia/Tokyo"]')).toContainText(/\d{1,2}:\d\d/);
+      await shootThemed(page, 'world-clock', theme);
+    } finally {
+      await setUserSettings(page, { 'World clock in the sidebar': false, 'Your time zone': 'Europe/Berlin' });
+    }
+  });
+}

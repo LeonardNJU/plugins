@@ -9,9 +9,10 @@ import { mirrorSettings, readSettings } from './lib/settings.js';
 import { ComposeButton, ComposeDialog } from './ui/compose-time.jsx';
 import { EventZones } from './ui/event-zones.jsx';
 import { SenderDetails, SenderLine } from './ui/sender-time.jsx';
+import { WorldClock } from './ui/world-clock.jsx';
 import { SettingsSection } from './ui/settings-section.jsx';
 
-export const slots = {
+const ALWAYS = {
   'settings-section': { component: SettingsSection },
   'calendar-event-form': { component: EventZones },
   'reader-below-subject': {
@@ -32,6 +33,17 @@ export const slots = {
     shouldShow: (ctx) => ctx?.category === 'recipients_routing' && !!senderTime(ctx?.email, {}),
   },
 };
+
+/**
+ * The slots to offer. The world clock is off by default, and a sidebar
+ * section always shows its header, so it is only offered when the setting
+ * is on (read when the plugin starts; the setting says to reload the page).
+ */
+export function slotsFor(settings) {
+  return settings.worldClock ? { ...ALWAYS, 'sidebar-section': { component: WorldClock } } : { ...ALWAYS };
+}
+
+export const slots = slotsFor(readSettings(getApi()?.plugin?.settings ?? {}));
 
 export const hooks = {
   /** Adds "Outside 08:00–20:00 for …" to the event form's warnings. */

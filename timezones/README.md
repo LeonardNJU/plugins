@@ -77,6 +77,17 @@ selects the text and asks you to press Ctrl+C.
 ![Composer](screenshots/composer-light.png)
 ![Composer, dark](screenshots/composer-dark.png)
 
+## World clock
+
+Off by default. Turn on **World clock in the sidebar** in the settings and
+reload the page: a section in the mail sidebar then shows the time now in
+your zone and each favourite zone, with the UTC offset and "+1" or "−1"
+when that zone is already on another day. Zones outside working hours are
+dimmed. The time updates every 30 seconds.
+
+![World clock](screenshots/world-clock-light.png)
+![World clock, dark](screenshots/world-clock-dark.png)
+
 ## Permissions
 
 | Permission | Why |
@@ -87,6 +98,7 @@ selects the text and asks you to press Ctrl+C.
 | `ui:email-details` | The row in the message details. |
 | `email:read` | To read the open message's Date header and sender address. Nothing else of the message is used. |
 | `ui:composer-toolbar` | The button in the composer. The dialog it opens needs no permission of its own. |
+| `ui:sidebar-widget` | The world clock section in the mail sidebar (only offered when it is turned on). |
 | `calendar:read` | To see the event in the form (times, participants) and add the working-hours warning (onCheckEventConflicts). |
 
 ## Data

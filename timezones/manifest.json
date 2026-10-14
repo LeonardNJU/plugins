@@ -12,7 +12,8 @@
     "email:read",
     "ui:email-banner",
     "ui:email-details",
-    "ui:composer-toolbar"
+    "ui:composer-toolbar",
+    "ui:sidebar-widget"
   ],
   "entrypoint": "index.js",
   "minAppVersion": "1.14.2",
@@ -44,6 +45,12 @@
       "default": 20,
       "min": 1,
       "max": 24
+    },
+    "worldClock": {
+      "type": "boolean",
+      "label": "World clock in the sidebar",
+      "description": "Shows your favourite time zones below the folders. Reload the page after changing it.",
+      "default": false
     }
   },
   "locales": {
@@ -91,7 +98,9 @@
       "compose.copied": "Copied. Paste it into your message.",
       "compose.copyFailed": "Copying is blocked here. The text is selected: press Ctrl+C (⌘C on a Mac).",
       "compose.noZones": "Pick at least one time zone.",
-      "compose.close": "Close"
+      "compose.close": "Close",
+      "clock.heading": "World clock",
+      "clock.empty": "Add favourite time zones in Settings to see them here."
     },
     "ar": {
       "remove": "إزالة",
@@ -137,7 +146,9 @@
       "compose.copied": "تم النسخ. الصقه في رسالتك.",
       "compose.copyFailed": "النسخ محظور هنا. النص محدد: اضغط Ctrl+C (أو ⌘C على Mac).",
       "compose.noZones": "اختر منطقة زمنية واحدة على الأقل.",
-      "compose.close": "إغلاق"
+      "compose.close": "إغلاق",
+      "clock.heading": "الساعة العالمية",
+      "clock.empty": "أضف مناطق زمنية مفضلة في الإعدادات لتظهر هنا."
     },
     "ca": {
       "remove": "Elimina",
@@ -183,7 +194,9 @@
       "compose.copied": "Copiat. Enganxa’l al missatge.",
       "compose.copyFailed": "Aquí no es pot copiar. El text està seleccionat: prem Ctrl+C (⌘C al Mac).",
       "compose.noZones": "Tria almenys una zona horària.",
-      "compose.close": "Tanca"
+      "compose.close": "Tanca",
+      "clock.heading": "Rellotge mundial",
+      "clock.empty": "Afegeix zones horàries preferides a la Configuració per veure-les aquí."
     },
     "cs": {
       "remove": "Odstranit",
@@ -229,7 +242,9 @@
       "compose.copied": "Zkopírováno. Vložte ho do zprávy.",
       "compose.copyFailed": "Kopírování je zde blokováno. Text je označený: stiskněte Ctrl+C (⌘C na Macu).",
       "compose.noZones": "Vyberte alespoň jedno časové pásmo.",
-      "compose.close": "Zavřít"
+      "compose.close": "Zavřít",
+      "clock.heading": "Světové hodiny",
+      "clock.empty": "Přidejte oblíbená časová pásma v Nastavení, aby se zobrazila zde."
     },
     "da": {
       "remove": "Fjern",
@@ -275,7 +290,9 @@
       "compose.copied": "Kopieret. Indsæt den i din besked.",
       "compose.copyFailed": "Kopiering er blokeret her. Teksten er markeret: tryk Ctrl+C (⌘C på Mac).",
       "compose.noZones": "Vælg mindst én tidszone.",
-      "compose.close": "Luk"
+      "compose.close": "Luk",
+      "clock.heading": "Verdensur",
+      "clock.empty": "Tilføj foretrukne tidszoner i Indstillinger for at se dem her."
     },
     "de": {
       "remove": "Entfernen",
@@ -321,7 +338,9 @@
       "compose.copied": "Kopiert. Fügen Sie ihn in Ihre Nachricht ein.",
       "compose.copyFailed": "Kopieren ist hier blockiert. Der Text ist markiert: Drücken Sie Strg+C (⌘C auf dem Mac).",
       "compose.noZones": "Wählen Sie mindestens eine Zeitzone.",
-      "compose.close": "Schließen"
+      "compose.close": "Schließen",
+      "clock.heading": "Weltuhr",
+      "clock.empty": "Fügen Sie in den Einstellungen bevorzugte Zeitzonen hinzu, um sie hier zu sehen."
     },
     "es": {
       "remove": "Eliminar",
@@ -367,7 +386,9 @@
       "compose.copied": "Copiado. Pégalo en tu mensaje.",
       "compose.copyFailed": "Aquí no se puede copiar. El texto está seleccionado: pulsa Ctrl+C (⌘C en Mac).",
       "compose.noZones": "Elige al menos una zona horaria.",
-      "compose.close": "Cerrar"
+      "compose.close": "Cerrar",
+      "clock.heading": "Reloj mundial",
+      "clock.empty": "Añade zonas horarias favoritas en Configuración para verlas aquí."
     },
     "fa": {
       "remove": "حذف",
@@ -413,7 +434,9 @@
       "compose.copied": "کپی شد. آن را در پیامتان جای‌گذاری کنید.",
       "compose.copyFailed": "کپی در اینجا مسدود است. متن انتخاب شده است: Ctrl+C را بزنید (در Mac ‏⌘C).",
       "compose.noZones": "دست‌کم یک منطقهٔ زمانی انتخاب کنید.",
-      "compose.close": "بستن"
+      "compose.close": "بستن",
+      "clock.heading": "ساعت جهانی",
+      "clock.empty": "برای دیدن مناطق زمانی برگزیده در اینجا، آن‌ها را در تنظیمات اضافه کنید."
     },
     "fr": {
       "remove": "Supprimer",
@@ -459,7 +482,9 @@
       "compose.copied": "Copié. Collez-le dans votre message.",
       "compose.copyFailed": "La copie est bloquée ici. Le texte est sélectionné : appuyez sur Ctrl+C (⌘C sur Mac).",
       "compose.noZones": "Choisissez au moins un fuseau horaire.",
-      "compose.close": "Fermer"
+      "compose.close": "Fermer",
+      "clock.heading": "Horloge mondiale",
+      "clock.empty": "Ajoutez des fuseaux horaires favoris dans les Paramètres pour les voir ici."
     },
     "he": {
       "remove": "הסר",
@@ -505,7 +530,9 @@
       "compose.copied": "הועתק. הדביקו אותו בהודעה.",
       "compose.copyFailed": "ההעתקה חסומה כאן. הטקסט מסומן: הקישו Ctrl+C (‏⌘C ב-Mac).",
       "compose.noZones": "בחרו לפחות אזור זמן אחד.",
-      "compose.close": "סגירה"
+      "compose.close": "סגירה",
+      "clock.heading": "שעון עולמי",
+      "clock.empty": "הוסיפו אזורי זמן מועדפים בהגדרות כדי לראות אותם כאן."
     },
     "hu": {
       "remove": "Eltávolítás",
@@ -551,7 +578,9 @@
       "compose.copied": "Másolva. Illessze be az üzenetébe.",
       "compose.copyFailed": "A másolás itt le van tiltva. A szöveg ki van jelölve: nyomja meg a Ctrl+C billentyűt (Macen ⌘C).",
       "compose.noZones": "Válasszon legalább egy időzónát.",
-      "compose.close": "Bezárás"
+      "compose.close": "Bezárás",
+      "clock.heading": "Világóra",
+      "clock.empty": "Adjon hozzá kedvenc időzónákat a Beállításokban, hogy itt lássa őket."
     },
     "it": {
       "remove": "Rimuovi",
@@ -597,7 +626,9 @@
       "compose.copied": "Copiato. Incollalo nel messaggio.",
       "compose.copyFailed": "Qui la copia è bloccata. Il testo è selezionato: premi Ctrl+C (⌘C su Mac).",
       "compose.noZones": "Scegli almeno un fuso orario.",
-      "compose.close": "Chiudi"
+      "compose.close": "Chiudi",
+      "clock.heading": "Orologio mondiale",
+      "clock.empty": "Aggiungi fusi orari preferiti nelle Impostazioni per vederli qui."
     },
     "ja": {
       "remove": "削除",
@@ -643,7 +674,9 @@
       "compose.copied": "コピーしました。メッセージに貼り付けてください。",
       "compose.copyFailed": "ここではコピーできません。テキストを選択済みです: Ctrl+C（Mac は ⌘C）を押してください。",
       "compose.noZones": "タイムゾーンを 1 つ以上選んでください。",
-      "compose.close": "閉じる"
+      "compose.close": "閉じる",
+      "clock.heading": "世界時計",
+      "clock.empty": "設定でお気に入りのタイムゾーンを追加すると、ここに表示されます。"
     },
     "ko": {
       "remove": "삭제",
@@ -689,7 +722,9 @@
       "compose.copied": "복사했습니다. 메일에 붙여넣으세요.",
       "compose.copyFailed": "여기서는 복사가 차단되어 있습니다. 텍스트가 선택되어 있으니 Ctrl+C(Mac은 ⌘C)를 누르세요.",
       "compose.noZones": "시간대를 하나 이상 선택하세요.",
-      "compose.close": "닫기"
+      "compose.close": "닫기",
+      "clock.heading": "세계 시계",
+      "clock.empty": "설정에서 즐겨찾는 시간대를 추가하면 여기에 표시됩니다."
     },
     "lv": {
       "remove": "Noņemt",
@@ -735,7 +770,9 @@
       "compose.copied": "Nokopēts. Ielīmējiet to savā ziņojumā.",
       "compose.copyFailed": "Kopēšana šeit ir bloķēta. Teksts ir atlasīts: nospiediet Ctrl+C (Mac datorā ⌘C).",
       "compose.noZones": "Izvēlieties vismaz vienu laika joslu.",
-      "compose.close": "Aizvērt"
+      "compose.close": "Aizvērt",
+      "clock.heading": "Pasaules pulkstenis",
+      "clock.empty": "Pievienojiet izlases laika joslas iestatījumos, lai tās redzētu šeit."
     },
     "mn": {
       "remove": "Устгах",
@@ -781,7 +818,9 @@
       "compose.copied": "Хуулсан. Захидалдаа буулгана уу.",
       "compose.copyFailed": "Энд хуулах боломжгүй. Текст сонгогдсон: Ctrl+C дарна уу (Mac дээр ⌘C).",
       "compose.noZones": "Дор хаяж нэг цагийн бүс сонгоно уу.",
-      "compose.close": "Хаах"
+      "compose.close": "Хаах",
+      "clock.heading": "Дэлхийн цаг",
+      "clock.empty": "Энд харахын тулд Тохиргоо хэсэгт дуртай цагийн бүсүүдээ нэмнэ үү."
     },
     "nb": {
       "remove": "Fjern",
@@ -827,7 +866,9 @@
       "compose.copied": "Kopiert. Lim den inn i meldingen.",
       "compose.copyFailed": "Kopiering er blokkert her. Teksten er merket: trykk Ctrl+C (⌘C på Mac).",
       "compose.noZones": "Velg minst én tidssone.",
-      "compose.close": "Lukk"
+      "compose.close": "Lukk",
+      "clock.heading": "Verdensklokke",
+      "clock.empty": "Legg til favoritt-tidssoner i Innstillinger for å se dem her."
     },
     "nl": {
       "remove": "Verwijderen",
@@ -873,7 +914,9 @@
       "compose.copied": "Gekopieerd. Plak het in uw bericht.",
       "compose.copyFailed": "Kopiëren is hier geblokkeerd. De tekst is geselecteerd: druk op Ctrl+C (⌘C op een Mac).",
       "compose.noZones": "Kies minstens één tijdzone.",
-      "compose.close": "Sluiten"
+      "compose.close": "Sluiten",
+      "clock.heading": "Wereldklok",
+      "clock.empty": "Voeg favoriete tijdzones toe in Instellingen om ze hier te zien."
     },
     "pl": {
       "remove": "Usuń",
@@ -919,7 +962,9 @@
       "compose.copied": "Skopiowano. Wklej go do wiadomości.",
       "compose.copyFailed": "Kopiowanie jest tu zablokowane. Tekst jest zaznaczony: naciśnij Ctrl+C (⌘C na Macu).",
       "compose.noZones": "Wybierz co najmniej jedną strefę czasową.",
-      "compose.close": "Zamknij"
+      "compose.close": "Zamknij",
+      "clock.heading": "Zegar światowy",
+      "clock.empty": "Dodaj ulubione strefy czasowe w Ustawieniach, aby zobaczyć je tutaj."
     },
     "pt": {
       "remove": "Remover",
@@ -965,7 +1010,9 @@
       "compose.copied": "Copiado. Cole-o na sua mensagem.",
       "compose.copyFailed": "Copiar está bloqueado aqui. O texto está selecionado: pressione Ctrl+C (⌘C no Mac).",
       "compose.noZones": "Escolha pelo menos um fuso horário.",
-      "compose.close": "Fechar"
+      "compose.close": "Fechar",
+      "clock.heading": "Relógio mundial",
+      "clock.empty": "Adicione fusos horários favoritos nas Configurações para vê-los aqui."
     },
     "ro": {
       "remove": "Eliminați",
@@ -1011,7 +1058,9 @@
       "compose.copied": "Copiat. Lipiți-l în mesaj.",
       "compose.copyFailed": "Copierea este blocată aici. Textul este selectat: apăsați Ctrl+C (⌘C pe Mac).",
       "compose.noZones": "Alegeți cel puțin un fus orar.",
-      "compose.close": "Închide"
+      "compose.close": "Închide",
+      "clock.heading": "Ceas mondial",
+      "clock.empty": "Adăugați fusuri orare preferate în Setări pentru a le vedea aici."
     },
     "ru": {
       "remove": "Удалить",
@@ -1057,7 +1106,9 @@
       "compose.copied": "Скопировано. Вставьте текст в письмо.",
       "compose.copyFailed": "Копирование здесь заблокировано. Текст выделен: нажмите Ctrl+C (⌘C на Mac).",
       "compose.noZones": "Выберите хотя бы один часовой пояс.",
-      "compose.close": "Закрыть"
+      "compose.close": "Закрыть",
+      "clock.heading": "Мировые часы",
+      "clock.empty": "Добавьте избранные часовые пояса в Настройках, чтобы видеть их здесь."
     },
     "sk": {
       "remove": "Odstrániť",
@@ -1103,7 +1154,9 @@
       "compose.copied": "Skopírované. Vložte ho do správy.",
       "compose.copyFailed": "Kopírovanie je tu blokované. Text je označený: stlačte Ctrl+C (⌘C na Macu).",
       "compose.noZones": "Vyberte aspoň jedno časové pásmo.",
-      "compose.close": "Zavrieť"
+      "compose.close": "Zavrieť",
+      "clock.heading": "Svetové hodiny",
+      "clock.empty": "Pridajte obľúbené časové pásma v Nastaveniach, aby sa zobrazili tu."
     },
     "tr": {
       "remove": "Kaldır",
@@ -1149,7 +1202,9 @@
       "compose.copied": "Kopyalandı. İletinize yapıştırın.",
       "compose.copyFailed": "Burada kopyalama engelli. Metin seçili: Ctrl+C tuşlarına basın (Mac’te ⌘C).",
       "compose.noZones": "En az bir saat dilimi seçin.",
-      "compose.close": "Kapat"
+      "compose.close": "Kapat",
+      "clock.heading": "Dünya saati",
+      "clock.empty": "Burada görmek için Ayarlar’da favori saat dilimleri ekleyin."
     },
     "uk": {
       "remove": "Видалити",
@@ -1195,7 +1250,9 @@
       "compose.copied": "Скопійовано. Вставте текст у лист.",
       "compose.copyFailed": "Копіювання тут заблоковано. Текст виділено: натисніть Ctrl+C (⌘C на Mac).",
       "compose.noZones": "Виберіть хоча б один часовий пояс.",
-      "compose.close": "Закрити"
+      "compose.close": "Закрити",
+      "clock.heading": "Світовий годинник",
+      "clock.empty": "Додайте улюблені часові пояси в Налаштуваннях, щоб бачити їх тут."
     },
     "zh": {
       "remove": "移除",
@@ -1241,7 +1298,9 @@
       "compose.copied": "已复制。请粘贴到邮件中。",
       "compose.copyFailed": "此处无法复制。文本已选中：请按 Ctrl+C（Mac 上按 ⌘C）。",
       "compose.noZones": "请至少选择一个时区。",
-      "compose.close": "关闭"
+      "compose.close": "关闭",
+      "clock.heading": "世界时钟",
+      "clock.empty": "在设置中添加常用时区后会显示在这里。"
     },
     "zh-TW": {
       "remove": "移除",
@@ -1287,7 +1346,9 @@
       "compose.copied": "已複製。請貼到郵件中。",
       "compose.copyFailed": "這裡無法複製。文字已選取：請按 Ctrl+C（Mac 上按 ⌘C）。",
       "compose.noZones": "請至少選擇一個時區。",
-      "compose.close": "關閉"
+      "compose.close": "關閉",
+      "clock.heading": "世界時鐘",
+      "clock.empty": "在設定中新增常用時區後會顯示在這裡。"
     }
   }
 }
