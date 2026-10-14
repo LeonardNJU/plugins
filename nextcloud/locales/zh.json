@@ -117,5 +117,7 @@
   "files.linkReady": "链接已就绪。请从这里复制：",
   "files.linkLabel": "分享链接",
   "files.cantDownload": "网页邮箱不下载此类文件。请在 Nextcloud 中打开。",
-  "files.preparing": "正在获取 {name}…"
+  "files.preparing": "正在获取 {name}…",
+  "error.mail_rate_limited": "邮件服务器当前收到的请求过多。请等一分钟后重试。",
+  "error.mail_upload": "邮件服务器未接受该文件。"
 }

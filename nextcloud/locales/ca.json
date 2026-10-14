@@ -117,5 +117,7 @@
   "files.linkReady": "L'enllaç és a punt. Copieu-lo d'aquí:",
   "files.linkLabel": "Enllaç per compartir",
   "files.cantDownload": "El webmail no baixa aquest tipus de fitxer. Obriu-lo a Nextcloud.",
-  "files.preparing": "S'està obtenint {name}…"
+  "files.preparing": "S'està obtenint {name}…",
+  "error.mail_rate_limited": "El servidor de correu està rebent massa sol·licituds ara mateix. Espereu un minut i torneu-ho a provar.",
+  "error.mail_upload": "El servidor de correu no ha acceptat el fitxer."
 }

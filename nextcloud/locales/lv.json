@@ -117,5 +117,7 @@
   "files.linkReady": "Saite ir gatava. Nokopējiet to šeit:",
   "files.linkLabel": "Kopīgošanas saite",
   "files.cantDownload": "Tīmekļa pasts nelejupielādē šāda veida failus. Atveriet to Nextcloud.",
-  "files.preparing": "Iegūst {name}…"
+  "files.preparing": "Iegūst {name}…",
+  "error.mail_rate_limited": "Pasta serveris šobrīd saņem pārāk daudz pieprasījumu. Pagaidiet minūti un mēģiniet vēlreiz.",
+  "error.mail_upload": "Pasta serveris nepieņēma failu."
 }

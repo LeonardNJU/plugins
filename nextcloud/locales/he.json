@@ -117,5 +117,7 @@
   "files.linkReady": "הקישור מוכן. העתיקו אותו מכאן:",
   "files.linkLabel": "קישור לשיתוף",
   "files.cantDownload": "הדואר לא מוריד קבצים מהסוג הזה. פתחו אותו ב-Nextcloud.",
-  "files.preparing": "מוריד את {name}…"
+  "files.preparing": "מוריד את {name}…",
+  "error.mail_rate_limited": "שרת הדואר מקבל כרגע יותר מדי בקשות. חכו דקה ונסו שוב.",
+  "error.mail_upload": "שרת הדואר לא קיבל את הקובץ."
 }

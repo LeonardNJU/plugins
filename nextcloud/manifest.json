@@ -205,7 +205,9 @@
       "files.linkReady": "الرابط جاهز. انسخه من هنا:",
       "files.linkLabel": "رابط المشاركة",
       "files.cantDownload": "لا ينزّل البريد هذا النوع من الملفات. افتحه في Nextcloud بدلًا من ذلك.",
-      "files.preparing": "جارٍ جلب {name}…"
+      "files.preparing": "جارٍ جلب {name}…",
+      "error.mail_rate_limited": "يتلقى خادم البريد طلبات كثيرة جدًا الآن. انتظر دقيقة وحاول مرة أخرى.",
+      "error.mail_upload": "لم يقبل خادم البريد الملف."
     },
     "ca": {
       "common.cancel": "Cancel·la",
@@ -326,7 +328,9 @@
       "files.linkReady": "L'enllaç és a punt. Copieu-lo d'aquí:",
       "files.linkLabel": "Enllaç per compartir",
       "files.cantDownload": "El webmail no baixa aquest tipus de fitxer. Obriu-lo a Nextcloud.",
-      "files.preparing": "S'està obtenint {name}…"
+      "files.preparing": "S'està obtenint {name}…",
+      "error.mail_rate_limited": "El servidor de correu està rebent massa sol·licituds ara mateix. Espereu un minut i torneu-ho a provar.",
+      "error.mail_upload": "El servidor de correu no ha acceptat el fitxer."
     },
     "cs": {
       "common.cancel": "Zrušit",
@@ -447,7 +451,9 @@
       "files.linkReady": "Odkaz je připravený. Zkopírujte si ho zde:",
       "files.linkLabel": "Odkaz pro sdílení",
       "files.cantDownload": "Webmail tento typ souboru nestahuje. Otevřete ho v Nextcloudu.",
-      "files.preparing": "Načítá se {name}…"
+      "files.preparing": "Načítá se {name}…",
+      "error.mail_rate_limited": "Poštovní server teď dostává příliš mnoho požadavků. Počkejte minutu a zkuste to znovu.",
+      "error.mail_upload": "Poštovní server soubor nepřijal."
     },
     "da": {
       "common.cancel": "Annuller",
@@ -568,7 +574,9 @@
       "files.linkReady": "Linket er klar. Kopiér det herfra:",
       "files.linkLabel": "Delingslink",
       "files.cantDownload": "Webmailen downloader ikke denne filtype. Åbn den i Nextcloud i stedet.",
-      "files.preparing": "Henter {name}…"
+      "files.preparing": "Henter {name}…",
+      "error.mail_rate_limited": "Mailserveren får for mange forespørgsler lige nu. Vent et minut, og prøv igen.",
+      "error.mail_upload": "Mailserveren accepterede ikke filen."
     },
     "de": {
       "common.cancel": "Abbrechen",
@@ -689,7 +697,9 @@
       "files.linkReady": "Der Link ist fertig. Kopieren Sie ihn hier:",
       "files.linkLabel": "Link zum Teilen",
       "files.cantDownload": "Das Webmail lädt diesen Dateityp nicht herunter. Öffnen Sie die Datei stattdessen in Nextcloud.",
-      "files.preparing": "{name} wird geholt…"
+      "files.preparing": "{name} wird geholt…",
+      "error.mail_rate_limited": "Der E-Mail-Server bekommt gerade zu viele Anfragen. Warten Sie eine Minute und versuchen Sie es erneut.",
+      "error.mail_upload": "Der E-Mail-Server hat die Datei nicht angenommen."
     },
     "en": {
       "common.cancel": "Cancel",
@@ -810,7 +820,9 @@
       "files.linkReady": "The link is ready. Copy it from here:",
       "files.linkLabel": "Share link",
       "files.cantDownload": "The webmail doesn't download this type of file. Open it in Nextcloud instead.",
-      "files.preparing": "Getting {name}…"
+      "files.preparing": "Getting {name}…",
+      "error.mail_rate_limited": "The mail server is getting too many requests right now. Wait a minute and try again.",
+      "error.mail_upload": "The mail server didn't accept the file."
     },
     "es": {
       "common.cancel": "Cancelar",
@@ -931,7 +943,9 @@
       "files.linkReady": "El enlace está listo. Cópialo desde aquí:",
       "files.linkLabel": "Enlace para compartir",
       "files.cantDownload": "El webmail no descarga este tipo de archivo. Ábrelo en Nextcloud.",
-      "files.preparing": "Obteniendo {name}…"
+      "files.preparing": "Obteniendo {name}…",
+      "error.mail_rate_limited": "El servidor de correo está recibiendo demasiadas solicitudes ahora mismo. Espera un minuto y vuelve a intentarlo.",
+      "error.mail_upload": "El servidor de correo no aceptó el archivo."
     },
     "fa": {
       "common.cancel": "انصراف",
@@ -1052,7 +1066,9 @@
       "files.linkReady": "لینک آماده است. از اینجا کپی کنید:",
       "files.linkLabel": "لینک اشتراک‌گذاری",
       "files.cantDownload": "ایمیل این نوع فایل را دانلود نمی‌کند. به جای آن، فایل را در Nextcloud باز کنید.",
-      "files.preparing": "در حال دریافت {name}…"
+      "files.preparing": "در حال دریافت {name}…",
+      "error.mail_rate_limited": "سرور ایمیل در حال حاضر درخواست‌های زیادی دریافت می‌کند. یک دقیقه صبر کنید و دوباره امتحان کنید.",
+      "error.mail_upload": "سرور ایمیل فایل را نپذیرفت."
     },
     "fr": {
       "common.cancel": "Annuler",
@@ -1173,7 +1189,9 @@
       "files.linkReady": "Le lien est prêt. Copiez-le ici :",
       "files.linkLabel": "Lien de partage",
       "files.cantDownload": "La messagerie ne télécharge pas ce type de fichier. Ouvrez-le plutôt dans Nextcloud.",
-      "files.preparing": "Récupération de {name}…"
+      "files.preparing": "Récupération de {name}…",
+      "error.mail_rate_limited": "Le serveur de messagerie reçoit trop de requêtes en ce moment. Attendez une minute et réessayez.",
+      "error.mail_upload": "Le serveur de messagerie n'a pas accepté le fichier."
     },
     "he": {
       "common.cancel": "ביטול",
@@ -1294,7 +1312,9 @@
       "files.linkReady": "הקישור מוכן. העתיקו אותו מכאן:",
       "files.linkLabel": "קישור לשיתוף",
       "files.cantDownload": "הדואר לא מוריד קבצים מהסוג הזה. פתחו אותו ב-Nextcloud.",
-      "files.preparing": "מוריד את {name}…"
+      "files.preparing": "מוריד את {name}…",
+      "error.mail_rate_limited": "שרת הדואר מקבל כרגע יותר מדי בקשות. חכו דקה ונסו שוב.",
+      "error.mail_upload": "שרת הדואר לא קיבל את הקובץ."
     },
     "hu": {
       "common.cancel": "Mégse",
@@ -1415,7 +1435,9 @@
       "files.linkReady": "A link elkészült. Innen másolhatod:",
       "files.linkLabel": "Megosztási link",
       "files.cantDownload": "A webmail nem tölti le ezt a fájltípust. Nyisd meg inkább a Nextcloudban.",
-      "files.preparing": "{name} lekérése…"
+      "files.preparing": "{name} lekérése…",
+      "error.mail_rate_limited": "A levelezőszerver most túl sok kérést kap. Várj egy percet, és próbáld újra.",
+      "error.mail_upload": "A levelezőszerver nem fogadta el a fájlt."
     },
     "it": {
       "common.cancel": "Annulla",
@@ -1536,7 +1558,9 @@
       "files.linkReady": "Il link è pronto. Copialo da qui:",
       "files.linkLabel": "Link di condivisione",
       "files.cantDownload": "La webmail non scarica questo tipo di file. Aprilo in Nextcloud.",
-      "files.preparing": "Recupero di {name}…"
+      "files.preparing": "Recupero di {name}…",
+      "error.mail_rate_limited": "Il server di posta sta ricevendo troppe richieste in questo momento. Aspetta un minuto e riprova.",
+      "error.mail_upload": "Il server di posta non ha accettato il file."
     },
     "ja": {
       "common.cancel": "キャンセル",
@@ -1657,7 +1681,9 @@
       "files.linkReady": "リンクができました。ここからコピーしてください:",
       "files.linkLabel": "共有リンク",
       "files.cantDownload": "Web メールはこの種類のファイルをダウンロードしません。Nextcloud で開いてください。",
-      "files.preparing": "{name} を取得中…"
+      "files.preparing": "{name} を取得中…",
+      "error.mail_rate_limited": "メールサーバーへのリクエストが現在多すぎます。1 分待ってから、もう一度お試しください。",
+      "error.mail_upload": "メールサーバーがファイルを受け付けませんでした。"
     },
     "ko": {
       "common.cancel": "취소",
@@ -1778,7 +1804,9 @@
       "files.linkReady": "링크가 준비되었습니다. 여기서 복사하세요:",
       "files.linkLabel": "공유 링크",
       "files.cantDownload": "웹메일은 이 형식의 파일을 다운로드하지 않습니다. Nextcloud에서 여세요.",
-      "files.preparing": "{name} 가져오는 중…"
+      "files.preparing": "{name} 가져오는 중…",
+      "error.mail_rate_limited": "지금 메일 서버에 요청이 너무 많습니다. 1분 기다린 후 다시 시도하세요.",
+      "error.mail_upload": "메일 서버가 파일을 받아들이지 않았습니다."
     },
     "lv": {
       "common.cancel": "Atcelt",
@@ -1899,7 +1927,9 @@
       "files.linkReady": "Saite ir gatava. Nokopējiet to šeit:",
       "files.linkLabel": "Kopīgošanas saite",
       "files.cantDownload": "Tīmekļa pasts nelejupielādē šāda veida failus. Atveriet to Nextcloud.",
-      "files.preparing": "Iegūst {name}…"
+      "files.preparing": "Iegūst {name}…",
+      "error.mail_rate_limited": "Pasta serveris šobrīd saņem pārāk daudz pieprasījumu. Pagaidiet minūti un mēģiniet vēlreiz.",
+      "error.mail_upload": "Pasta serveris nepieņēma failu."
     },
     "mn": {
       "common.cancel": "Цуцлах",
@@ -2020,7 +2050,9 @@
       "files.linkReady": "Холбоос бэлэн боллоо. Эндээс хуулна уу:",
       "files.linkLabel": "Хуваалцах холбоос",
       "files.cantDownload": "Вэб мэйл ийм төрлийн файлыг татаж авдаггүй. Nextcloud-д нээнэ үү.",
-      "files.preparing": "{name}-г авч байна…"
+      "files.preparing": "{name}-г авч байна…",
+      "error.mail_rate_limited": "Мэйл сервер яг одоо хэт олон хүсэлт хүлээн авч байна. Нэг минут хүлээгээд дахин оролдоно уу.",
+      "error.mail_upload": "Мэйл сервер файлыг хүлээн авсангүй."
     },
     "nb": {
       "common.cancel": "Avbryt",
@@ -2141,7 +2173,9 @@
       "files.linkReady": "Lenken er klar. Kopier den herfra:",
       "files.linkLabel": "Delingslenke",
       "files.cantDownload": "Webmailen laster ikke ned denne filtypen. Åpne den i Nextcloud i stedet.",
-      "files.preparing": "Henter {name}…"
+      "files.preparing": "Henter {name}…",
+      "error.mail_rate_limited": "E-postserveren får for mange forespørsler akkurat nå. Vent et minutt og prøv igjen.",
+      "error.mail_upload": "E-postserveren godtok ikke filen."
     },
     "nl": {
       "common.cancel": "Annuleren",
@@ -2262,7 +2296,9 @@
       "files.linkReady": "De link is klaar. Kopieer hem hier:",
       "files.linkLabel": "Deellink",
       "files.cantDownload": "De webmail downloadt dit soort bestanden niet. Open het in Nextcloud.",
-      "files.preparing": "{name} ophalen…"
+      "files.preparing": "{name} ophalen…",
+      "error.mail_rate_limited": "De mailserver krijgt nu te veel verzoeken. Wacht een minuut en probeer het opnieuw.",
+      "error.mail_upload": "De mailserver heeft het bestand niet geaccepteerd."
     },
     "pl": {
       "common.cancel": "Anuluj",
@@ -2383,7 +2419,9 @@
       "files.linkReady": "Link jest gotowy. Skopiuj go stąd:",
       "files.linkLabel": "Link do udostępniania",
       "files.cantDownload": "Poczta nie pobiera plików tego typu. Otwórz go w Nextcloud.",
-      "files.preparing": "Pobieranie {name}…"
+      "files.preparing": "Pobieranie {name}…",
+      "error.mail_rate_limited": "Serwer poczty dostaje teraz za dużo żądań. Odczekaj minutę i spróbuj ponownie.",
+      "error.mail_upload": "Serwer poczty nie przyjął pliku."
     },
     "pt": {
       "common.cancel": "Cancelar",
@@ -2504,7 +2542,9 @@
       "files.linkReady": "O link está pronto. Copie daqui:",
       "files.linkLabel": "Link de compartilhamento",
       "files.cantDownload": "O webmail não baixa este tipo de arquivo. Abra-o no Nextcloud.",
-      "files.preparing": "Obtendo {name}…"
+      "files.preparing": "Obtendo {name}…",
+      "error.mail_rate_limited": "O servidor de e-mail está recebendo solicitações demais agora. Espere um minuto e tente de novo.",
+      "error.mail_upload": "O servidor de e-mail não aceitou o arquivo."
     },
     "ro": {
       "common.cancel": "Anulează",
@@ -2625,7 +2665,9 @@
       "files.linkReady": "Linkul este gata. Copiați-l de aici:",
       "files.linkLabel": "Link de partajare",
       "files.cantDownload": "Webmailul nu descarcă acest tip de fișier. Deschideți-l în Nextcloud.",
-      "files.preparing": "Se preia {name}…"
+      "files.preparing": "Se preia {name}…",
+      "error.mail_rate_limited": "Serverul de e-mail primește prea multe cereri acum. Așteptați un minut și încercați din nou.",
+      "error.mail_upload": "Serverul de e-mail nu a acceptat fișierul."
     },
     "ru": {
       "common.cancel": "Отмена",
@@ -2746,7 +2788,9 @@
       "files.linkReady": "Ссылка готова. Скопируйте её отсюда:",
       "files.linkLabel": "Ссылка для доступа",
       "files.cantDownload": "Веб-почта не скачивает файлы такого типа. Откройте файл в Nextcloud.",
-      "files.preparing": "Получаем {name}…"
+      "files.preparing": "Получаем {name}…",
+      "error.mail_rate_limited": "Почтовый сервер сейчас получает слишком много запросов. Подождите минуту и попробуйте снова.",
+      "error.mail_upload": "Почтовый сервер не принял файл."
     },
     "sk": {
       "common.cancel": "Zrušiť",
@@ -2867,7 +2911,9 @@
       "files.linkReady": "Odkaz je pripravený. Skopírujte si ho tu:",
       "files.linkLabel": "Odkaz na zdieľanie",
       "files.cantDownload": "Webmail tento typ súboru nesťahuje. Otvorte ho v Nextcloude.",
-      "files.preparing": "Načítava sa {name}…"
+      "files.preparing": "Načítava sa {name}…",
+      "error.mail_rate_limited": "Poštový server teraz dostáva príliš veľa požiadaviek. Počkajte minútu a skúste to znova.",
+      "error.mail_upload": "Poštový server súbor neprijal."
     },
     "tr": {
       "common.cancel": "İptal",
@@ -2988,7 +3034,9 @@
       "files.linkReady": "Bağlantı hazır. Buradan kopyalayın:",
       "files.linkLabel": "Paylaşım bağlantısı",
       "files.cantDownload": "Web posta bu dosya türünü indirmez. Dosyayı Nextcloud'da açın.",
-      "files.preparing": "{name} alınıyor…"
+      "files.preparing": "{name} alınıyor…",
+      "error.mail_rate_limited": "Posta sunucusu şu anda çok fazla istek alıyor. Bir dakika bekleyip tekrar deneyin.",
+      "error.mail_upload": "Posta sunucusu dosyayı kabul etmedi."
     },
     "uk": {
       "common.cancel": "Скасувати",
@@ -3109,7 +3157,9 @@
       "files.linkReady": "Посилання готове. Скопіюйте його звідси:",
       "files.linkLabel": "Посилання для доступу",
       "files.cantDownload": "Вебпошта не завантажує файли такого типу. Відкрийте файл у Nextcloud.",
-      "files.preparing": "Отримуємо {name}…"
+      "files.preparing": "Отримуємо {name}…",
+      "error.mail_rate_limited": "Поштовий сервер зараз отримує забагато запитів. Зачекайте хвилину і спробуйте ще раз.",
+      "error.mail_upload": "Поштовий сервер не прийняв файл."
     },
     "zh-TW": {
       "common.cancel": "取消",
@@ -3230,7 +3280,9 @@
       "files.linkReady": "連結已準備好。請從這裡複製：",
       "files.linkLabel": "分享連結",
       "files.cantDownload": "網頁郵件不會下載這類檔案。請在 Nextcloud 中開啟。",
-      "files.preparing": "正在取得 {name}…"
+      "files.preparing": "正在取得 {name}…",
+      "error.mail_rate_limited": "郵件伺服器目前收到太多要求。請等一分鐘後再試一次。",
+      "error.mail_upload": "郵件伺服器未接受這個檔案。"
     },
     "zh": {
       "common.cancel": "取消",
@@ -3351,7 +3403,9 @@
       "files.linkReady": "链接已就绪。请从这里复制：",
       "files.linkLabel": "分享链接",
       "files.cantDownload": "网页邮箱不下载此类文件。请在 Nextcloud 中打开。",
-      "files.preparing": "正在获取 {name}…"
+      "files.preparing": "正在获取 {name}…",
+      "error.mail_rate_limited": "邮件服务器当前收到的请求过多。请等一分钟后重试。",
+      "error.mail_upload": "邮件服务器未接受该文件。"
     }
   }
 }

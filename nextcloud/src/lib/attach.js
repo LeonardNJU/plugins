@@ -2,7 +2,7 @@
 // attachments (downloaded, uploaded to the mail server, handed to the
 // composer) or as share links.
 
-import { NcError, errorFromException } from './errors.js';
+import { NcError, mailError } from './errors.js';
 
 function randomId() {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -27,7 +27,7 @@ export async function attachEntries(api, client, entries, { onAttach, onProgress
     try {
       blob = await api.jmap.uploadBlob(bytes, entry.name, type);
     } catch (err) {
-      throw errorFromException(err, signal);
+      throw mailError(err, signal);
     }
     const ok = await onAttach({ blobId: blob.blobId, name: entry.name, type: blob.type || type, size: blob.size ?? bytes.byteLength });
     if (ok === false) throw new NcError('attach_refused', { detail: entry.name });

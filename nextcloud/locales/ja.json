@@ -117,5 +117,7 @@
   "files.linkReady": "リンクができました。ここからコピーしてください:",
   "files.linkLabel": "共有リンク",
   "files.cantDownload": "Web メールはこの種類のファイルをダウンロードしません。Nextcloud で開いてください。",
-  "files.preparing": "{name} を取得中…"
+  "files.preparing": "{name} を取得中…",
+  "error.mail_rate_limited": "メールサーバーへのリクエストが現在多すぎます。1 分待ってから、もう一度お試しください。",
+  "error.mail_upload": "メールサーバーがファイルを受け付けませんでした。"
 }

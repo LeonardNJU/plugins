@@ -117,5 +117,7 @@
   "files.linkReady": "링크가 준비되었습니다. 여기서 복사하세요:",
   "files.linkLabel": "공유 링크",
   "files.cantDownload": "웹메일은 이 형식의 파일을 다운로드하지 않습니다. Nextcloud에서 여세요.",
-  "files.preparing": "{name} 가져오는 중…"
+  "files.preparing": "{name} 가져오는 중…",
+  "error.mail_rate_limited": "지금 메일 서버에 요청이 너무 많습니다. 1분 기다린 후 다시 시도하세요.",
+  "error.mail_upload": "메일 서버가 파일을 받아들이지 않았습니다."
 }

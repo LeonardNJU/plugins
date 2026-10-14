@@ -117,5 +117,7 @@
   "files.linkReady": "Link jest gotowy. Skopiuj go stąd:",
   "files.linkLabel": "Link do udostępniania",
   "files.cantDownload": "Poczta nie pobiera plików tego typu. Otwórz go w Nextcloud.",
-  "files.preparing": "Pobieranie {name}…"
+  "files.preparing": "Pobieranie {name}…",
+  "error.mail_rate_limited": "Serwer poczty dostaje teraz za dużo żądań. Odczekaj minutę i spróbuj ponownie.",
+  "error.mail_upload": "Serwer poczty nie przyjął pliku."
 }

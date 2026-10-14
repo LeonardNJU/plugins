@@ -117,5 +117,7 @@
   "files.linkReady": "Il link è pronto. Copialo da qui:",
   "files.linkLabel": "Link di condivisione",
   "files.cantDownload": "La webmail non scarica questo tipo di file. Aprilo in Nextcloud.",
-  "files.preparing": "Recupero di {name}…"
+  "files.preparing": "Recupero di {name}…",
+  "error.mail_rate_limited": "Il server di posta sta ricevendo troppe richieste in questo momento. Aspetta un minuto e riprova.",
+  "error.mail_upload": "Il server di posta non ha accettato il file."
 }

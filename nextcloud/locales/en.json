@@ -117,5 +117,7 @@
   "files.linkReady": "The link is ready. Copy it from here:",
   "files.linkLabel": "Share link",
   "files.cantDownload": "The webmail doesn't download this type of file. Open it in Nextcloud instead.",
-  "files.preparing": "Getting {name}…"
+  "files.preparing": "Getting {name}…",
+  "error.mail_rate_limited": "The mail server is getting too many requests right now. Wait a minute and try again.",
+  "error.mail_upload": "The mail server didn't accept the file."
 }

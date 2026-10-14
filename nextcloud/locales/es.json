@@ -117,5 +117,7 @@
   "files.linkReady": "El enlace está listo. Cópialo desde aquí:",
   "files.linkLabel": "Enlace para compartir",
   "files.cantDownload": "El webmail no descarga este tipo de archivo. Ábrelo en Nextcloud.",
-  "files.preparing": "Obteniendo {name}…"
+  "files.preparing": "Obteniendo {name}…",
+  "error.mail_rate_limited": "El servidor de correo está recibiendo demasiadas solicitudes ahora mismo. Espera un minuto y vuelve a intentarlo.",
+  "error.mail_upload": "El servidor de correo no aceptó el archivo."
 }

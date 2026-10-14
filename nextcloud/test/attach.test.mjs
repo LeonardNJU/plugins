@@ -61,6 +61,13 @@ describe('attaching files from Nextcloud', () => {
     ]);
     expect(new Set(links.map((l) => l.id)).size).toBe(2);
   });
+
+  it('blames the mail server, not Nextcloud, when it refuses the upload', async () => {
+    const limited = fakeApi({ handlers: { 'jmap.uploadBlob': async () => { throw new Error('Rate limited by server'); } } });
+    await expect(attachEntries(limited, fakeClient(), entries, { onAttach: async () => true })).rejects.toMatchObject({ code: 'mail_rate_limited' });
+    const broken = fakeApi({ handlers: { 'jmap.uploadBlob': async () => { throw new Error('Upload failed: 500'); } } });
+    await expect(attachEntries(broken, fakeClient(), entries, { onAttach: async () => true })).rejects.toMatchObject({ code: 'mail_upload', detail: 'Upload failed: 500' });
+  });
 });
 
 describe('the composer button', () => {

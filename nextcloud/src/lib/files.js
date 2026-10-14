@@ -1,7 +1,7 @@
 // Actions of the Files page that don't need React: download a file to the
 // computer, attach it to a new message, upload with resume.
 
-import { NcError, errorFromException } from './errors.js';
+import { NcError, errorFromException, mailError } from './errors.js';
 
 // What the host refuses to hand out from a plugin (see ui.downloadFile).
 const BLOCKED_EXT = new Set(['exe', 'msi', 'bat', 'cmd', 'com', 'scr', 'ps1', 'vbs', 'vbe', 'js', 'jse', 'wsf', 'hta', 'jar',
@@ -34,7 +34,7 @@ export async function attachToNewMessage(api, client, entry, { onProgress, signa
   try {
     blob = await api.jmap.uploadBlob(bytes, entry.name, type);
   } catch (err) {
-    throw errorFromException(err, signal);
+    throw mailError(err, signal);
   }
   return api.compose.open({
     attachments: [{ blobId: blob.blobId, name: entry.name, type: blob.type || type, size: blob.size ?? bytes.byteLength }],

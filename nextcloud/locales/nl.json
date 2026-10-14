@@ -117,5 +117,7 @@
   "files.linkReady": "De link is klaar. Kopieer hem hier:",
   "files.linkLabel": "Deellink",
   "files.cantDownload": "De webmail downloadt dit soort bestanden niet. Open het in Nextcloud.",
-  "files.preparing": "{name} ophalen…"
+  "files.preparing": "{name} ophalen…",
+  "error.mail_rate_limited": "De mailserver krijgt nu te veel verzoeken. Wacht een minuut en probeer het opnieuw.",
+  "error.mail_upload": "De mailserver heeft het bestand niet geaccepteerd."
 }

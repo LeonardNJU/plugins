@@ -117,5 +117,7 @@
   "files.linkReady": "Der Link ist fertig. Kopieren Sie ihn hier:",
   "files.linkLabel": "Link zum Teilen",
   "files.cantDownload": "Das Webmail lädt diesen Dateityp nicht herunter. Öffnen Sie die Datei stattdessen in Nextcloud.",
-  "files.preparing": "{name} wird geholt…"
+  "files.preparing": "{name} wird geholt…",
+  "error.mail_rate_limited": "Der E-Mail-Server bekommt gerade zu viele Anfragen. Warten Sie eine Minute und versuchen Sie es erneut.",
+  "error.mail_upload": "Der E-Mail-Server hat die Datei nicht angenommen."
 }

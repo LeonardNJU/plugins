@@ -117,5 +117,7 @@
   "files.linkReady": "Odkaz je pripravený. Skopírujte si ho tu:",
   "files.linkLabel": "Odkaz na zdieľanie",
   "files.cantDownload": "Webmail tento typ súboru nesťahuje. Otvorte ho v Nextcloude.",
-  "files.preparing": "Načítava sa {name}…"
+  "files.preparing": "Načítava sa {name}…",
+  "error.mail_rate_limited": "Poštový server teraz dostáva príliš veľa požiadaviek. Počkajte minútu a skúste to znova.",
+  "error.mail_upload": "Poštový server súbor neprijal."
 }

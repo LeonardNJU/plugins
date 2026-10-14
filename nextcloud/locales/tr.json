@@ -117,5 +117,7 @@
   "files.linkReady": "Bağlantı hazır. Buradan kopyalayın:",
   "files.linkLabel": "Paylaşım bağlantısı",
   "files.cantDownload": "Web posta bu dosya türünü indirmez. Dosyayı Nextcloud'da açın.",
-  "files.preparing": "{name} alınıyor…"
+  "files.preparing": "{name} alınıyor…",
+  "error.mail_rate_limited": "Posta sunucusu şu anda çok fazla istek alıyor. Bir dakika bekleyip tekrar deneyin.",
+  "error.mail_upload": "Posta sunucusu dosyayı kabul etmedi."
 }

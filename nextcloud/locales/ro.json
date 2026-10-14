@@ -117,5 +117,7 @@
   "files.linkReady": "Linkul este gata. Copiați-l de aici:",
   "files.linkLabel": "Link de partajare",
   "files.cantDownload": "Webmailul nu descarcă acest tip de fișier. Deschideți-l în Nextcloud.",
-  "files.preparing": "Se preia {name}…"
+  "files.preparing": "Se preia {name}…",
+  "error.mail_rate_limited": "Serverul de e-mail primește prea multe cereri acum. Așteptați un minut și încercați din nou.",
+  "error.mail_upload": "Serverul de e-mail nu a acceptat fișierul."
 }

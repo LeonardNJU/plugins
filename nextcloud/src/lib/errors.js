@@ -18,7 +18,7 @@ export class NcError extends Error {
 export const ERROR_CODES = [
   'not_connected', 'auth', 'forbidden', 'share_forbidden', 'not_found', 'exists', 'quota', 'too_large',
   'locked', 'rate_limited', 'timeout', 'unreachable', 'blocked', 'maintenance', 'server', 'cancelled',
-  'wrong_server', 'login_expired', 'bad_answer', 'rejected', 'attach_refused', 'unknown',
+  'wrong_server', 'login_expired', 'bad_answer', 'rejected', 'attach_refused', 'mail_rate_limited', 'mail_upload', 'unknown',
 ];
 
 // The proxy marks its own refusals with x-bulwark-proxy-error.
@@ -86,9 +86,21 @@ export function errorFromException(err, signal) {
   if (/cancel|abort/i.test(message)) return new NcError('cancelled');
   if (/timed out/i.test(message)) return new NcError('timeout');
   if (/larger than/i.test(message)) return new NcError('too_large');
-  if (/at most \d+ proxy requests/i.test(message)) return new NcError('rate_limited');
+  if (/at most \d+ proxy requests|rate.?limit|too many requests/i.test(message)) return new NcError('rate_limited');
   if (/network/i.test(message)) return new NcError('unreachable');
   return new NcError('unknown', { detail: message.slice(0, 200) });
+}
+
+/**
+ * An exception from the mail server side (api.jmap.uploadBlob): these are
+ * not Nextcloud's fault, so they get their own messages.
+ */
+export function mailError(err, signal) {
+  if (signal?.aborted) return new NcError('cancelled');
+  const message = String(err?.message ?? err ?? '');
+  if (/rate.?limit|too many requests|429/i.test(message)) return new NcError('mail_rate_limited');
+  if (/larger than|too large|413/i.test(message)) return new NcError('too_large');
+  return new NcError('mail_upload', { detail: message.slice(0, 200) });
 }
 
 /** Whether the user should be offered to sign in again. */
@@ -104,6 +116,6 @@ export function needsSignIn(err) {
 export function errorText(t, err) {
   const e = err instanceof NcError ? err : errorFromException(err);
   const text = t(`error.${ERROR_CODES.includes(e.code) ? e.code : 'unknown'}`);
-  const withDetail = ['forbidden', 'share_forbidden', 'rejected', 'unknown', 'bad_answer'].includes(e.code) && e.detail;
+  const withDetail = ['forbidden', 'share_forbidden', 'rejected', 'unknown', 'bad_answer', 'mail_upload'].includes(e.code) && e.detail;
   return withDetail ? `${text} (${e.detail})` : text;
 }

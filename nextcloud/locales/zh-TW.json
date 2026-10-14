@@ -117,5 +117,7 @@
   "files.linkReady": "連結已準備好。請從這裡複製：",
   "files.linkLabel": "分享連結",
   "files.cantDownload": "網頁郵件不會下載這類檔案。請在 Nextcloud 中開啟。",
-  "files.preparing": "正在取得 {name}…"
+  "files.preparing": "正在取得 {name}…",
+  "error.mail_rate_limited": "郵件伺服器目前收到太多要求。請等一分鐘後再試一次。",
+  "error.mail_upload": "郵件伺服器未接受這個檔案。"
 }

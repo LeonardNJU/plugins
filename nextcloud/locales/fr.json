@@ -117,5 +117,7 @@
   "files.linkReady": "Le lien est prêt. Copiez-le ici :",
   "files.linkLabel": "Lien de partage",
   "files.cantDownload": "La messagerie ne télécharge pas ce type de fichier. Ouvrez-le plutôt dans Nextcloud.",
-  "files.preparing": "Récupération de {name}…"
+  "files.preparing": "Récupération de {name}…",
+  "error.mail_rate_limited": "Le serveur de messagerie reçoit trop de requêtes en ce moment. Attendez une minute et réessayez.",
+  "error.mail_upload": "Le serveur de messagerie n'a pas accepté le fichier."
 }

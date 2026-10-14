@@ -117,5 +117,7 @@
   "files.linkReady": "الرابط جاهز. انسخه من هنا:",
   "files.linkLabel": "رابط المشاركة",
   "files.cantDownload": "لا ينزّل البريد هذا النوع من الملفات. افتحه في Nextcloud بدلًا من ذلك.",
-  "files.preparing": "جارٍ جلب {name}…"
+  "files.preparing": "جارٍ جلب {name}…",
+  "error.mail_rate_limited": "يتلقى خادم البريد طلبات كثيرة جدًا الآن. انتظر دقيقة وحاول مرة أخرى.",
+  "error.mail_upload": "لم يقبل خادم البريد الملف."
 }

@@ -117,5 +117,7 @@
   "files.linkReady": "Lenken er klar. Kopier den herfra:",
   "files.linkLabel": "Delingslenke",
   "files.cantDownload": "Webmailen laster ikke ned denne filtypen. Åpne den i Nextcloud i stedet.",
-  "files.preparing": "Henter {name}…"
+  "files.preparing": "Henter {name}…",
+  "error.mail_rate_limited": "E-postserveren får for mange forespørsler akkurat nå. Vent et minutt og prøv igjen.",
+  "error.mail_upload": "E-postserveren godtok ikke filen."
 }

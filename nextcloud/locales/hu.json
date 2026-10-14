@@ -117,5 +117,7 @@
   "files.linkReady": "A link elkészült. Innen másolhatod:",
   "files.linkLabel": "Megosztási link",
   "files.cantDownload": "A webmail nem tölti le ezt a fájltípust. Nyisd meg inkább a Nextcloudban.",
-  "files.preparing": "{name} lekérése…"
+  "files.preparing": "{name} lekérése…",
+  "error.mail_rate_limited": "A levelezőszerver most túl sok kérést kap. Várj egy percet, és próbáld újra.",
+  "error.mail_upload": "A levelezőszerver nem fogadta el a fájlt."
 }

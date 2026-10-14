@@ -39,6 +39,8 @@ describe('errors', () => {
     expect(errorFromException(new Error('API call proxy.fetch timed out after 30s')).code).toBe('timeout');
     expect(errorFromException(new Error('Network error')).code).toBe('unreachable');
     expect(errorFromException(new Error('At most 8 proxy requests at once')).code).toBe('rate_limited');
+    // The mail server refusing an attachment upload (jmap.uploadBlob).
+    expect(errorFromException(new Error('Rate limited by server')).code).toBe('rate_limited');
     const ctrl = new AbortController();
     ctrl.abort();
     expect(errorFromException(new Error('whatever'), ctrl.signal).code).toBe('cancelled');
