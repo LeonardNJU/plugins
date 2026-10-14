@@ -1,6 +1,7 @@
 # Birthday reminders
 
-Shows upcoming birthdays from your contacts in the mail sidebar.
+Shows upcoming birthdays from your contacts in the mail sidebar and reminds
+you of them.
 
 ## What it does
 
@@ -8,6 +9,15 @@ Shows upcoming birthdays from your contacts in the mail sidebar.
   first: "Today · October 14 · turns 36". It reads every address book of your
   account, refreshes every 10 minutes and when you come back to the tab. Five
   rows are shown, the rest behind "Show all".
+- **Reminders.** A notification on the day ("It's Ada's birthday today") and
+  one when the birthday comes within 3 days (setting; "Ben's birthday is in 2
+  days"). Each contact gets at most one reminder a day, and the early one only
+  once per birthday, also with several tabs open. More than three at once are
+  summed up in one notification ("Birthdays today: Ada, Ben, ..."). It is a
+  system notification when you allowed them for the webmail, otherwise a toast.
+  Reminders are checked when the webmail starts, when the day changes, every
+  hour and a few seconds after you change a contact, so the webmail has to be
+  open for them; the plugin can't remind you while it is closed.
 
 ## Dates
 
@@ -23,6 +33,8 @@ Shows upcoming birthdays from your contacts in the mail sidebar.
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | Show birthdays in the next … days | 30 | How far ahead the sidebar list looks (1-365). |
+| Birthday reminders | on | Notifications on the day and a few days before. |
+| Remind me … days before | 3 | When the early reminder comes (0-30). 0 leaves only the one on the day. |
 
 ## Permissions
 
@@ -30,11 +42,16 @@ Shows upcoming birthdays from your contacts in the mail sidebar.
 | --- | --- |
 | `contacts:read` | Read the birthdays of your contacts. |
 | `ui:sidebar-widget` | Show the list in the mail sidebar. |
+| `ui:notifications` | Show the reminders. |
+
+The plugin also uses the app lifecycle hooks (start, once a minute), which
+every plugin has.
 
 ## Privacy
 
 The plugin sends nothing anywhere. It reads your contacts through the webmail
-and keeps no copy of them.
+and keeps no copy of them; the only thing it stores (in this browser) is which
+reminders it has shown, by contact id and date.
 
 ## Development
 
