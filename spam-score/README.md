@@ -4,7 +4,8 @@ Adds a **Spam Analysis** section to a message's **More details** panel, built
 entirely from the message's own spam-filter headers.
 
 When you expand *More details* on a message that was scored by a spam filter,
-this plugin shows a colour-coded breakdown:
+this plugin shows a breakdown, with the verdict as a status badge in the
+theme's success, warning or danger colour:
 
 - **Verdict** — Clean / Suspicious / Spam
 - **Score** — the filter score and the spam threshold (e.g. `1.50 / 5.00`)

@@ -21,7 +21,8 @@
  * `props` (the email view + the category). It never calls the plugin API.
  */
 
-const { createElement: h } = require('react');
+import { createElement as h } from 'react';
+import { Badge, Row, Stack, Text } from '@plugin-host/ui';
 
 // ─── Header access ────────────────────────────────────────────
 
@@ -142,160 +143,50 @@ function parseSpam(headers) {
   };
 }
 
-// ─── Presentation helpers ─────────────────────────────────────
+// ─── Presentation ─────────────────────────────────────────────
+//
+// Drawn with the app's UI kit, in the style of the details panel around it:
+// a small caps heading, then label / value rows; the verdict is a status
+// badge in the theme's success, warning or danger colour.
 
-const VERDICT_COLOR = {
-  clean: 'var(--color-success, #16a34a)',
-  suspicious: 'var(--color-warning, #f59e0b)',
-  spam: 'var(--color-destructive, #dc2626)',
-};
+const VERDICT_TONE = { clean: 'success', suspicious: 'warning', spam: 'danger' };
 const VERDICT_LABEL = { clean: 'Clean', suspicious: 'Suspicious', spam: 'Spam' };
 
-function Row(label, value, opts) {
-  const mono = opts && opts.mono;
-  return h(
-    'div',
-    {
-      style: {
-        display: 'grid',
-        gridTemplateColumns: '7rem 1fr',
-        columnGap: '1rem',
-        rowGap: 0,
-        alignItems: 'baseline',
-      },
-    },
-    h(
-      'dt',
-      { style: { fontSize: '12px', color: 'var(--color-muted-foreground)', paddingTop: '2px' } },
-      label,
-    ),
-    h(
-      'dd',
-      {
-        style: {
-          margin: 0,
-          minWidth: 0,
-          fontSize: mono ? '12px' : '14px',
-          fontFamily: mono ? 'var(--font-mono, ui-monospace, monospace)' : 'inherit',
-          color: 'var(--color-foreground)',
-          wordBreak: 'break-word',
-        },
-      },
-      value,
-    ),
-  );
+// The panel's label column is 7rem wide; the kit has no definition-list
+// row, so the label gets that width here (layout only, no colours).
+const LABEL_COLUMN = { width: '7rem', flexShrink: 0 };
+
+function Field(label, value) {
+  return h(Row, { key: label, gap: 4, wrap: false, align: 'baseline' },
+    h('div', { style: LABEL_COLUMN }, h(Text, { size: 'xs', tone: 'muted' }, label)),
+    h('div', { style: { minWidth: 0 } }, value));
 }
 
-function SpamSection(props) {
+/** The rows for a parsed verdict, as [label, value-element]. Exported for tests. */
+export function spamRows(spam) {
+  const rows = [];
+  rows.push(['Verdict', h(Badge, { tone: VERDICT_TONE[spam.verdict] || 'neutral' }, VERDICT_LABEL[spam.verdict] || spam.verdict)]);
+  if (typeof spam.score === 'number') {
+    const threshold = typeof spam.required === 'number' ? ` / ${spam.required.toFixed(2)} threshold` : '';
+    rows.push(['Score', h(Text, null, `${spam.score.toFixed(2)}${threshold}`)]);
+  }
+  if (typeof spam.stars === 'number' && spam.stars > 0) rows.push(['Level', h(Text, null, '★'.repeat(spam.stars))]);
+  if (spam.action) rows.push(['Action', h(Text, null, spam.action)]);
+  if (spam.llm) {
+    rows.push(['AI verdict', h(Text, null, spam.llm.explanation ? `${spam.llm.verdict} · ${spam.llm.explanation}` : spam.llm.verdict)]);
+  }
+  // The exact header we parsed — proof we're reading raw source.
+  if (spam.raw) rows.push(['Header', h(Text, { size: 'xs' }, spam.raw)]);
+  return rows;
+}
+
+export function SpamSection(props) {
   const email = props && props.email;
   const spam = email ? parseSpam(email.headers) : null;
   if (!spam) return null;
-
-  const color = VERDICT_COLOR[spam.verdict] || VERDICT_COLOR.clean;
-  const rows = [];
-
-  // Verdict chip.
-  rows.push(
-    Row(
-      'Verdict',
-      h(
-        'span',
-        {
-          style: {
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '2px 8px',
-            borderRadius: '6px',
-            border: `1px solid ${color}`,
-            color,
-            fontSize: '12px',
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-          },
-        },
-        VERDICT_LABEL[spam.verdict] || spam.verdict,
-      ),
-    ),
-  );
-
-  // Score / threshold.
-  if (typeof spam.score === 'number') {
-    rows.push(
-      Row(
-        'Score',
-        h(
-          'span',
-          null,
-          h('span', { style: { fontWeight: 600, color } }, spam.score.toFixed(2)),
-          typeof spam.required === 'number'
-            ? h(
-                'span',
-                { style: { color: 'var(--color-muted-foreground)' } },
-                ` / ${spam.required.toFixed(2)} threshold`,
-              )
-            : null,
-        ),
-      ),
-    );
-  }
-
-  // Star level as a small bar.
-  if (typeof spam.stars === 'number' && spam.stars > 0) {
-    rows.push(Row('Level', '★'.repeat(spam.stars)));
-  }
-
-  // Rspamd action, if any.
-  if (spam.action) {
-    rows.push(Row('Action', spam.action));
-  }
-
-  // AI verdict.
-  if (spam.llm) {
-    rows.push(
-      Row(
-        'AI verdict',
-        h(
-          'span',
-          null,
-          h('span', { style: { fontWeight: 600 } }, spam.llm.verdict),
-          spam.llm.explanation
-            ? h(
-                'span',
-                { style: { color: 'var(--color-muted-foreground)' } },
-                ` · ${spam.llm.explanation}`,
-              )
-            : null,
-        ),
-      ),
-    );
-  }
-
-  // The exact header we parsed — proof we're reading raw source.
-  if (spam.raw) {
-    rows.push(Row('Header', spam.raw, { mono: true }));
-  }
-
-  return h(
-    'section',
-    { style: { minWidth: 0, paddingTop: '4px' } },
-    h(
-      'div',
-      {
-        style: {
-          fontSize: '10px',
-          fontWeight: 600,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          color: 'var(--color-muted-foreground)',
-          marginBottom: '6px',
-        },
-      },
-      'Spam Analysis',
-    ),
-    h('div', { style: { display: 'flex', flexDirection: 'column', gap: '6px' } }, ...rows),
-  );
+  return h(Stack, { gap: 2 },
+    h(Text, { size: 'xs', tone: 'muted', weight: 'semibold' }, 'SPAM ANALYSIS'),
+    h(Stack, { gap: 1 }, ...spamRows(spam).map(([label, value]) => Field(label, value))));
 }
 
 // ─── Slot wiring ──────────────────────────────────────────────
