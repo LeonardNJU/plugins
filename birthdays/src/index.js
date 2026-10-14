@@ -9,10 +9,11 @@ const React = require('react');
 const api = require('@plugin-host');
 
 import { createBackground } from './lib/background.js';
+import { sendGreeting } from './lib/greeting.js';
 import { makeWidget } from './lib/widget.js';
 
 const background = createBackground(api);
-const BirthdayWidget = makeWidget(React, api);
+const BirthdayWidget = makeWidget(React, api, { onGreet: (birthday) => sendGreeting(api, birthday) });
 
 export const hooks = background.hooks;
 

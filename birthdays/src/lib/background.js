@@ -1,11 +1,12 @@
 // The background part: reads the contacts when the app starts, once a day
 // and an hour after the last check (contacts change on other devices too),
 // and soon after the user changes a contact here. Each run sends the
-// reminders that are due.
+// reminders that are due. A click on a reminder opens a greeting.
 
 import { birthdaysFromContacts } from './contacts.js';
 import { localToday } from './dates.js';
-import { dueReminders, markSent, notificationsFor } from './reminders.js';
+import { greetingFor, sendGreeting } from './greeting.js';
+import { birthdayForTag, dueReminders, markSent, notificationsFor } from './reminders.js';
 import { readSettings } from './settings.js';
 
 /** Storage key of the record of sent reminders. */
@@ -91,6 +92,13 @@ export function createBackground(api, { now = () => new Date() } = {}) {
     onAfterContactUpdate: runSoon,
     onAfterContactDelete: runSoon,
     onContactsImport: runSoon,
+    // A click on a reminder for one contact opens a greeting to them.
+    onNotificationClick: async ({ tag } = {}) => {
+      if (typeof tag !== 'string' || !tag.startsWith('bday:')) return;
+      if (!birthdays.length) await run();
+      const birthday = birthdayForTag(birthdays, tag);
+      if (birthday && greetingFor(birthday, api.i18n)) await sendGreeting(api, birthday);
+    },
   };
 
   return {

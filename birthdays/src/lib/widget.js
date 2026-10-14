@@ -34,7 +34,7 @@ const styles = {
   },
 };
 
-export function makeWidget(React, api, { now = () => new Date() } = {}) {
+export function makeWidget(React, api, { now = () => new Date(), onGreet = null } = {}) {
   const { createElement: h, useCallback, useEffect, useState } = React;
   const t = (key, vars) => api.i18n.t(key, vars);
 
@@ -87,6 +87,13 @@ export function makeWidget(React, api, { now = () => new Date() } = {}) {
             h('div', { style: styles.name, title: item.name }, item.name),
             h('div', { style: item.daysUntil === 0 ? { ...styles.when, ...styles.today } : styles.when }, whenLine(item, api.i18n)),
           ),
+          onGreet && item.email ? h('button', {
+            type: 'button',
+            style: styles.button,
+            'aria-label': t('greet.label', { name: item.name }),
+            title: t('greet.label', { name: item.name }),
+            onClick: () => { void onGreet(item); },
+          }, t('greet.button')) : null,
         ))));
         if (items.length > COLLAPSED_ROWS) {
           children.push(h('button', {

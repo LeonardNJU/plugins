@@ -1,7 +1,7 @@
 # Birthday reminders
 
-Shows upcoming birthdays from your contacts in the mail sidebar and reminds
-you of them.
+Shows upcoming birthdays from your contacts in the mail sidebar, reminds you
+of them and opens a birthday greeting with one click.
 
 ## What it does
 
@@ -18,6 +18,12 @@ you of them.
   Reminders are checked when the webmail starts, when the day changes, every
   hour and a few seconds after you change a contact, so the webmail has to be
   open for them; the plugin can't remind you while it is closed.
+- **Send greeting.** Each contact with an email address gets a "Send greeting"
+  button in the widget. It opens the composer addressed to them, with "Happy
+  birthday, Ada!" as subject and a short line to start from, in your language.
+  Nothing is sent until you press Send. Clicking a system notification for one
+  contact does the same; a summary notification just brings the webmail to the
+  front.
 
 ## Dates
 
@@ -43,6 +49,7 @@ you of them.
 | `contacts:read` | Read the birthdays of your contacts. |
 | `ui:sidebar-widget` | Show the list in the mail sidebar. |
 | `ui:notifications` | Show the reminders. |
+| `compose:open` | Open the composer for a greeting. |
 
 The plugin also uses the app lifecycle hooks (start, once a minute), which
 every plugin has.

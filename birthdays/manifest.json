@@ -3,12 +3,13 @@
   "name": "Birthday reminders",
   "version": "1.0.0",
   "author": "Bulwark Mail Community",
-  "description": "Upcoming birthdays from your contacts in the sidebar, with a reminder on the day and a few days before.",
+  "description": "Upcoming birthdays from your contacts in the sidebar, reminders on the day and a few days before, and a quick birthday greeting.",
   "type": "sidebar-app",
   "permissions": [
     "contacts:read",
     "ui:sidebar-widget",
-    "ui:notifications"
+    "ui:notifications",
+    "compose:open"
   ],
   "entrypoint": "index.js",
   "minAppVersion": "1.7.0",
@@ -53,7 +54,13 @@
       "notify.today": "اليوم عيد ميلاد {name}",
       "notify.soon": "عيد ميلاد {name} {when}",
       "notify.manyToday": "أعياد ميلاد اليوم: {names}",
-      "notify.manySoon": "أعياد ميلاد قريبة: {names}"
+      "notify.manySoon": "أعياد ميلاد قريبة: {names}",
+      "greet.button": "إرسال تهنئة",
+      "greet.label": "إرسال تهنئة بعيد الميلاد إلى {name}",
+      "greeting.subject": "عيد ميلاد سعيد يا {name}!",
+      "greeting.subjectNoName": "عيد ميلاد سعيد!",
+      "greeting.body": "مرحبًا {name}،\n\nعيد ميلاد سعيد! أتمنى لك كل التوفيق في عامك الجديد.\n\n",
+      "greeting.bodyNoName": "مرحبًا،\n\nعيد ميلاد سعيد! أتمنى لك كل التوفيق في عامك الجديد.\n\n"
     },
     "ca": {
       "widget.title": "Propers aniversaris",
@@ -72,7 +79,13 @@
       "notify.today": "Avui és l’aniversari de {name}",
       "notify.soon": "L’aniversari de {name} és {when}",
       "notify.manyToday": "Aniversaris d’avui: {names}",
-      "notify.manySoon": "Propers aniversaris: {names}"
+      "notify.manySoon": "Propers aniversaris: {names}",
+      "greet.button": "Felicita",
+      "greet.label": "Envia una felicitació d’aniversari a {name}",
+      "greeting.subject": "Per molts anys, {name}!",
+      "greeting.subjectNoName": "Per molts anys!",
+      "greeting.body": "Hola, {name}:\n\nPer molts anys! Que tinguis un any fantàstic.\n\n",
+      "greeting.bodyNoName": "Hola:\n\nPer molts anys! Que tinguis un any fantàstic.\n\n"
     },
     "cs": {
       "widget.title": "Nadcházející narozeniny",
@@ -90,7 +103,13 @@
       "notify.today": "{name} má dnes narozeniny",
       "notify.soon": "{name} má narozeniny {when}",
       "notify.manyToday": "Dnešní narozeniny: {names}",
-      "notify.manySoon": "Blížící se narozeniny: {names}"
+      "notify.manySoon": "Blížící se narozeniny: {names}",
+      "greet.button": "Poslat přání",
+      "greet.label": "Poslat {name} přání k narozeninám",
+      "greeting.subject": "Všechno nejlepší k narozeninám, {name}!",
+      "greeting.subjectNoName": "Všechno nejlepší k narozeninám!",
+      "greeting.body": "Ahoj {name},\n\nvšechno nejlepší k narozeninám! Ať se ti v novém roce daří.\n\n",
+      "greeting.bodyNoName": "Ahoj,\n\nvšechno nejlepší k narozeninám! Ať se ti v novém roce daří.\n\n"
     },
     "da": {
       "widget.title": "Kommende fødselsdage",
@@ -108,7 +127,13 @@
       "notify.today": "{name} har fødselsdag i dag",
       "notify.soon": "{name} har fødselsdag {when}",
       "notify.manyToday": "Fødselsdage i dag: {names}",
-      "notify.manySoon": "Kommende fødselsdage: {names}"
+      "notify.manySoon": "Kommende fødselsdage: {names}",
+      "greet.button": "Send hilsen",
+      "greet.label": "Send {name} en fødselsdagshilsen",
+      "greeting.subject": "Tillykke med fødselsdagen, {name}!",
+      "greeting.subjectNoName": "Tillykke med fødselsdagen!",
+      "greeting.body": "Hej {name}\n\nTillykke med fødselsdagen! Jeg ønsker dig alt det bedste i det nye år.\n\n",
+      "greeting.bodyNoName": "Hej\n\nTillykke med fødselsdagen! Jeg ønsker dig alt det bedste i det nye år.\n\n"
     },
     "de": {
       "widget.title": "Anstehende Geburtstage",
@@ -126,7 +151,13 @@
       "notify.today": "{name} hat heute Geburtstag",
       "notify.soon": "{name} hat {when} Geburtstag",
       "notify.manyToday": "Heute Geburtstag: {names}",
-      "notify.manySoon": "Bald Geburtstag: {names}"
+      "notify.manySoon": "Bald Geburtstag: {names}",
+      "greet.button": "Gratulieren",
+      "greet.label": "{name} zum Geburtstag gratulieren",
+      "greeting.subject": "Alles Gute zum Geburtstag, {name}!",
+      "greeting.subjectNoName": "Alles Gute zum Geburtstag!",
+      "greeting.body": "Hallo {name},\n\nalles Gute zum Geburtstag! Ich wünsche dir ein schönes neues Lebensjahr.\n\n",
+      "greeting.bodyNoName": "Hallo,\n\nalles Gute zum Geburtstag! Ich wünsche dir ein schönes neues Lebensjahr.\n\n"
     },
     "en": {
       "widget.title": "Upcoming birthdays",
@@ -144,7 +175,13 @@
       "notify.today": "It’s {name}’s birthday today",
       "notify.soon": "{name}’s birthday is {when}",
       "notify.manyToday": "Birthdays today: {names}",
-      "notify.manySoon": "Birthdays coming up: {names}"
+      "notify.manySoon": "Birthdays coming up: {names}",
+      "greet.button": "Send greeting",
+      "greet.label": "Send {name} a birthday greeting",
+      "greeting.subject": "Happy birthday, {name}!",
+      "greeting.subjectNoName": "Happy birthday!",
+      "greeting.body": "Hi {name},\n\nhappy birthday! All the best for the year ahead.\n\n",
+      "greeting.bodyNoName": "Hi,\n\nhappy birthday! All the best for the year ahead.\n\n"
     },
     "es": {
       "widget.title": "Próximos cumpleaños",
@@ -163,7 +200,13 @@
       "notify.today": "Hoy es el cumpleaños de {name}",
       "notify.soon": "El cumpleaños de {name} es {when}",
       "notify.manyToday": "Cumpleaños de hoy: {names}",
-      "notify.manySoon": "Próximos cumpleaños: {names}"
+      "notify.manySoon": "Próximos cumpleaños: {names}",
+      "greet.button": "Felicitar",
+      "greet.label": "Enviar una felicitación de cumpleaños a {name}",
+      "greeting.subject": "¡Feliz cumpleaños, {name}!",
+      "greeting.subjectNoName": "¡Feliz cumpleaños!",
+      "greeting.body": "Hola, {name}:\n\n¡Feliz cumpleaños! Te deseo lo mejor para este nuevo año.\n\n",
+      "greeting.bodyNoName": "Hola:\n\n¡Feliz cumpleaños! Te deseo lo mejor para este nuevo año.\n\n"
     },
     "fa": {
       "widget.title": "تولدهای پیش رو",
@@ -181,7 +224,13 @@
       "notify.today": "امروز تولد {name} است",
       "notify.soon": "تولد {name} {when} است",
       "notify.manyToday": "تولدهای امروز: {names}",
-      "notify.manySoon": "تولدهای پیش رو: {names}"
+      "notify.manySoon": "تولدهای پیش رو: {names}",
+      "greet.button": "ارسال تبریک",
+      "greet.label": "ارسال تبریک تولد به {name}",
+      "greeting.subject": "{name}، تولدت مبارک!",
+      "greeting.subjectNoName": "تولدت مبارک!",
+      "greeting.body": "سلام {name}،\n\nتولدت مبارک! بهترین‌ها را برای سال پیش رو برایت آرزو می‌کنم.\n\n",
+      "greeting.bodyNoName": "سلام،\n\nتولدت مبارک! بهترین‌ها را برای سال پیش رو برایت آرزو می‌کنم.\n\n"
     },
     "fr": {
       "widget.title": "Anniversaires à venir",
@@ -200,7 +249,13 @@
       "notify.today": "C’est l’anniversaire de {name} aujourd’hui",
       "notify.soon": "L’anniversaire de {name} est {when}",
       "notify.manyToday": "Anniversaires du jour : {names}",
-      "notify.manySoon": "Anniversaires à venir : {names}"
+      "notify.manySoon": "Anniversaires à venir : {names}",
+      "greet.button": "Souhaiter",
+      "greet.label": "Souhaiter un joyeux anniversaire à {name}",
+      "greeting.subject": "Joyeux anniversaire, {name} !",
+      "greeting.subjectNoName": "Joyeux anniversaire !",
+      "greeting.body": "Bonjour {name},\n\nJoyeux anniversaire ! Je te souhaite le meilleur pour l’année à venir.\n\n",
+      "greeting.bodyNoName": "Bonjour,\n\nJoyeux anniversaire ! Je te souhaite le meilleur pour l’année à venir.\n\n"
     },
     "he": {
       "widget.title": "ימי הולדת קרובים",
@@ -218,7 +273,13 @@
       "notify.today": "היום יום ההולדת של {name}",
       "notify.soon": "יום ההולדת של {name} {when}",
       "notify.manyToday": "ימי הולדת היום: {names}",
-      "notify.manySoon": "ימי הולדת קרובים: {names}"
+      "notify.manySoon": "ימי הולדת קרובים: {names}",
+      "greet.button": "שלח ברכה",
+      "greet.label": "שלח ל{name} ברכת יום הולדת",
+      "greeting.subject": "יום הולדת שמח, {name}!",
+      "greeting.subjectNoName": "יום הולדת שמח!",
+      "greeting.body": "היי {name},\n\nיום הולדת שמח! מאחל לך את כל הטוב בשנה הקרובה.\n\n",
+      "greeting.bodyNoName": "היי,\n\nיום הולדת שמח! מאחל לך את כל הטוב בשנה הקרובה.\n\n"
     },
     "hu": {
       "widget.title": "Közelgő születésnapok",
@@ -236,7 +297,13 @@
       "notify.today": "Ma van {name} születésnapja",
       "notify.soon": "{name} születésnapja: {when}",
       "notify.manyToday": "Mai születésnapok: {names}",
-      "notify.manySoon": "Közelgő születésnapok: {names}"
+      "notify.manySoon": "Közelgő születésnapok: {names}",
+      "greet.button": "Köszöntés",
+      "greet.label": "Születésnapi köszöntés küldése neki: {name}",
+      "greeting.subject": "Boldog születésnapot, {name}!",
+      "greeting.subjectNoName": "Boldog születésnapot!",
+      "greeting.body": "Szia {name}!\n\nBoldog születésnapot! Minden jót kívánok az új évedre.\n\n",
+      "greeting.bodyNoName": "Szia!\n\nBoldog születésnapot! Minden jót kívánok az új évedre.\n\n"
     },
     "it": {
       "widget.title": "Prossimi compleanni",
@@ -255,7 +322,13 @@
       "notify.today": "Oggi è il compleanno di {name}",
       "notify.soon": "Il compleanno di {name} è {when}",
       "notify.manyToday": "Compleanni di oggi: {names}",
-      "notify.manySoon": "Prossimi compleanni: {names}"
+      "notify.manySoon": "Prossimi compleanni: {names}",
+      "greet.button": "Fai gli auguri",
+      "greet.label": "Invia gli auguri di compleanno a {name}",
+      "greeting.subject": "Buon compleanno, {name}!",
+      "greeting.subjectNoName": "Buon compleanno!",
+      "greeting.body": "Ciao {name},\n\nbuon compleanno! Ti auguro il meglio per l’anno che arriva.\n\n",
+      "greeting.bodyNoName": "Ciao,\n\nbuon compleanno! Ti auguro il meglio per l’anno che arriva.\n\n"
     },
     "ja": {
       "widget.title": "近づいている誕生日",
@@ -273,7 +346,13 @@
       "notify.today": "今日は{name}さんの誕生日です",
       "notify.soon": "{name}さんの誕生日：{when}",
       "notify.manyToday": "今日の誕生日：{names}",
-      "notify.manySoon": "近づいている誕生日：{names}"
+      "notify.manySoon": "近づいている誕生日：{names}",
+      "greet.button": "お祝いを送る",
+      "greet.label": "{name}さんに誕生日のお祝いを送る",
+      "greeting.subject": "{name}さん、お誕生日おめでとうございます！",
+      "greeting.subjectNoName": "お誕生日おめでとうございます！",
+      "greeting.body": "{name}さん\n\nお誕生日おめでとうございます！素敵な一年になりますように。\n\n",
+      "greeting.bodyNoName": "お誕生日おめでとうございます！素敵な一年になりますように。\n\n"
     },
     "ko": {
       "widget.title": "다가오는 생일",
@@ -291,7 +370,13 @@
       "notify.today": "오늘은 {name}님의 생일입니다",
       "notify.soon": "{name}님의 생일: {when}",
       "notify.manyToday": "오늘 생일: {names}",
-      "notify.manySoon": "다가오는 생일: {names}"
+      "notify.manySoon": "다가오는 생일: {names}",
+      "greet.button": "축하 메일",
+      "greet.label": "{name}님에게 생일 축하 메일 보내기",
+      "greeting.subject": "{name}님, 생일 축하드립니다!",
+      "greeting.subjectNoName": "생일 축하드립니다!",
+      "greeting.body": "{name}님께\n\n생일 축하드립니다! 새로운 한 해에 좋은 일만 가득하길 바랍니다.\n\n",
+      "greeting.bodyNoName": "생일 축하드립니다! 새로운 한 해에 좋은 일만 가득하길 바랍니다.\n\n"
     },
     "lv": {
       "widget.title": "Gaidāmās dzimšanas dienas",
@@ -309,7 +394,13 @@
       "notify.today": "Šodien ir {name} dzimšanas diena",
       "notify.soon": "{name} dzimšanas diena: {when}",
       "notify.manyToday": "Šodienas dzimšanas dienas: {names}",
-      "notify.manySoon": "Gaidāmās dzimšanas dienas: {names}"
+      "notify.manySoon": "Gaidāmās dzimšanas dienas: {names}",
+      "greet.button": "Apsveikt",
+      "greet.label": "Nosūtīt apsveikumu dzimšanas dienā: {name}",
+      "greeting.subject": "Daudz laimes dzimšanas dienā, {name}!",
+      "greeting.subjectNoName": "Daudz laimes dzimšanas dienā!",
+      "greeting.body": "Sveiks, {name}!\n\nDaudz laimes dzimšanas dienā! Visu labāko nākamajā gadā.\n\n",
+      "greeting.bodyNoName": "Sveiki!\n\nDaudz laimes dzimšanas dienā! Visu labāko nākamajā gadā.\n\n"
     },
     "mn": {
       "widget.title": "Ойртож буй төрсөн өдрүүд",
@@ -327,7 +418,13 @@
       "notify.today": "Өнөөдөр {name}-ийн төрсөн өдөр",
       "notify.soon": "{name}-ийн төрсөн өдөр: {when}",
       "notify.manyToday": "Өнөөдрийн төрсөн өдрүүд: {names}",
-      "notify.manySoon": "Ойртож буй төрсөн өдрүүд: {names}"
+      "notify.manySoon": "Ойртож буй төрсөн өдрүүд: {names}",
+      "greet.button": "Мэндчилгээ илгээх",
+      "greet.label": "{name}-д төрсөн өдрийн мэндчилгээ илгээх",
+      "greeting.subject": "{name}, төрсөн өдрийн мэнд хүргэе!",
+      "greeting.subjectNoName": "Төрсөн өдрийн мэнд хүргэе!",
+      "greeting.body": "Сайн уу, {name}!\n\nТөрсөн өдрийн мэнд хүргэе! Ирэх жилдээ сайн сайхныг хүсье.\n\n",
+      "greeting.bodyNoName": "Сайн уу!\n\nТөрсөн өдрийн мэнд хүргэе! Ирэх жилдээ сайн сайхныг хүсье.\n\n"
     },
     "nb": {
       "widget.title": "Kommende bursdager",
@@ -345,7 +442,13 @@
       "notify.today": "{name} har bursdag i dag",
       "notify.soon": "{name} har bursdag {when}",
       "notify.manyToday": "Bursdager i dag: {names}",
-      "notify.manySoon": "Kommende bursdager: {names}"
+      "notify.manySoon": "Kommende bursdager: {names}",
+      "greet.button": "Send hilsen",
+      "greet.label": "Send {name} en bursdagshilsen",
+      "greeting.subject": "Gratulerer med dagen, {name}!",
+      "greeting.subjectNoName": "Gratulerer med dagen!",
+      "greeting.body": "Hei {name}!\n\nGratulerer med dagen! Jeg ønsker deg alt godt i året som kommer.\n\n",
+      "greeting.bodyNoName": "Hei!\n\nGratulerer med dagen! Jeg ønsker deg alt godt i året som kommer.\n\n"
     },
     "nl": {
       "widget.title": "Komende verjaardagen",
@@ -363,7 +466,13 @@
       "notify.today": "{name} is vandaag jarig",
       "notify.soon": "{name} is {when} jarig",
       "notify.manyToday": "Vandaag jarig: {names}",
-      "notify.manySoon": "Binnenkort jarig: {names}"
+      "notify.manySoon": "Binnenkort jarig: {names}",
+      "greet.button": "Feliciteren",
+      "greet.label": "{name} feliciteren met de verjaardag",
+      "greeting.subject": "Gefeliciteerd met je verjaardag, {name}!",
+      "greeting.subjectNoName": "Gefeliciteerd met je verjaardag!",
+      "greeting.body": "Hoi {name},\n\nGefeliciteerd met je verjaardag! Het allerbeste voor het komende jaar.\n\n",
+      "greeting.bodyNoName": "Hoi,\n\nGefeliciteerd met je verjaardag! Het allerbeste voor het komende jaar.\n\n"
     },
     "pl": {
       "widget.title": "Nadchodzące urodziny",
@@ -384,7 +493,13 @@
       "notify.today": "{name} ma dziś urodziny",
       "notify.soon": "{name} ma urodziny {when}",
       "notify.manyToday": "Dzisiejsze urodziny: {names}",
-      "notify.manySoon": "Nadchodzące urodziny: {names}"
+      "notify.manySoon": "Nadchodzące urodziny: {names}",
+      "greet.button": "Złóż życzenia",
+      "greet.label": "Złóż życzenia urodzinowe: {name}",
+      "greeting.subject": "Wszystkiego najlepszego z okazji urodzin, {name}!",
+      "greeting.subjectNoName": "Wszystkiego najlepszego z okazji urodzin!",
+      "greeting.body": "Cześć {name},\n\nwszystkiego najlepszego z okazji urodzin! Wspaniałego nowego roku.\n\n",
+      "greeting.bodyNoName": "Cześć,\n\nwszystkiego najlepszego z okazji urodzin! Wspaniałego nowego roku.\n\n"
     },
     "pt": {
       "widget.title": "Próximos aniversários",
@@ -403,7 +518,13 @@
       "notify.today": "Hoje é o aniversário de {name}",
       "notify.soon": "O aniversário de {name} é {when}",
       "notify.manyToday": "Aniversários de hoje: {names}",
-      "notify.manySoon": "Próximos aniversários: {names}"
+      "notify.manySoon": "Próximos aniversários: {names}",
+      "greet.button": "Felicitar",
+      "greet.label": "Enviar parabéns a {name}",
+      "greeting.subject": "Feliz aniversário, {name}!",
+      "greeting.subjectNoName": "Feliz aniversário!",
+      "greeting.body": "Olá, {name},\n\nfeliz aniversário! Tudo de bom no ano que começa.\n\n",
+      "greeting.bodyNoName": "Olá,\n\nfeliz aniversário! Tudo de bom no ano que começa.\n\n"
     },
     "ro": {
       "widget.title": "Zile de naștere apropiate",
@@ -423,7 +544,13 @@
       "notify.today": "Astăzi este ziua de naștere a lui {name}",
       "notify.soon": "Ziua de naștere a lui {name} este {when}",
       "notify.manyToday": "Zile de naștere azi: {names}",
-      "notify.manySoon": "Zile de naștere apropiate: {names}"
+      "notify.manySoon": "Zile de naștere apropiate: {names}",
+      "greet.button": "Felicitați",
+      "greet.label": "Trimiteți felicitări de ziua de naștere lui {name}",
+      "greeting.subject": "La mulți ani, {name}!",
+      "greeting.subjectNoName": "La mulți ani!",
+      "greeting.body": "Bună, {name},\n\nLa mulți ani! Îți doresc tot binele în anul care vine.\n\n",
+      "greeting.bodyNoName": "Bună,\n\nLa mulți ani! Îți doresc tot binele în anul care vine.\n\n"
     },
     "ru": {
       "widget.title": "Ближайшие дни рождения",
@@ -444,7 +571,13 @@
       "notify.today": "Сегодня день рождения: {name}",
       "notify.soon": "День рождения {when}: {name}",
       "notify.manyToday": "Дни рождения сегодня: {names}",
-      "notify.manySoon": "Скоро дни рождения: {names}"
+      "notify.manySoon": "Скоро дни рождения: {names}",
+      "greet.button": "Поздравить",
+      "greet.label": "Поздравить с днём рождения: {name}",
+      "greeting.subject": "С днём рождения, {name}!",
+      "greeting.subjectNoName": "С днём рождения!",
+      "greeting.body": "Привет, {name}!\n\nС днём рождения! Всего самого лучшего в новом году жизни.\n\n",
+      "greeting.bodyNoName": "Привет!\n\nС днём рождения! Всего самого лучшего в новом году жизни.\n\n"
     },
     "sk": {
       "widget.title": "Nadchádzajúce narodeniny",
@@ -462,7 +595,13 @@
       "notify.today": "{name} má dnes narodeniny",
       "notify.soon": "{name} má narodeniny {when}",
       "notify.manyToday": "Dnešné narodeniny: {names}",
-      "notify.manySoon": "Blížiace sa narodeniny: {names}"
+      "notify.manySoon": "Blížiace sa narodeniny: {names}",
+      "greet.button": "Zablahoželať",
+      "greet.label": "Poslať {name} blahoželanie k narodeninám",
+      "greeting.subject": "Všetko najlepšie k narodeninám, {name}!",
+      "greeting.subjectNoName": "Všetko najlepšie k narodeninám!",
+      "greeting.body": "Ahoj {name},\n\nvšetko najlepšie k narodeninám! Nech sa ti v novom roku darí.\n\n",
+      "greeting.bodyNoName": "Ahoj,\n\nvšetko najlepšie k narodeninám! Nech sa ti v novom roku darí.\n\n"
     },
     "tr": {
       "widget.title": "Yaklaşan doğum günleri",
@@ -480,7 +619,13 @@
       "notify.today": "Bugün {name} adlı kişinin doğum günü",
       "notify.soon": "{name} adlı kişinin doğum günü {when}",
       "notify.manyToday": "Bugünkü doğum günleri: {names}",
-      "notify.manySoon": "Yaklaşan doğum günleri: {names}"
+      "notify.manySoon": "Yaklaşan doğum günleri: {names}",
+      "greet.button": "Kutla",
+      "greet.label": "{name} adlı kişiye doğum günü tebriği gönder",
+      "greeting.subject": "Doğum günün kutlu olsun, {name}!",
+      "greeting.subjectNoName": "Doğum günün kutlu olsun!",
+      "greeting.body": "Merhaba {name},\n\nDoğum günün kutlu olsun! Yeni yaşında her şey gönlünce olsun.\n\n",
+      "greeting.bodyNoName": "Merhaba,\n\nDoğum günün kutlu olsun! Yeni yaşında her şey gönlünce olsun.\n\n"
     },
     "uk": {
       "widget.title": "Найближчі дні народження",
@@ -501,7 +646,13 @@
       "notify.today": "Сьогодні день народження: {name}",
       "notify.soon": "День народження {when}: {name}",
       "notify.manyToday": "Дні народження сьогодні: {names}",
-      "notify.manySoon": "Незабаром дні народження: {names}"
+      "notify.manySoon": "Незабаром дні народження: {names}",
+      "greet.button": "Привітати",
+      "greet.label": "Привітати з днем народження: {name}",
+      "greeting.subject": "З днем народження, {name}!",
+      "greeting.subjectNoName": "З днем народження!",
+      "greeting.body": "Привіт, {name}!\n\nЗ днем народження! Усього найкращого в новому році життя.\n\n",
+      "greeting.bodyNoName": "Привіт!\n\nЗ днем народження! Усього найкращого в новому році життя.\n\n"
     },
     "zh": {
       "widget.title": "即将到来的生日",
@@ -519,7 +670,13 @@
       "notify.today": "今天是{name}的生日",
       "notify.soon": "{name}的生日：{when}",
       "notify.manyToday": "今天的生日：{names}",
-      "notify.manySoon": "即将到来的生日：{names}"
+      "notify.manySoon": "即将到来的生日：{names}",
+      "greet.button": "发送祝福",
+      "greet.label": "向{name}发送生日祝福",
+      "greeting.subject": "{name}，生日快乐！",
+      "greeting.subjectNoName": "生日快乐！",
+      "greeting.body": "{name}，你好：\n\n生日快乐！祝你新的一岁一切顺利。\n\n",
+      "greeting.bodyNoName": "你好：\n\n生日快乐！祝你新的一岁一切顺利。\n\n"
     },
     "zh-TW": {
       "widget.title": "即將到來的生日",
@@ -537,7 +694,13 @@
       "notify.today": "今天是{name}的生日",
       "notify.soon": "{name}的生日：{when}",
       "notify.manyToday": "今天的生日：{names}",
-      "notify.manySoon": "即將到來的生日：{names}"
+      "notify.manySoon": "即將到來的生日：{names}",
+      "greet.button": "傳送祝福",
+      "greet.label": "向{name}傳送生日祝福",
+      "greeting.subject": "{name}，生日快樂！",
+      "greeting.subjectNoName": "生日快樂！",
+      "greeting.body": "{name}，你好：\n\n生日快樂！祝你新的一歲一切順利。\n\n",
+      "greeting.bodyNoName": "你好：\n\n生日快樂！祝你新的一歲一切順利。\n\n"
     }
   }
 }

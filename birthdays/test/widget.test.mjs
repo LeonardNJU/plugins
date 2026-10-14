@@ -82,6 +82,20 @@ describe('sidebar widget', () => {
     expect(text).toContain('исполняется 25 лет');
   });
 
+  it('offers a greeting for contacts with an address, labelled with the name', async () => {
+    const greeted = [];
+    const { Widget } = setup([
+      person('1', 'Ada Mail', { month: 10, day: 14 }, 'ada@example.org'),
+      person('2', 'Bo NoMail', { month: 10, day: 15 }),
+    ], { onGreet: async (b) => { greeted.push(b); } });
+    await show(Widget);
+    const buttons = screen.getAllByRole('button', { name: /birthday greeting/ });
+    expect(buttons.map((b) => b.getAttribute('aria-label'))).toEqual(['Send Ada Mail a birthday greeting']);
+    expect(buttons[0].textContent).toBe('Send greeting');
+    fireEvent.click(buttons[0]);
+    expect(greeted.map((b) => [b.key, b.email])).toEqual([['1', 'ada@example.org']]);
+  });
+
   it('says in plain words when contacts cannot be loaded, and retries', async () => {
     const { api, Widget } = setup([], { fail: 'API call contact.list timed out after 30s' });
     await show(Widget);
