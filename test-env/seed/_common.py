@@ -70,7 +70,7 @@ def docker_exec(container, *args, user=None, env=None, check=True, stdin=None):
         cmd += ['-e', f'{k}={v}']
     cmd.append(container)
     cmd += list(args)
-    res = subprocess.run(cmd, capture_output=True, text=True, input=stdin)
+    res = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', errors='replace', input=stdin)
     if check and res.returncode != 0:
         sys.exit(f'command failed ({res.returncode}): {" ".join(cmd)}\n{res.stdout}\n{res.stderr}')
     return res
