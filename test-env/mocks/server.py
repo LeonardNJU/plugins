@@ -367,11 +367,26 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', '0')
         self.end_headers()
 
+    def read_body(self):
+        # The webmail's plugin proxy streams request bodies, so they arrive
+        # chunked, without Content-Length.
+        if 'chunked' in (self.headers.get('Transfer-Encoding') or '').lower():
+            parts = []
+            while True:
+                size = int(self.rfile.readline().split(b';', 1)[0].strip() or b'0', 16)
+                if size == 0:
+                    while self.rfile.readline() not in (b'\r\n', b'\n', b''):
+                        pass
+                    return b''.join(parts)
+                parts.append(self.rfile.read(size))
+                self.rfile.readline()
+        length = int(self.headers.get('Content-Length') or 0)
+        return self.rfile.read(length) if length else b''
+
     def dispatch(self, method):
         # Always drain the body, so an early error answer does not leave it
         # in the socket for the next keep-alive request.
-        length = int(self.headers.get('Content-Length') or 0)
-        self.raw_body = self.rfile.read(length) if length else b''
+        self.raw_body = self.read_body()
         url = urlparse(self.path)
         path = url.path.rstrip('/') or '/'
         query = {k: v[0] for k, v in parse_qs(url.query).items()}
