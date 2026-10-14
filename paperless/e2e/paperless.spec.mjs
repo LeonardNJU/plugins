@@ -375,7 +375,14 @@ test.describe('paperless plugin', () => {
       await expect(settings.getByText(`Mail from @rules-test.example with “${run}” in the subject`)).toBeVisible();
       await expect(settings.getByRole('switch', { name: 'Turn on the rule for @rules-test.example' })).toBeChecked();
 
+      // New mail is what arrives after the mail page has loaded and listens
+      // for changes; mail delivered while it is still loading is part of the
+      // first list, not new. So wait for the page and its push connection.
+      const listening = page.waitForRequest(/\/jmap\/eventsource/, { timeout: 60_000 });
       await page.getByRole('button', { name: 'Back to Mail' }).click();
+      await page.waitForURL(/\/mail(\/|$)/);
+      await listening;
+      await page.waitForTimeout(2000);
       sendMail({ from: 'Rules Test <billing@rules-test.example>', subject: `Monthly ${run}`, pdfText: `Rule ${run}`, pdfName: `rule-${run}.pdf` });
       // No dialog: the rule sends on its own.
       await expect(page.getByText('Filed in Paperless').first()).toBeVisible({ timeout: 120_000 });
@@ -413,28 +420,17 @@ test.describe('paperless plugin', () => {
   });
 });
 
-/** Switch the app theme in Settings > Appearance; resolves to the one that was on. */
-async function setTheme(page, theme) {
-  await page.getByRole('link', { name: 'Settings' }).first().click();
-  await page.getByRole('button', { name: 'Appearance', exact: true }).click();
-  const group = page.getByRole('group', { name: 'Theme' });
-  let before = 'light';
-  for (const name of ['Light', 'Dark', 'System']) {
-    if (await group.getByRole('button', { name }).getAttribute('aria-pressed') === 'true') before = name.toLowerCase();
-  }
-  await group.getByRole('button', { name: theme === 'dark' ? 'Dark' : theme === 'system' ? 'System' : 'Light' }).click();
-  return before;
-}
-
 test('screenshots in light and dark', async ({ page }) => {
   const run = `e2e${Date.now()}`;
   sendMail({ from: 'ACME Hosting <billing@acme-hosting.example>', subject: `Invoice ${run}`, pdfText: `Shot ${run}`, pdfName: `invoice-${run}.pdf` });
   const admin = await start(page);
-  let restore = null;
   try {
     for (const theme of ['light', 'dark']) {
-      const before = await setTheme(page, theme);
-      restore ??= before;
+      // preparePage answers the settings reads with this theme, so the
+      // account's synced theme is never changed by the screenshots.
+      await preparePage(page, { theme });
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await waitForPlugin(page, PLUGIN);
       const settings = await openSettings(page);
       await expect(settings.getByText('Connected to localhost:18010', { exact: false })).toBeVisible();
       await shoot(page, PLUGIN, 'settings', theme);
@@ -458,7 +454,6 @@ test('screenshots in light and dark', async ({ page }) => {
       await footerButton(page, 'Cancel').click();
     }
   } finally {
-    if (restore) await setTheme(page, restore).catch(() => {});
     await uninstallPlugin(admin, PLUGIN);
   }
 });
