@@ -10,8 +10,11 @@
  * Safe-domain sources (merged, de-duplicated):
  *   - Admin-managed list (api.admin.getConfig('safeDomains'))
  *   - Per-user list from plugin settings (safeDomainsCsv)
- *   - Sender identity's own domain (outgoing only), when
- *     treatIdentityDomainAsSafe is enabled
+ *   - The domains of all the user's sending identities (and, outgoing, the
+ *     From address's domain), when treatIdentityDomainAsSafe is enabled
+ *
+ * With no safe domains at all, incoming mail is not flagged as external
+ * (every sender would be); only failed authentication raises the banner.
  *
  * Migration notes vs. the pre-sandbox plugin:
  *   - The custom CSS-in-JS modal is GONE — replaced by api.ui.confirm.
@@ -49,11 +52,38 @@ function normaliseDomain(raw) {
   return d;
 }
 
+// The bare address from "Name <addr>" (how the host formats recipients) or
+// a plain "addr".
+function addressOf(value) {
+  const s = String(value || '').trim();
+  const m = s.match(/<([^<>]*)>\s*$/);
+  return (m ? m[1] : s).trim();
+}
+
 function domainOf(address) {
-  if (!address) return '';
-  const at = String(address).lastIndexOf('@');
+  const addr = addressOf(address);
+  const at = addr.lastIndexOf('@');
   if (at < 0) return '';
-  return String(address).slice(at + 1).trim().toLowerCase();
+  return addr.slice(at + 1).trim().toLowerCase();
+}
+
+// Domains of the user's own sending identities. Treated as safe by default
+// (treatIdentityDomainAsSafe), so the user's own organisation is never
+// "external" even before anyone fills in a safe-domain list.
+async function loadIdentityDomains(api) {
+  try {
+    const identities = await api.user.getIdentities();
+    const emails = (Array.isArray(identities) ? identities : [])
+      .map((i) => String(i?.email || '').trim().toLowerCase())
+      .filter(Boolean);
+    return {
+      emails,
+      domains: [...new Set(emails.map(domainOf).filter(Boolean))],
+    };
+  } catch (err) {
+    api.log.warn('Could not load sending identities', err);
+    return { emails: [], domains: [] };
+  }
 }
 
 function isSafeDomain(domain, list) {
@@ -130,6 +160,13 @@ let cachedAdminDomains = [];
 let adminFetched = false;
 let adminFetchPromise = null;
 let myAddresses = new Set();
+let identityDomains = [];
+
+async function refreshIdentities() {
+  const { emails, domains } = await loadIdentityDomains(pluginApi);
+  identityDomains = domains;
+  for (const e of emails) void rememberMyAddress(e);
+}
 
 function fetchAdminDomains() {
   if (adminFetched) return Promise.resolve(cachedAdminDomains);
@@ -149,15 +186,20 @@ function fetchAdminDomains() {
   return adminFetchPromise;
 }
 
-function getSafeDomainsSync() {
-  const userDomains = parseDomains(pluginApi?.plugin.settings.safeDomainsCsv);
+function mergeSafeDomains(adminDomains, settings, ownDomains) {
+  const userDomains = parseDomains(settings?.safeDomainsCsv);
+  const own = settings?.treatIdentityDomainAsSafe !== false ? ownDomains : [];
   return [
     ...new Set(
-      [...cachedAdminDomains, ...userDomains]
+      [...adminDomains, ...userDomains, ...own]
         .map(normaliseDomain)
         .filter(Boolean),
     ),
   ];
+}
+
+function getSafeDomainsSync() {
+  return mergeSafeDomains(cachedAdminDomains, pluginApi?.plugin.settings, identityDomains);
 }
 
 async function getSafeDomainsForOutgoing(senderEmail) {
@@ -173,13 +215,13 @@ async function getSafeDomainsForOutgoing(senderEmail) {
 function isFromSelf(email) {
   if (!email || !Array.isArray(email.from)) return false;
   return email.from.some((s) =>
-    myAddresses.has(String(s?.email || '').trim().toLowerCase()),
+    myAddresses.has(addressOf(s?.email).toLowerCase()),
   );
 }
 
 async function rememberMyAddress(addr) {
   if (!addr) return;
-  const norm = String(addr).trim().toLowerCase();
+  const norm = addressOf(addr).toLowerCase();
   if (!norm || myAddresses.has(norm)) return;
   myAddresses.add(norm);
   await pluginApi.storage.set('myAddresses', [...myAddresses]);
@@ -205,14 +247,8 @@ function useSafeDomains() {
     (async () => {
       try {
         const adminRaw = await slotApi.admin.getConfig('safeDomains').catch(() => null);
-        const userRaw = slotApi.plugin?.settings?.safeDomainsCsv;
-        const merged = [
-          ...new Set(
-            [...parseDomains(adminRaw), ...parseDomains(userRaw)]
-              .map(normaliseDomain)
-              .filter(Boolean),
-          ),
-        ];
+        const { domains } = await loadIdentityDomains(slotApi);
+        const merged = mergeSafeDomains(parseDomains(adminRaw), slotApi.plugin?.settings, domains);
         if (!cancelled) setSafeDomains(merged);
       } catch (err) {
         slotApi.log.warn('external-mail-warning: safe-domain lookup failed', err);
@@ -229,12 +265,14 @@ function ExternalSenderBanner(props) {
   const safeDomains = useSafeDomains();
   if (!email) return null;
 
-  // Until the admin list resolves, default to "treat all as external" so we
-  // don't flash a false-clean banner. shouldShow already gated us to
-  // confirmed-external messages anyway.
+  // Until the lists resolve, default to "treat all as external" so we don't
+  // flash a false-clean banner. shouldShow already gated us to confirmed-
+  // external messages anyway. With no safe domains at all, nobody can be
+  // told apart as external, so only auth failures are shown.
   const safeList = safeDomains || [];
-  const externals = externalSenders(email, safeList);
-  const fails = authFailures(email);
+  const externals = safeDomains && safeDomains.length === 0 ? [] : externalSenders(email, safeList);
+  const fails = slotApi.plugin?.settings?.warnOnAuthFailure !== false ? authFailures(email) : [];
+  if (externals.length === 0 && fails.length === 0) return null;
 
   const labelParts = [];
   if (externals.length > 0) {
@@ -310,8 +348,11 @@ function shouldShowBanner(extraProps) {
   if (!email) return false;
   if (isFromSelf(email)) return false;
 
+  // With no safe domains known at all (no admin or user list, no identity
+  // domains) every sender would count as external, so only auth failures
+  // can raise the banner.
   const safe = getSafeDomainsSync();
-  const externals = externalSenders(email, safe);
+  const externals = safe.length > 0 ? externalSenders(email, safe) : [];
   const fails =
     pluginApi.plugin.settings.warnOnAuthFailure !== false
       ? authFailures(email)
@@ -367,16 +408,22 @@ export const hooks = {
     if (pluginApi.plugin.settings.notifyOnIncomingExternal !== true) return;
     if (!notif || !notif.from) return;
 
-    const senderEmail = notif.from.email;
-    if (myAddresses.has(String(senderEmail || '').trim().toLowerCase())) return;
-
-    const domain = domainOf(senderEmail);
-    if (!domain) return;
+    // `from` is a list of { name, email }; accept a single one too.
+    const senders = Array.isArray(notif.from) ? notif.from : [notif.from];
+    const email = { from: senders.map((s) => (typeof s === 'string' ? { email: s } : s)) };
+    if (isFromSelf(email)) return;
 
     const safe = getSafeDomainsSync();
-    if (isSafeDomain(domain, safe)) return;
+    if (safe.length === 0) return;
+    const externals = externalSenders(email, safe);
+    if (externals.length === 0) return;
 
-    pluginApi.toast.warning(`New external email from ${domain}`);
+    pluginApi.toast.warning(`New external email from ${externals[0].domain}`);
+  },
+
+  // Keep the identity domains current when identities are added or changed.
+  onIdentitiesLoaded() {
+    if (pluginApi) void refreshIdentities();
   },
 };
 
@@ -392,6 +439,9 @@ export async function activate(api) {
 
   // Pre-warm so the first send / first opened email doesn't race the network.
   fetchAdminDomains().catch(() => {});
+  // The banner's shouldShow is synchronous, so have the identity domains
+  // ready before the first message opens.
+  await refreshIdentities();
 
   api.log.info('External Mail Warning plugin activated');
 }

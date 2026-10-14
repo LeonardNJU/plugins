@@ -17,9 +17,14 @@ Three sources are merged (de-duplicated):
    Accepts a comma/newline-separated string or a JSON array.
 2. **Per-user list** — `Additional safe domains` field in the plugin's
    settings panel.
-3. **Sender's identity domain** — when `Trust your sending identity's
-   domain` is enabled (default), the domain of the active From address is
-   treated as safe automatically.
+3. **Your identity domains** — when `Trust your sending identity's
+   domain` is enabled (default), the domains of all your sending
+   identities (and the active From address) are treated as safe
+   automatically.
+
+If no safe domain is known at all, incoming mail is not flagged as
+external, because every sender would be. A failed SPF/DKIM/DMARC check
+still shows the banner.
 
 Subdomains are matched automatically: trusting `example.com` also covers
 `eu.example.com`.
@@ -29,12 +34,13 @@ Subdomains are matched automatically: trusting `example.com` also covers
 | Key | Default | Effect |
 | --- | --- | --- |
 | `safeDomainsCsv` | empty | Per-user safe-domain list. |
-| `treatIdentityDomainAsSafe` | `true` | Auto-trust the From address's domain. |
+| `treatIdentityDomainAsSafe` | `true` | Auto-trust your identities' domains. |
 | `warnOnCcBcc` | `true` | Also flag external Cc/Bcc, not just To. |
 
 ## Permissions
 
 - `email:send` — required by `onBeforeEmailSend`.
+- `identity:read` — read your sending identities to trust their domains.
 - `admin:config` — read the admin-managed safe-domain list.
 
 ## Hooks used
