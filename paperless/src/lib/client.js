@@ -3,6 +3,7 @@
 
 import { PaperlessError, errorFromResponse } from './errors.js';
 import { buildMultipart } from './multipart.js';
+import { documentLink } from './links.js';
 
 export const PAGE_SIZE = 25;
 const ACCEPT = 'application/json';
@@ -214,7 +215,7 @@ export function createClient({ proxyFetch, credentialId, base }) {
     },
 
     documentUrl(id) {
-      return `${base}/documents/${id}/details`;
+      return documentLink(base, id);
     },
   };
 }

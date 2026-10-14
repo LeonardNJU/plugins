@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
+import {
+  Button, Card, Checkbox, Field, Input, Loading, Row, RowAction, Section, Select, SettingRow, Stack, Switch, Text,
+} from '@plugin-host/ui';
 import { getApi, t, hostOf } from './host.js';
-import { ConnectPanel, ErrorBox, Field, PickOne, Styles, TagPicker, useConnection, useTaxonomies } from './common.jsx';
+import { ErrorAlert, PickOne, TagPicker, connectIntro, useConnect, useConnection, useTaxonomies } from './common.jsx';
 import { PERSONAL } from '../lib/connection.js';
 import { RULES_KEY, normalizeRule, normalizeRules } from '../lib/rules.js';
 
@@ -11,45 +14,45 @@ function RuleForm({ initial, tax, onSave, onCancel }) {
   const set = (patch) => setRule((prev) => ({ ...prev, ...patch }));
   const valid = rule.from.trim().length > 0;
   return (
-    <div className="pl-card" role="group" aria-label={t('rules.form')}>
-      <div className="pl-grid">
-        <Field id="pl-r-from" label={t('rules.from')}>
-          <input id="pl-r-from" type="text" required value={rule.from} placeholder={t('rules.from_placeholder')} onChange={(e) => set({ from: e.target.value })} /></Field>
-        <Field id="pl-r-subject" label={t('rules.subject')}>
-          <input id="pl-r-subject" type="text" value={rule.subject} placeholder={t('rules.subject_placeholder')} onChange={(e) => set({ subject: e.target.value })} /></Field>
-        <Field id="pl-r-what" label={t('rules.what')}>
-          <select id="pl-r-what" value={rule.what} onChange={(e) => set({ what: e.target.value })}>
-            <option value="attachments">{t('rules.what_attachments')}</option>
-            <option value="message">{t('rules.what_message')}</option>
-          </select></Field>
-      </div>
-      {tax && (
-        <>
-          <div className="pl-grid" style={{ marginTop: 8 }}>
-            <PickOne id="pl-r-corr" label={t('field.correspondent')} items={tax.correspondents} value={rule.correspondent} onChange={(v) => set({ correspondent: v })} />
-            <PickOne id="pl-r-type" label={t('field.document_type')} items={tax.documentTypes} value={rule.documentType} onChange={(v) => set({ documentType: v })} />
-            {tax.storagePaths.length > 0 && (
-              <PickOne id="pl-r-path" label={t('field.storage_path')} items={tax.storagePaths} value={rule.storagePath} onChange={(v) => set({ storagePath: v })} />
-            )}
-          </div>
-          <div style={{ marginTop: 8 }}><TagPicker tags={tax.tags} value={rule.tags} onChange={(v) => set({ tags: v })} /></div>
-        </>
-      )}
-      <label className="pl-row" style={{ marginTop: 10, fontSize: 13 }}>
-        <input type="checkbox" checked={rule.enabled} onChange={(e) => set({ enabled: e.target.checked })} />
-        {t('rules.enable')}
-      </label>
-      <div className="pl-actions">
-        <button type="button" onClick={onCancel}>{t('common.cancel')}</button>
-        <button type="button" className="pl-primary" disabled={!valid} onClick={() => onSave(rule)}>{t('rules.save')}</button>
-      </div>
+    <div role="group" aria-label={t('rules.form')}>
+      <Card title={t('rules.form')}>
+        <Stack gap={4}>
+          <Field label={t('rules.from')} required>
+            <Input type="text" required value={rule.from} placeholder={t('rules.from_placeholder')} onChange={(e) => set({ from: e.target.value })} />
+          </Field>
+          <Field label={t('rules.subject')}>
+            <Input type="text" value={rule.subject} placeholder={t('rules.subject_placeholder')} onChange={(e) => set({ subject: e.target.value })} />
+          </Field>
+          <Field label={t('rules.what')}>
+            <Select block value={rule.what} onChange={(v) => set({ what: v })} options={[
+              { value: 'attachments', label: t('rules.what_attachments') },
+              { value: 'message', label: t('rules.what_message') },
+            ]} />
+          </Field>
+          {tax && (
+            <>
+              <PickOne label={t('field.correspondent')} items={tax.correspondents} value={rule.correspondent} onChange={(v) => set({ correspondent: v })} />
+              <PickOne label={t('field.document_type')} items={tax.documentTypes} value={rule.documentType} onChange={(v) => set({ documentType: v })} />
+              {tax.storagePaths.length > 0 && (
+                <PickOne label={t('field.storage_path')} items={tax.storagePaths} value={rule.storagePath} onChange={(v) => set({ storagePath: v })} />
+              )}
+              <TagPicker tags={tax.tags} value={rule.tags} onChange={(v) => set({ tags: v })} />
+            </>
+          )}
+          <Checkbox checked={rule.enabled} onChange={(v) => set({ enabled: v })} label={t('rules.enable')} />
+          <Row justify="end">
+            <Button variant="secondary" onClick={onCancel}>{t('common.cancel')}</Button>
+            <Button disabled={!valid} onClick={() => onSave(rule)}>{t('rules.save')}</Button>
+          </Row>
+        </Stack>
+      </Card>
     </div>
   );
 }
 
 function describeRule(rule, tax) {
   const names = (list, ids) => ids.map((id) => list?.find((x) => x.id === id)?.name).filter(Boolean);
-  const parts = [];
+  const parts = [rule.what === 'message' ? t('rules.what_message') : t('rules.what_attachments')];
   const corr = tax?.correspondents?.find((x) => x.id === rule.correspondent)?.name;
   const type = tax?.documentTypes?.find((x) => x.id === rule.documentType)?.name;
   if (corr) parts.push(`${t('field.correspondent')}: ${corr}`);
@@ -90,52 +93,48 @@ function Rules({ client }) {
     void save(prev ? rules.map((r) => (r.id === rule.id ? rule : r)) : [...rules, rule]);
   };
 
-  if (!rules) return <p className="pl-muted">{t('common.loading')}</p>;
   return (
-    <section aria-labelledby="pl-rules-h">
-      <h3 id="pl-rules-h">{t('rules.title')}</h3>
-      <p className="pl-muted">{t('rules.intro')}</p>
-      <ErrorBox error={error} />
-      {rules.length === 0 && editing !== 'new' && <p className="pl-muted">{t('rules.none')}</p>}
-      <ul className="pl-list">
-        {rules.map((rule) => (
-          <li key={rule.id}>
-            {editing === rule.id ? (
-              <RuleForm initial={rule} tax={tax} onSave={upsert} onCancel={() => setEditing(null)} />
-            ) : (
-              <div className="pl-item">
-                <input type="checkbox" checked={rule.enabled} aria-label={t('rules.toggle', { from: rule.from })}
-                  onChange={(e) => upsert({ ...rule, enabled: e.target.checked })} />
-                <div className="pl-grow">
-                  <div className="pl-name">
-                    {rule.subject
-                      ? t('rules.summary_subject', { from: rule.from, subject: rule.subject })
-                      : t('rules.summary', { from: rule.from })}
-                  </div>
-                  <div className="pl-muted">
-                    {rule.what === 'message' ? t('rules.what_message') : t('rules.what_attachments')}
-                    {describeRule(rule, tax) ? ` · ${describeRule(rule, tax)}` : ''}
-                  </div>
-                  <div className="pl-muted">{rule.enabled ? t('rules.on') : t('rules.off')}</div>
-                </div>
-                <button type="button" onClick={() => setEditing(rule.id)}>{t('common.edit')}</button>
-                <button type="button" className="pl-danger" onClick={() => save(rules.filter((r) => r.id !== rule.id))}
-                  aria-label={t('rules.delete', { from: rule.from })}>{t('common.delete')}</button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+    <Section title={t('rules.title')} description={t('rules.intro')}>
+      <ErrorAlert error={error} />
+      {!rules && <Loading />}
+      {rules && rules.length === 0 && editing !== 'new' && <Text tone="muted">{t('rules.none')}</Text>}
+      {rules?.length > 0 && (
+        <div>
+          {rules.map((rule) => (editing === rule.id ? (
+            <RuleForm key={rule.id} initial={rule} tax={tax} onSave={upsert} onCancel={() => setEditing(null)} />
+          ) : (
+            <SettingRow
+              key={rule.id}
+              label={rule.subject
+                ? t('rules.summary_subject', { from: rule.from, subject: rule.subject })
+                : t('rules.summary', { from: rule.from })}
+              description={describeRule(rule, tax)}
+            >
+              <Row gap={1} wrap={false}>
+                <RowAction icon="pencil" label={t('common.edit')} onClick={() => setEditing(rule.id)} />
+                <RowAction icon="trash" danger label={t('rules.delete', { from: rule.from })} onClick={() => save(rules.filter((r) => r.id !== rule.id))} />
+                <Switch checked={rule.enabled} label={t('rules.toggle', { from: rule.from })} onChange={(on) => upsert({ ...rule, enabled: on })} />
+              </Row>
+            </SettingRow>
+          )))}
+        </div>
+      )}
       {editing === 'new'
-        ? <div style={{ marginTop: 8 }}><RuleForm initial={EMPTY_RULE} tax={tax} onSave={upsert} onCancel={() => setEditing(null)} /></div>
-        : <div className="pl-actions" style={{ justifyContent: 'flex-start' }}><button type="button" onClick={() => setEditing('new')}>{t('rules.add')}</button></div>}
-    </section>
+        ? <RuleForm initial={EMPTY_RULE} tax={tax} onSave={upsert} onCancel={() => setEditing(null)} />
+        : rules && <Row><Button variant="secondary" icon="plus" onClick={() => setEditing('new')}>{t('rules.add')}</Button></Row>}
+    </Section>
   );
+}
+
+function connectedText(connection, who) {
+  if (connection.mode === 'shared') return t('settings.connected_shared', { host: hostOf(connection.base) });
+  return who ? t('settings.connected_as', { host: hostOf(connection.base), user: who }) : t('settings.connected', { host: hostOf(connection.base) });
 }
 
 /** The plugin's page in Settings: connection, browse, rules. */
 export function Settings() {
   const { connection, client, loading, refresh } = useConnection();
+  const { busy, error: connectError, connect } = useConnect(connection, () => refresh());
   const [who, setWho] = useState('');
   const [error, setError] = useState(null);
   const api = getApi();
@@ -152,35 +151,39 @@ export function Settings() {
     await refresh();
   };
 
-  const browse = () => api.ui.openDialog({ title: t('page.title'), slot: 'plugin-dialog', extraProps: { view: 'browse' }, width: 1000 });
+  const browse = () => api.ui.openDialog({ title: t('page.title'), slot: 'plugin-dialog', extraProps: { view: 'browse' }, width: 900 });
 
   return (
-    <div className="pl" style={{ padding: 4 }}>
-      <Styles />
-      <h2>{t('settings.title')}</h2>
-      {loading && <p className="pl-muted">{t('common.loading')}</p>}
-      {connection?.state === 'disconnected' && <ConnectPanel connection={connection} onConnected={() => refresh()} />}
-      {connection?.state === 'error' && (
-        <div className="pl-card">
-          <ErrorBox error={connection.error} onRetry={refresh} />
-          {connection.mode === 'shared' && <p className="pl-muted">{t('settings.shared_error')}</p>}
-        </div>
-      )}
-      {connection?.state === 'connected' && (
-        <div className="pl-card">
-          <p>
-            {connection.mode === 'shared'
-              ? t('settings.connected_shared', { host: hostOf(connection.base) })
-              : who ? t('settings.connected_as', { host: hostOf(connection.base), user: who }) : t('settings.connected', { host: hostOf(connection.base) })}
-          </p>
-          <ErrorBox error={error} />
-          <div className="pl-actions" style={{ justifyContent: 'flex-start' }}>
-            <button type="button" className="pl-primary" onClick={browse}>{t('settings.browse')}</button>
-            {connection.mode === 'personal' && <button type="button" onClick={disconnect}>{t('settings.disconnect')}</button>}
+    <Stack gap={6}>
+      <Section title={t('settings.title')}>
+        {loading && <Loading />}
+        {!loading && connection?.state === 'disconnected' && (
+          <>
+            <SettingRow label={t('settings.connection')} description={`${connectIntro(connection)} ${t('connect.token_hint')}`}>
+              <Button busy={busy} onClick={connect}>{t('connect.button')}</Button>
+            </SettingRow>
+            <ErrorAlert error={connectError} />
+          </>
+        )}
+        {!loading && connection?.state === 'error' && (
+          <>
+            <ErrorAlert error={connection.error} onRetry={refresh} />
+            {connection.mode === 'shared' && <Text tone="muted">{t('settings.shared_error')}</Text>}
+          </>
+        )}
+        {!loading && connection?.state === 'connected' && (
+          <div>
+            <SettingRow label={t('settings.connection')} description={connectedText(connection, who)}>
+              {connection.mode === 'personal' && <Button variant="secondary" onClick={disconnect}>{t('settings.disconnect')}</Button>}
+            </SettingRow>
+            <SettingRow label={t('browse.results')} description={t('settings.documents_hint')}>
+              <Button variant="secondary" icon="archive" onClick={browse}>{t('settings.browse')}</Button>
+            </SettingRow>
           </div>
-        </div>
-      )}
-      {connection?.state === 'connected' && <Rules client={client} />}
-    </div>
+        )}
+        <ErrorAlert error={error} />
+      </Section>
+      {!loading && connection?.state === 'connected' && <Rules client={client} />}
+    </Stack>
   );
 }

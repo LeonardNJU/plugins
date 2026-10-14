@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Alert, Badge, Checkbox, DialogButtons, Field, Input, LinkButton, Spinner, Stack, Text } from '@plugin-host/ui';
 import { getApi, t, formatSize } from './host.js';
-import { ErrorBox, Field, PickOne, Styles, TagPicker, useConnection, useTaxonomies } from './common.jsx';
+import { ErrorAlert, PickOne, TagPicker, useConnection, useTaxonomies } from './common.jsx';
 import { suggestMetadata } from '../lib/suggest.js';
 
 export const REMEMBERED_KEY = 'remembered';
@@ -8,6 +9,13 @@ export const REMEMBERED_KEY = 'remembered';
 function sameSender(groups) {
   const emails = new Set(groups.map((g) => (g.sender?.email || '').toLowerCase()));
   return emails.size === 1 ? groups[0].sender : null;
+}
+
+/** The documents already in Paperless, once each (two items can be the same file). */
+export function distinctDocuments(duplicates) {
+  const byId = new Map();
+  for (const doc of Object.values(duplicates || {})) if (doc && !byId.has(doc.id)) byId.set(doc.id, doc);
+  return [...byId.values()];
 }
 
 /**
@@ -81,10 +89,8 @@ export function SendDialog({ groups = [], connection: initialConnection, onResul
   const single = selected.size === 1 ? items.find((i) => selected.has(i.key)) : null;
   useEffect(() => { setTitle(single ? single.title : ''); }, [single?.key]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // A button, not a form: the sandboxed frame may not submit forms.
-  const submit = (e) => {
-    e?.preventDefault?.();
-    if (!selected.size) return;
+  const submit = () => {
+    if (!selected.size || !client) return;
     onResult?.({
       selected: [...selected],
       title: single ? title : '',
@@ -95,85 +101,85 @@ export function SendDialog({ groups = [], connection: initialConnection, onResul
   };
 
   const openDoc = (id) => { if (client) void getApi().ui.openExternalUrl(client.documentUrl(id)); };
+  // One document already there: "Open in Paperless" in the footer. Several:
+  // a line with its own link for each.
+  const found = distinctDocuments(duplicates);
+
+  const buttons = [
+    { id: 'cancel', label: t('common.cancel'), variant: 'secondary' },
+    ...(found.length === 1 ? [{ id: 'open', label: t('browse.open_in_paperless'), variant: 'secondary' }] : []),
+    { id: 'send', label: selected.size > 1 ? t('send.button_count', { count: selected.size }) : t('send.button'), variant: 'primary', disabled: !selected.size || !client },
+  ];
+  const onButton = (id) => {
+    if (id === 'cancel') onResult?.(null);
+    else if (id === 'open' && found[0]) openDoc(found[0].id);
+    else if (id === 'send') submit();
+  };
 
   return (
-    <div className="pl" style={{ padding: 4 }}>
-      <Styles />
-      {connection?.state === 'error' && <ErrorBox error={connection.error} />}
+    <Stack gap={4}>
+      {connection?.state === 'error' && <ErrorAlert error={connection.error} />}
       {groups.map((group) => (
-        <section key={group.emailId} style={{ marginBottom: 12 }} aria-label={group.subject || t('send.no_subject')}>
-          <div className="pl-muted" style={{ marginBottom: 6 }}>
-            {t('send.from_line', { sender: group.sender?.name || group.sender?.email || '?', subject: group.subject || t('send.no_subject') })}
-          </div>
-          <ul className="pl-list">
+        <div key={group.emailId} role="group" aria-label={group.subject || t('send.no_subject')}>
+          <Stack gap={3}>
+            <Text tone="muted" truncate>
+              {t('send.from_line', { sender: group.sender?.name || group.sender?.email || '?', subject: group.subject || t('send.no_subject') })}
+            </Text>
             {group.items.map((item) => {
               const dup = duplicates[item.key];
-              const id = `pl-item-${item.key.replace(/[^a-z0-9]/gi, '-')}`;
               return (
-                <li key={item.key} className={`pl-item${selected.has(item.key) ? ' pl-active' : ''}`}>
-                  <input id={id} type="checkbox" checked={selected.has(item.key)} onChange={() => toggle(item.key)} />
-                  <div className="pl-grow">
-                    <label htmlFor={id} className="pl-name">
-                      {item.kind === 'eml' ? t('send.whole_message', { name: item.name }) : item.name}
-                    </label>
-                    <div className="pl-row" style={{ marginTop: 2 }}>
-                      <span className="pl-muted">{formatSize(item.size)}</span>
-                      {item.support === 'tika' && <span className="pl-badge pl-warn">{t('send.needs_tika')}</span>}
-                      {item.support === 'no' && <span className="pl-badge pl-warn">{t('send.unsupported')}</span>}
-                      {dup && (
-                        <span className="pl-badge pl-ok">
-                          {t('send.already', { title: dup.title })}
-                          <button type="button" className="pl-link" onClick={() => openDoc(dup.id)}>{t('common.open')}</button>
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </li>
+                <Checkbox
+                  key={item.key}
+                  checked={selected.has(item.key)}
+                  onChange={() => toggle(item.key)}
+                  label={item.kind === 'eml' ? t('send.whole_message', { name: item.name }) : item.name}
+                  hint={(
+                    <>
+                      {formatSize(item.size)}
+                      {item.support === 'tika' && <>{' '}<Badge tone="warning">{t('send.needs_tika')}</Badge></>}
+                      {item.support === 'no' && <>{' '}<Badge tone="warning">{t('send.unsupported')}</Badge></>}
+                      {dup && <>{' '}<Badge tone="success">{t('send.already', { title: dup.title })}</Badge></>}
+                    </>
+                  )}
+                />
               );
             })}
-          </ul>
-        </section>
+          </Stack>
+        </div>
       ))}
-      {checking && <p className="pl-muted" aria-live="polite">{t('send.checking')}</p>}
+      {checking && <Spinner size="sm" label={t('send.checking')} />}
+      {found.length > 1 && found.map((doc) => (
+        <Alert key={doc.id} tone="success" icon="circle-check" action={<LinkButton icon="external-link" onClick={() => openDoc(doc.id)}>{t('browse.open_in_paperless')}</LinkButton>}>
+          {t('send.already', { title: doc.title })}
+        </Alert>
+      ))}
 
-      <ErrorBox error={taxError} onRetry={reload} />
+      <ErrorAlert error={taxError} onRetry={reload} />
       {single && (
-        <Field id="pl-title" label={t('field.title')} style={{ marginBottom: 10 }}>
-          <input id="pl-title" type="text" value={title} maxLength={128} onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') submit(e); }} />
+        <Field label={t('field.title')}>
+          <Input type="text" value={title} maxLength={128} onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }} />
         </Field>
       )}
-      {selected.size > 1 && <p className="pl-muted">{t('send.titles_from_names')}</p>}
-      {!tax && !taxError && <p className="pl-muted" aria-live="polite">{t('common.loading')}</p>}
+      {selected.size > 1 && <Text tone="muted">{t('send.titles_from_names')}</Text>}
+      {!tax && !taxError && <Spinner size="sm" label={t('common.loading')} />}
       {tax && (
         <>
-          <div className="pl-grid">
-            <PickOne id="pl-corr" label={t('field.correspondent')} items={tax.correspondents} value={correspondent} onChange={setCorrespondent}
-              suggested={suggestion?.correspondent != null && suggestion.correspondent === correspondent} />
-            <PickOne id="pl-type" label={t('field.document_type')} items={tax.documentTypes} value={documentType} onChange={setDocumentType}
-              suggested={suggestion?.documentType != null && suggestion.documentType === documentType} />
-            {tax.storagePaths.length > 0 && (
-              <PickOne id="pl-path" label={t('field.storage_path')} items={tax.storagePaths} value={storagePath} onChange={setStoragePath} />
-            )}
-          </div>
-          <div style={{ marginTop: 10 }}>
-            <TagPicker tags={tax.tags} value={tags} onChange={setTags} />
-          </div>
-          {suggestion?.source === 'remembered' && <p className="pl-muted">{t('send.remembered_note')}</p>}
+          <PickOne label={t('field.correspondent')} items={tax.correspondents} value={correspondent} onChange={setCorrespondent}
+            suggested={suggestion?.correspondent != null && suggestion.correspondent === correspondent} />
+          <PickOne label={t('field.document_type')} items={tax.documentTypes} value={documentType} onChange={setDocumentType}
+            suggested={suggestion?.documentType != null && suggestion.documentType === documentType} />
+          {tax.storagePaths.length > 0 && (
+            <PickOne label={t('field.storage_path')} items={tax.storagePaths} value={storagePath} onChange={setStoragePath} />
+          )}
+          <TagPicker tags={tax.tags} value={tags} onChange={setTags} />
+          {suggestion?.source === 'remembered' && <Text tone="muted">{t('send.remembered_note')}</Text>}
           {sender?.email && (
-            <label className="pl-row" style={{ marginTop: 10, fontSize: 13 }}>
-              <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-              {t('send.remember', { sender: sender.email })}
-            </label>
+            <Checkbox checked={remember} onChange={setRemember} label={t('send.remember', { sender: sender.email })} />
           )}
         </>
       )}
-      <div className="pl-actions">
-        <button type="button" onClick={() => onResult?.(null)}>{t('common.cancel')}</button>
-        <button type="button" className="pl-primary" disabled={!selected.size || !client} onClick={submit}>
-          {selected.size > 1 ? t('send.button_count', { count: selected.size }) : t('send.button')}
-        </button>
-      </div>
-    </div>
+      <DialogButtons buttons={buttons} onClick={onButton} />
+    </Stack>
   );
 }

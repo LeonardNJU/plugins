@@ -76,6 +76,38 @@ async function installPlugin(admin, id) {
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SLOT = `iframe[title="plugin-${PLUGIN}-slot"]`;
 
+/** A button the host draws in the plugin dialog's footer (kit DialogButtons). */
+function footerButton(page, name) {
+  return page.locator('[data-plugin-dialog-buttons]').last().getByRole('button', { name, exact: true });
+}
+
+/** A document row in the plugin's list. */
+function docRow(frame, title) {
+  return frame.getByRole('listitem').filter({ hasText: title }).first();
+}
+
+/** Click something that opens a new tab (api.ui.openExternalUrl) and resolve to the tab's URL. */
+async function openedUrl(page, click) {
+  const popup = page.waitForEvent('popup');
+  await click();
+  const tab = await popup;
+  if (tab.url() === 'about:blank') await tab.waitForURL(/^http/).catch(() => {});
+  const url = new URL(tab.url());
+  await tab.close();
+  // This browser isn't signed in to Paperless, which sends it to its login page first.
+  const next = url.pathname.endsWith('/accounts/login/') ? url.searchParams.get('next') : null;
+  return next ? `${url.origin}${next}` : url.href;
+}
+
+/** The attachment's plugin menu: its buttons only take clicks while the attachment is hovered. */
+async function openAttachmentMenu(page) {
+  const menu = page.locator('[data-attachment-plugin-menu]').first();
+  // The closest hover group around it: the attachment chip.
+  await menu.locator('xpath=ancestor::*[contains(concat(" ", normalize-space(@class), " "), " group ")][1]').hover();
+  await menu.click();
+  await page.getByRole('menuitem', { name: 'Send to Paperless' }).click();
+}
+
 /** Mail alice a message with a PDF whose text (and so checksum) is unique to this run. */
 function sendMail({ from, subject, pdfText, pdfName, savePdf }) {
   const args = [path.join(HERE, 'send_mail.py'), '--from', from, '--subject', subject, '--pdf-text', pdfText, '--pdf-name', pdfName];
@@ -172,17 +204,20 @@ test.describe('paperless plugin', () => {
       await settings.getByRole('button', { name: 'Browse documents' }).click();
       const dialog = page.frameLocator(SLOT).last();
       await expect(dialog.getByText(/\d+ documents/)).toBeVisible({ timeout: 30_000 });
+      // Searches as you type, like the Files app.
       await dialog.getByRole('searchbox', { name: 'Search documents' }).fill('ACME invoice');
-      await dialog.getByRole('button', { name: 'Search', exact: true }).click();
       await expect(dialog.getByText('2 documents')).toBeVisible();
-      // Filters: the tag "Inbox" leaves the October invoice only.
+      // Filters apply at once: the tag "Inbox" leaves the October invoice only.
       await dialog.getByRole('button', { name: 'Filters' }).click();
       await dialog.getByRole('checkbox', { name: 'Inbox', exact: true }).check();
-      await dialog.getByRole('button', { name: 'Apply' }).click();
       await expect(dialog.getByText('1 documents')).toBeVisible();
-      await dialog.getByRole('button', { name: 'ACME invoice 2026-10' }).click();
+      await expect(dialog.getByRole('listitem')).toHaveCount(1);
+      // Nothing picked yet: the footer's attach button waits.
+      await expect(footerButton(page, 'Attach to new message')).toBeDisabled();
+      await docRow(dialog, 'ACME invoice 2026-10').click();
       await expect(dialog.getByRole('img', { name: 'Preview of ACME invoice 2026-10' })).toBeVisible();
-      await dialog.getByRole('button', { name: 'Attach to new message' }).click();
+      await expect(footerButton(page, 'All documents')).toBeVisible();
+      await footerButton(page, 'Attach to new message').click();
       // The composer opens with the PDF attached.
       await expect(page.getByText(/ACME invoice 2026-10\.pdf/).first()).toBeVisible({ timeout: 30_000 });
     } finally {
@@ -224,8 +259,7 @@ test.describe('paperless plugin', () => {
     const admin = await start(page);
     try {
       await openMessage(page, subject);
-      await page.locator('[data-attachment-plugin-menu]').first().click();
-      await page.getByRole('menuitem', { name: 'Send to Paperless' }).click();
+      await openAttachmentMenu(page);
       const dialog = page.frameLocator(SLOT).last();
       await expect(dialog.getByLabel(fileName)).toBeChecked({ timeout: 30_000 });
       // ACME Hosting from billing@acme-hosting.example, Invoice from the subject.
@@ -234,10 +268,17 @@ test.describe('paperless plugin', () => {
       await expect(dialog.getByRole('checkbox', { name: 'Invoice', exact: true })).toBeChecked();
       await expect(dialog.getByText('Checking whether these are already in Paperless…')).toHaveCount(0);
       await expect(dialog.getByText(/Already in Paperless/)).toHaveCount(0);
-      await dialog.getByRole('button', { name: 'Send', exact: true }).click();
+      // The buttons are the host's dialog footer, not drawn in the frame.
+      await expect(dialog.getByRole('button', { name: 'Send', exact: true })).toHaveCount(0);
+      await expect(footerButton(page, 'Open in Paperless')).toHaveCount(0);
+      await footerButton(page, 'Send').click();
 
       const docs = await expectSendOutcome(page, run);
       expect(docs).toHaveLength(1);
+      // The notice links to the new document.
+      const link = page.getByRole('button', { name: 'Open in Paperless' }).first();
+      await expect(link).toBeVisible();
+      expect(await openedUrl(page, () => link.click())).toBe(`${PAPERLESS}/documents/${docs[0].id}/details`);
       expect(docs[0].title).toBe(`acme-${run}`);
       expect(docs[0].correspondent).toBe(1);
       expect(docs[0].document_type).toBe(1);
@@ -256,18 +297,20 @@ test.describe('paperless plugin', () => {
     fs.mkdirSync(path.dirname(pdfPath), { recursive: true });
     sendMail({ from: 'Bob Example <bob@example.org>', subject, pdfText: `Bulwark ${run}`, pdfName: fileName, savePdf: pdfPath });
     await uploadDirect(fs.readFileSync(pdfPath), fileName, `Filed earlier ${run}`);
+    const [earlier] = await findDocs(`Filed earlier ${run}`);
     const admin = await start(page);
     try {
       await openMessage(page, subject);
-      await page.locator('[data-attachment-plugin-menu]').first().click();
-      await page.getByRole('menuitem', { name: 'Send to Paperless' }).click();
+      await openAttachmentMenu(page);
       const dialog = page.frameLocator(SLOT).last();
       await expect(dialog.getByText(`Already in Paperless: Filed earlier ${run}`)).toBeVisible({ timeout: 30_000 });
       await expect(dialog.getByLabel(fileName)).not.toBeChecked();
-      await expect(dialog.getByRole('button', { name: 'Send', exact: true })).toBeDisabled();
+      await expect(footerButton(page, 'Send')).toBeDisabled();
       // Bob Example is a correspondent by name.
       await expect(dialog.getByLabel('Correspondent')).toHaveValue('4');
-      await dialog.getByRole('button', { name: 'Cancel' }).click();
+      // "Open in Paperless" in the footer opens the copy that is there.
+      expect(await openedUrl(page, () => footerButton(page, 'Open in Paperless').click())).toBe(`${PAPERLESS}/documents/${earlier.id}/details`);
+      await footerButton(page, 'Cancel').click();
     } finally {
       await uninstallPlugin(admin, PLUGIN);
       await deleteDocs((await findDocs(run).catch(() => [])).map((d) => d.id));
@@ -289,7 +332,7 @@ test.describe('paperless plugin', () => {
       // "Rechnung" is the German word for invoice.
       await expect(dialog.getByLabel('Document type')).toHaveValue('1');
       await expect(dialog.getByLabel('Correspondent')).toHaveValue('2');
-      await dialog.getByRole('button', { name: 'Cancel' }).click();
+      await footerButton(page, 'Cancel').click();
 
       // Select both and use the selection toolbar.
       await page.keyboard.press('Escape');
@@ -297,12 +340,22 @@ test.describe('paperless plugin', () => {
         const row = page.getByText(`Rechnung ${letter} ${run}`, { exact: true }).first();
         await row.click({ position: { x: 4, y: 4 }, modifiers: ['Control'] });
       }
-      await page.getByRole('button', { name: 'Send to Paperless' }).first().click();
+      // The selection toolbar keeps plugin actions in its "More actions" menu when space is short.
+      await expect(page.getByText('2 emails selected')).toBeVisible();
+      const direct = page.getByRole('button', { name: 'Send to Paperless' });
+      if (await direct.count()) {
+        await direct.first().click();
+      } else {
+        // The closest box around the "2 emails selected" line that holds buttons: the selection toolbar.
+        const toolbar = page.getByText('2 emails selected').locator('xpath=ancestor::*[.//button][1]');
+        await toolbar.getByRole('button', { name: 'More actions' }).click();
+        await page.getByRole('menuitem', { name: 'Send to Paperless' }).click();
+      }
       const bulk = page.frameLocator(SLOT).last();
       await expect(bulk.getByLabel(`a-${run}.pdf`)).toBeChecked({ timeout: 30_000 });
       await expect(bulk.getByLabel(`b-${run}.pdf`)).toBeChecked();
-      await expect(bulk.getByRole('button', { name: 'Send 2' })).toBeEnabled();
-      await bulk.getByRole('button', { name: 'Cancel' }).click();
+      await expect(footerButton(page, 'Send 2')).toBeEnabled();
+      await footerButton(page, 'Cancel').click();
     } finally {
       await uninstallPlugin(admin, PLUGIN);
     }
@@ -314,13 +367,13 @@ test.describe('paperless plugin', () => {
     try {
       const settings = await openSettings(page);
       await settings.getByRole('button', { name: 'Add rule' }).click();
-      await settings.getByLabel('From', { exact: true }).fill('@rules-test.example');
+      await settings.getByRole('textbox', { name: /^From/ }).fill('@rules-test.example');
       await settings.getByLabel('Subject contains').fill(run);
       await settings.getByRole('checkbox', { name: 'Bulwark test', exact: true }).check();
       await settings.getByRole('checkbox', { name: 'Run this rule on new mail' }).check();
       await settings.getByRole('button', { name: 'Save rule' }).click();
       await expect(settings.getByText(`Mail from @rules-test.example with “${run}” in the subject`)).toBeVisible();
-      await expect(settings.getByText('On', { exact: true })).toBeVisible();
+      await expect(settings.getByRole('switch', { name: 'Turn on the rule for @rules-test.example' })).toBeChecked();
 
       await page.getByRole('button', { name: 'Back to Mail' }).click();
       sendMail({ from: 'Rules Test <billing@rules-test.example>', subject: `Monthly ${run}`, pdfText: `Rule ${run}`, pdfName: `rule-${run}.pdf` });
@@ -341,12 +394,19 @@ test.describe('paperless plugin', () => {
       await page.getByRole('link', { name: 'Paperless' }).first().click();
       const frame = page.frameLocator(SLOT).first();
       await expect(frame.getByRole('heading', { name: 'Paperless' })).toBeVisible({ timeout: 60_000 });
-      await expect(frame.getByText('Steuerbescheid 2025')).toBeVisible({ timeout: 30_000 });
+      const row = docRow(frame, 'Steuerbescheid 2025');
+      await expect(row).toBeVisible({ timeout: 30_000 });
+      // Each row opens its document in Paperless.
+      const [doc] = await findDocs('Steuerbescheid 2025');
+      expect(await openedUrl(page, () => row.getByRole('button', { name: 'Open in Paperless' }).click())).toBe(`${PAPERLESS}/documents/${doc.id}/details`);
       await page.setViewportSize({ width: 390, height: 800 });
-      await frame.getByRole('button', { name: 'Steuerbescheid 2025' }).click();
+      await row.click();
       await expect(frame.getByRole('button', { name: 'Download' })).toBeVisible();
-      const width = await frame.locator('.pl').first().evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
+      await expect(frame.getByRole('button', { name: 'Open in Paperless' })).toBeVisible();
+      const width = await frame.locator('.bk').first().evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
       expect(width).toBe(true);
+      await frame.getByRole('button', { name: 'All documents' }).click();
+      await expect(docRow(frame, 'Steuerbescheid 2025')).toBeVisible();
     } finally {
       await uninstallPlugin(admin, PLUGIN);
     }
@@ -381,20 +441,21 @@ test('screenshots in light and dark', async ({ page }) => {
 
       await page.getByRole('link', { name: 'Paperless' }).first().click();
       const docs = page.frameLocator(SLOT).first();
-      await docs.getByRole('button', { name: 'ACME invoice 2026-10' }).click({ timeout: 60_000 });
-      await expect(docs.getByRole('img', { name: 'Preview of ACME invoice 2026-10' })).toBeVisible();
+      await expect(docRow(docs, 'ACME invoice 2026-10')).toBeVisible({ timeout: 60_000 });
       await shoot(page, PLUGIN, 'documents', theme);
+      await docRow(docs, 'ACME invoice 2026-10').click();
+      await expect(docs.getByRole('img', { name: 'Preview of ACME invoice 2026-10' })).toBeVisible();
+      await shoot(page, PLUGIN, 'document-details', theme);
 
       await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
       await waitForPlugin(page, PLUGIN);
       await openMessage(page, `Invoice ${run}`);
-      await page.locator('[data-attachment-plugin-menu]').first().click();
-      await page.getByRole('menuitem', { name: 'Send to Paperless' }).click();
+      await openAttachmentMenu(page);
       const dialog = page.frameLocator(SLOT).last();
       await expect(dialog.getByLabel('Correspondent')).toHaveValue('1', { timeout: 30_000 });
       await expect(dialog.getByText('Checking whether these are already in Paperless…')).toHaveCount(0);
       await shoot(page, PLUGIN, 'send-dialog', theme);
-      await dialog.getByRole('button', { name: 'Cancel' }).click();
+      await footerButton(page, 'Cancel').click();
     }
   } finally {
     if (restore) await setTheme(page, restore).catch(() => {});

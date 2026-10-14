@@ -6,6 +6,11 @@ import { toPaperlessError } from './errors.js';
 export const TASKS_KEY = 'tasks';
 /** Give up on a task that is still pending after this long. */
 export const TASK_TIMEOUT_MS = 15 * 60 * 1000;
+/**
+ * A task can report success a moment before it names the new document.
+ * Keep asking this long for the id, then report without it.
+ */
+export const DOCUMENT_ID_WAIT_MS = 30 * 1000;
 const MAX_TASKS = 100;
 
 /**
@@ -15,7 +20,7 @@ const MAX_TASKS = 100;
  * @param {(entry, outcome: { state: 'success'|'failure'|'timeout'|'error', documentId?: number|null, error?: string, duplicateOf?: number|null, errorKey?: string }) => void} deps.onDone
  * @param {() => number} [deps.now]
  */
-export function createTaskTracker({ storage, clientFor, onDone, now = () => Date.now(), timeoutMs = TASK_TIMEOUT_MS }) {
+export function createTaskTracker({ storage, clientFor, onDone, now = () => Date.now(), timeoutMs = TASK_TIMEOUT_MS, idWaitMs = DOCUMENT_ID_WAIT_MS }) {
   let queue = Promise.resolve();
   // One read-modify-write at a time, so two uploads finishing together don't lose a task.
   const withList = (fn) => {
@@ -46,26 +51,39 @@ export function createTaskTracker({ storage, clientFor, onDone, now = () => Date
     pollOnce() {
       return withList(async (list) => {
         const keep = [];
-        for (const entry of list) {
+        let changed = false;
+        for (let entry of list) {
           let outcome = null;
           try {
             const client = await clientFor(entry);
             const task = await client.task(entry.taskId);
-            if (task.state === 'success') outcome = { state: 'success', documentId: task.documentId };
-            else if (task.state === 'failure') outcome = { state: 'failure', error: task.error, duplicateOf: task.duplicateOf };
+            if (task.state === 'success') {
+              if (task.documentId != null) {
+                outcome = { state: 'success', documentId: task.documentId };
+              } else if (entry.succeededAt == null) {
+                // Filed, but the id isn't there yet: ask again next round.
+                entry = { ...entry, succeededAt: now() };
+                changed = true;
+              } else if (now() - entry.succeededAt >= idWaitMs) {
+                outcome = { state: 'success', documentId: null };
+              }
+            } else if (task.state === 'failure') outcome = { state: 'failure', error: task.error, duplicateOf: task.duplicateOf };
           } catch (err) {
             const e = toPaperlessError(err);
             // A revoked token or a removed connection won't fix itself.
             if (e.key === 'error.token' || e.key === 'error.not_connected') outcome = { state: 'error', errorKey: e.key };
           }
-          if (!outcome && now() - (entry.startedAt || 0) > timeoutMs) outcome = { state: 'timeout' };
+          if (!outcome && now() - (entry.startedAt || 0) > timeoutMs) {
+            // Filed without an id is still filed.
+            outcome = entry.succeededAt != null ? { state: 'success', documentId: null } : { state: 'timeout' };
+          }
           if (outcome) {
             try { onDone(entry, outcome); } catch { /* the plugin's own notifier */ }
           } else {
             keep.push(entry);
           }
         }
-        if (keep.length !== list.length) await storage.set(TASKS_KEY, keep);
+        if (changed || keep.length !== list.length) await storage.set(TASKS_KEY, keep);
         return keep.length;
       });
     },

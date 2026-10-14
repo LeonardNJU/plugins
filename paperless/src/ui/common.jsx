@@ -1,12 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { CSS } from './styles.js';
+import { Alert, Badge, Button, Checkbox, EmptyState, Field, LinkButton, Row, Select, Stack, Text } from '@plugin-host/ui';
 import { getApi, t, hostOf } from './host.js';
 import { clientFor, connectPersonal, resolveConnection } from '../lib/connection.js';
 import { errorText } from '../lib/errors.js';
-
-export function Styles() {
-  return <style>{CSS}</style>;
-}
 
 /** The connection, resolved once per mount; `refresh` re-checks it. */
 export function useConnection(initial) {
@@ -25,18 +21,18 @@ export function useConnection(initial) {
   return { connection, client, loading, refresh };
 }
 
-export function ErrorBox({ error, onRetry }) {
+/** An error in the app's error bar, with "Retry" when there is something to retry. */
+export function ErrorAlert({ error, onRetry }) {
   if (!error) return null;
   return (
-    <div className="pl-error" role="alert">
-      <span>{errorText(t, error)}</span>
-      {onRetry && <> <button type="button" className="pl-link" onClick={onRetry}>{t('common.retry')}</button></>}
-    </div>
+    <Alert tone="danger" icon="alert-circle" action={onRetry ? <LinkButton onClick={onRetry}>{t('common.retry')}</LinkButton> : null}>
+      {errorText(t, error)}
+    </Alert>
   );
 }
 
-/** "Connect Paperless" for a user without a connection. */
-export function ConnectPanel({ connection, onConnected }) {
+/** Runs the host's "Connect" dialog. */
+export function useConnect(connection, onConnected) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const connect = async () => {
@@ -52,74 +48,66 @@ export function ConnectPanel({ connection, onConnected }) {
       setBusy(false);
     }
   };
-  return (
-    <div className="pl-card">
-      <p>{connection?.suggestedServer
-        ? t('connect.intro_server', { host: hostOf(connection.suggestedServer) })
-        : t('connect.intro')}</p>
-      <p className="pl-muted">{t('connect.token_hint')}</p>
-      <ErrorBox error={error} />
-      <div className="pl-actions" style={{ justifyContent: 'flex-start' }}>
-        <button type="button" className="pl-primary" onClick={connect} disabled={busy}>
-          {busy ? t('common.working') : t('connect.button')}
-        </button>
-      </div>
-    </div>
-  );
+  return { busy, error, connect };
 }
 
-/**
- * A labelled control. The label sits beside the control rather than around
- * it, so the control's accessible name is the label alone.
- */
-export function Field({ id, label, note, children, style }) {
+export function connectIntro(connection) {
+  return connection?.suggestedServer
+    ? t('connect.intro_server', { host: hostOf(connection.suggestedServer) })
+    : t('connect.intro');
+}
+
+/** "Connect Paperless" for a user without a connection, as the Files app's empty state. */
+export function ConnectEmptyState({ connection, onConnected }) {
+  const { busy, error, connect } = useConnect(connection, onConnected);
   return (
-    <div className="pl-field" style={style}>
-      <span className="pl-row" style={{ gap: 6 }}>
-        <label htmlFor={id}>{label}</label>
-        {note}
-      </span>
-      {children}
-    </div>
+    <Stack gap={4}>
+      <EmptyState
+        icon="archive"
+        title={t('connect.title')}
+        description={`${connectIntro(connection)} ${t('connect.token_hint')}`}
+        actions={<Button busy={busy} onClick={connect}>{t('connect.button')}</Button>}
+      />
+      <ErrorAlert error={error} />
+    </Stack>
   );
 }
 
 /** A select over Paperless objects, with an empty "none" entry. */
-export function PickOne({ id, label, items, value, onChange, noneLabel, suggested }) {
+export function PickOne({ label, items, value, onChange, noneLabel, suggested, block = true }) {
   return (
-    <Field id={id} label={label} note={suggested ? <span className="pl-badge pl-ok">{t('send.suggested')}</span> : null}>
-      <select id={id} value={value == null ? '' : String(value)} onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))}>
-        <option value="">{noneLabel || t('common.none')}</option>
-        {(items || []).map((it) => <option key={it.id} value={String(it.id)}>{it.name}</option>)}
-      </select>
+    <Field label={suggested ? <>{label} <Badge tone="success">{t('send.suggested')}</Badge></> : label}>
+      <Select
+        block={block}
+        value={value == null ? '' : String(value)}
+        onChange={(v) => onChange(v === '' ? null : Number(v))}
+        options={[{ value: '', label: noneLabel || t('common.none') }, ...(items || []).map((it) => ({ value: String(it.id), label: it.name }))]}
+      />
     </Field>
   );
 }
 
-/** Tags as toggle chips. */
+/** Tags as a row of check boxes. */
 export function TagPicker({ tags, value, onChange, label }) {
   const on = new Set(value || []);
   if (!tags?.length) return null;
+  const toggle = (id) => {
+    const next = new Set(on);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    onChange([...next]);
+  };
+  const name = label || t('field.tags');
   return (
-    <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-      <legend style={{ fontSize: 12, fontWeight: 500, marginBottom: 4 }}>{label || t('field.tags')}</legend>
-      <div className="pl-chips">
-        {tags.map((tag) => (
-          <label key={tag.id} className={`pl-chip${on.has(tag.id) ? ' pl-on' : ''}`}>
-            <input
-              type="checkbox"
-              checked={on.has(tag.id)}
-              onChange={() => {
-                const next = new Set(on);
-                if (next.has(tag.id)) next.delete(tag.id); else next.add(tag.id);
-                onChange([...next]);
-              }}
-            />
-            {tag.name}
-          </label>
-        ))}
-      </div>
-    </fieldset>
+    <div role="group" aria-label={name}>
+      <Stack gap={2}>
+        <Text weight="medium">{name}</Text>
+        <Row gap={4}>
+          {tags.map((tag) => (
+            <Checkbox key={tag.id} label={tag.name} checked={on.has(tag.id)} onChange={() => toggle(tag.id)} />
+          ))}
+        </Row>
+      </Stack>
+    </div>
   );
 }
 

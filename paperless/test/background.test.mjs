@@ -115,14 +115,58 @@ describe('send flow', () => {
 });
 
 describe('when a task finishes', () => {
-  it('notifies with a link the click opens', async () => {
+  it('notifies with an "Open in Paperless" link to the document, which a click on the notification opens too', async () => {
     const { api: a } = api();
     const bg = createBackground(a, { setTimer: noTimer });
     await bg.reportDone({ name: 'October', base: BASE }, { state: 'success', documentId: 42 });
-    expect(a.calls('notifications.show')[0].args[0]).toEqual({ title: 'done.title', body: 'done.body', tag: 'doc-42' });
+    expect(a.calls('notifications.show')[0].args[0]).toEqual({
+      title: 'done.title', body: 'done.body', tag: 'doc-42',
+      action: { label: 'browse.open_in_paperless', url: `${BASE}/documents/42/details` },
+    });
     expect((await a.storage.get(LINKS_KEY))['doc-42']).toBe(`${BASE}/documents/42/details`);
     await bg.onNotificationClick({ tag: 'doc-42' });
     expect(a.calls('ui.openExternalUrl')[0].args[0]).toBe(`${BASE}/documents/42/details`);
+  });
+
+  it('links to the list filtered by title when the id is unknown or polling gave up', async () => {
+    const { api: a } = api();
+    const bg = createBackground(a, { setTimer: noTimer });
+    const entry = { name: 'Invoice 10/2026 & co', base: BASE };
+    const list = `${BASE}/documents?title__icontains=Invoice%2010%2F2026%20%26%20co`;
+    await bg.reportDone(entry, { state: 'success', documentId: null });
+    await bg.reportDone(entry, { state: 'timeout' });
+    await bg.reportDone(entry, { state: 'error', errorKey: 'error.token' });
+    const shown = a.calls('notifications.show').map((c) => c.args[0]);
+    expect(shown.map((n) => n.action)).toEqual([
+      { label: 'browse.open_in_paperless', url: list },
+      { label: 'browse.open_in_paperless', url: list },
+      { label: 'browse.open_in_paperless', url: list },
+    ]);
+    expect(shown[0]).toMatchObject({ title: 'done.title', body: 'done.body' });
+    expect(shown[0].tag).toBeUndefined();
+    expect(shown[1]).toMatchObject({ title: 'failed.title', body: 'failed.timeout' });
+  });
+
+  it('keeps the link on the server the document went to, under its path', async () => {
+    const { api: a } = api();
+    const bg = createBackground(a, { setTimer: noTimer });
+    await bg.reportDone({ name: 'x', base: 'https://dms.example.com/paperless' }, { state: 'success', documentId: 7 });
+    expect(a.calls('notifications.show')[0].args[0].action.url).toBe('https://dms.example.com/paperless/documents/7/details');
+  });
+
+  it('links a duplicate to the copy already in Paperless', async () => {
+    const { api: a } = api();
+    await createBackground(a, { setTimer: noTimer }).reportDone({ name: 'x', base: BASE }, { state: 'failure', error: 'It is a duplicate of y (#3)', duplicateOf: 3 });
+    expect(a.calls('notifications.show')[0].args[0]).toMatchObject({ body: 'failed.duplicate', tag: 'doc-3', action: { url: `${BASE}/documents/3/details` } });
+  });
+
+  it('still notifies, without the link, when the host refuses it', async () => {
+    const { api: a } = api({ extra: { 'notifications.show': (n) => { if (n.action) throw new Error('action.url must be on a server the plugin talks to'); } } });
+    await createBackground(a, { setTimer: noTimer }).reportDone({ name: 'x', base: BASE }, { state: 'success', documentId: 1 });
+    const shown = a.calls('notifications.show').map((c) => c.args[0]);
+    expect(shown).toHaveLength(2);
+    expect(shown[1]).toEqual({ title: 'done.title', body: 'done.body', tag: 'doc-1' });
+    expect(a.calls('toast.success')).toHaveLength(0);
   });
 
   it('says when the document was a duplicate or failed, as an error toast without notifications', async () => {

@@ -8,9 +8,9 @@ Send attachments and whole messages from Bulwark to [Paperless-ngx](https://docs
 
 - **Send to Paperless** on an attachment (its menu), on the open message (reader toolbar) and on several selected messages (selection toolbar). A dialog lists what will be sent: the attachments, and the message itself as `.eml`. Attachments Paperless can read are ticked; the message is ticked only when it has no such attachment.
 - **Suggestions from the sender.** The dialog fills in correspondent, document type, tags and storage path: first what you chose for this sender last time ("Use these for … next time"), else a correspondent whose name, match pattern or domain fits the sender, and a document type and tags named in the subject or file name (also "Rechnung", "facture", "Stromrechnung" for Invoice and so on).
-- **Already in Paperless.** Each file's SHA-256 (Paperless 3) and MD5 (older versions) are compared with the documents in Paperless. A file that is there already is flagged with its title, left unticked, and can be opened in Paperless.
-- **Follows the import.** After the upload the plugin watches the consume task and tells you when the document is filed (click the notification to open it in Paperless) or why it failed, for example a duplicate or a file type Paperless can't read. Open tasks survive a reload; it gives up after 15 minutes.
-- **Documents page** in the navigation: search title and text, filter by tags, correspondent, document type and date, see a preview and the text, download the original, or attach one or several documents to a new message. The same browser opens from Settings > Paperless-ngx > Browse documents.
+- **Already in Paperless.** Each file's SHA-256 (Paperless 3) and MD5 (older versions) are compared with the documents in Paperless. A file that is there already is flagged with its title and left unticked; "Open in Paperless" in the dialog opens the copy that is there.
+- **Follows the import.** After the upload the plugin watches the consume task and tells you when the document is filed or why it failed, for example a duplicate or a file type Paperless can't read. The notice has an "Open in Paperless" link to the new document (to the copy already there for a duplicate). When Paperless doesn't name the document, or the plugin stops waiting, the link opens the Paperless document list filtered by the title. Open tasks survive a reload; it gives up after 15 minutes.
+- **Documents page** in the navigation: search title and text, filter by tags, correspondent, document type and date, see a preview and the text, open a document in Paperless, download the original, or attach one or several documents to a new message. The same browser opens from Settings > Paperless-ngx > Browse documents.
 - **Rules for new mail** (Settings > Paperless-ngx): "mail from billing@acme.com (or acme.com) with 'Invoice' in the subject → send the attachments (or the whole message) with these tags, correspondent, type and storage path". A rule is off until you switch it on and only runs on mail that arrives after that, never on mail already in the mailbox. Each message is handled once.
 
 ![Documents](screenshots/documents-light.png)
@@ -31,7 +31,7 @@ Paperless can sit under a path (`https://example.com/paperless`) when the admini
 
 ![Settings](screenshots/settings-light.png)
 
-Screenshots in dark mode: [settings](screenshots/settings-dark.png), [documents](screenshots/documents-dark.png), [send dialog](screenshots/send-dialog-dark.png).
+Screenshots in dark mode: [settings](screenshots/settings-dark.png), [documents](screenshots/documents-dark.png), [document](screenshots/document-details-dark.png), [send dialog](screenshots/send-dialog-dark.png).
 
 ### Uploads and reverse proxies
 
@@ -68,6 +68,8 @@ Nothing goes to Paperless without a user action, except mail matched by a rule t
 - Attachments are preselected over the message, because most people file the invoice PDF, not the mail, and Paperless only reads `.eml` with Tika and Gotenberg. Files that need Tika are marked.
 - A bulk send reads at most 25 messages at once.
 - The title field is shown for a single file; several files keep their file names as titles.
+- The documents page is a page with a header at the app's content width, not a Files-style toolbar: it is one flat, searchable list with filters (no folders to walk through), and the same view runs inside a dialog, where a toolbar would sit oddly inside the dialog's padding.
+- There is no "Open in Paperless" entry in the attachment menu: the host draws the same menu entries for every attachment, so an entry can't depend on whether that one file is in Paperless. The Send dialog shows it instead.
 - The document preview shows the Paperless thumbnail (the picture itself for image documents) and the document text; PDFs can't be shown inside the sandboxed plugin frame.
 
 ## Development

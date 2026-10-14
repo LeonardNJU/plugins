@@ -4,6 +4,7 @@
 import { createClient } from './client.js';
 import { clientFor, connectPersonal, resolveConnection } from './connection.js';
 import { errorText, toPaperlessError } from './errors.js';
+import { documentLink, titleSearchLink } from './links.js';
 import { PROCESSED_KEY, RULES_KEY, findRule, markProcessed } from './rules.js';
 import { collectAttachment, collectMessage, collectMessages, forDialog, plannedUploads } from './send.js';
 import { rememberChoice } from './suggest.js';
@@ -27,38 +28,63 @@ export function createBackground(api, { setTimer = setTimeout } = {}) {
   });
   const poller = createPoller(tracker, { setTimer });
 
-  async function tell({ title, body, tag, error }) {
+  /**
+   * A notification (also a toast and an entry in the notification centre),
+   * with an "Open in Paperless" link when there is one. Without the
+   * notification permission, or with notifications off, a plain toast.
+   */
+  async function tell({ title, body, tag, error, url }) {
     if (api.plugin.settings?.notify !== false) {
+      const note = { title: title.slice(0, 120), body: (body || '').slice(0, 300), ...(tag ? { tag } : {}) };
+      const action = url ? { label: t('browse.open_in_paperless'), url } : null;
       try {
-        await api.notifications.show({ title: title.slice(0, 120), body: (body || '').slice(0, 300), ...(tag ? { tag } : {}) });
+        await api.notifications.show(action ? { ...note, action } : note);
         return;
-      } catch { /* no permission or rate limited: fall back to a toast */ }
+      } catch { /* the host refused the link, no permission or rate limited */ }
+      if (action) {
+        try {
+          await api.notifications.show(note);
+          return;
+        } catch { /* fall back to a toast */ }
+      }
     }
     const text = body ? `${title}: ${body}` : title;
     if (error) api.toast.error(text); else api.toast.success(text);
   }
 
+  async function rememberLink(tag, url) {
+    const links = (await api.storage.get(LINKS_KEY).catch(() => null)) || {};
+    const keys = Object.keys(links);
+    for (const k of keys.slice(0, Math.max(0, keys.length - 50))) delete links[k];
+    links[tag] = url;
+    await api.storage.set(LINKS_KEY, links).catch(() => {});
+  }
+
   async function reportDone(entry, outcome) {
     const name = entry.name || entry.fileName || '';
+    // Without the document's id: the list, filtered by the title it was sent with.
+    const found = entry.base ? titleSearchLink(entry.base, name) : null;
     if (outcome.state === 'success') {
-      const tag = outcome.documentId != null ? `doc-${outcome.documentId}` : undefined;
-      if (tag) {
-        const links = (await api.storage.get(LINKS_KEY).catch(() => null)) || {};
-        const keys = Object.keys(links);
-        for (const k of keys.slice(0, Math.max(0, keys.length - 50))) delete links[k];
-        links[tag] = `${entry.base}/documents/${outcome.documentId}/details`;
-        await api.storage.set(LINKS_KEY, links).catch(() => {});
-      }
-      await tell({ title: t('done.title'), body: t('done.body', { name }), tag });
+      const known = outcome.documentId != null && entry.base;
+      const url = known ? documentLink(entry.base, outcome.documentId) : found;
+      const tag = known ? `doc-${outcome.documentId}` : undefined;
+      // A click on a system notification arrives as onNotificationClick with the tag.
+      if (tag) await rememberLink(tag, url);
+      await tell({ title: t('done.title'), body: t('done.body', { name }), tag, url });
     } else if (outcome.state === 'failure') {
-      const body = outcome.duplicateOf != null || /duplicate/i.test(outcome.error || '')
+      const duplicate = outcome.duplicateOf != null || /duplicate/i.test(outcome.error || '');
+      const body = duplicate
         ? t('failed.duplicate', { name })
         : t('failed.body', { name, error: outcome.error || t('failed.unknown') });
-      await tell({ title: t('failed.title'), body, error: true });
+      // The copy that is already there.
+      const url = outcome.duplicateOf != null && entry.base ? documentLink(entry.base, outcome.duplicateOf) : null;
+      const tag = url ? `doc-${outcome.duplicateOf}` : undefined;
+      if (tag) await rememberLink(tag, url);
+      await tell({ title: t('failed.title'), body, error: true, tag, url });
     } else if (outcome.state === 'timeout') {
-      await tell({ title: t('failed.title'), body: t('failed.timeout', { name }), error: true });
+      await tell({ title: t('failed.title'), body: t('failed.timeout', { name }), error: true, url: found });
     } else {
-      await tell({ title: t('failed.title'), body: `${name}: ${t(outcome.errorKey || 'error.unexpected', {})}`, error: true });
+      await tell({ title: t('failed.title'), body: `${name}: ${t(outcome.errorKey || 'error.unexpected', {})}`, error: true, url: found });
     }
   }
 
