@@ -18,7 +18,8 @@
  *
  * Migration notes vs. the pre-sandbox plugin:
  *   - The custom CSS-in-JS modal is GONE — replaced by api.ui.confirm.
- *   - The banner is now a slot component. shouldShow runs in the
+ *   - The banner is the kit's reader InfoBar (src/lib/banner.js).
+ *     shouldShow runs in the
  *     background iframe and decides whether to mount the banner iframe.
  *
  * v2 status: improved. Slot iframes now have full api access, so the banner
@@ -29,6 +30,8 @@
 
 const { createElement: h, useEffect, useState } = require('react');
 const slotApi = require('@plugin-host');
+
+import { SenderWarning } from './lib/banner.js';
 
 // ─── Domain helpers (shared by background + slot) ─────────────
 
@@ -227,12 +230,6 @@ async function rememberMyAddress(addr) {
   await pluginApi.storage.set('myAddresses', [...myAddresses]);
 }
 
-function formatSenderInline(s) {
-  if (!s) return '';
-  if (s.name && s.email) return `${s.name} <${s.email}>`;
-  return s.email || s.name || '';
-}
-
 // ─── Slot: external-sender banner ─────────────────────────────
 //
 // The slot iframe has full api access in v2. We read the admin safe-domains
@@ -274,67 +271,7 @@ function ExternalSenderBanner(props) {
   const fails = slotApi.plugin?.settings?.warnOnAuthFailure !== false ? authFailures(email) : [];
   if (externals.length === 0 && fails.length === 0) return null;
 
-  const labelParts = [];
-  if (externals.length > 0) {
-    labelParts.push(externals.length === 1 ? 'External sender' : 'External senders');
-  }
-  if (fails.length > 0) {
-    labelParts.push(`${fails.join(', ')} failed`);
-  }
-  const labelText = labelParts.join(' · ');
-  const fromText = externals.map(formatSenderInline).join(', ');
-
-  return h(
-    'div',
-    {
-      role: 'note',
-      title: fromText,
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        padding: '10px 24px',
-        background: 'rgba(245, 158, 11, 0.12)',
-        borderBottom: '1px solid rgba(245, 158, 11, 0.25)',
-        color: 'var(--color-foreground)',
-      },
-    },
-    h(
-      'div',
-      {
-        style: {
-          width: '40px', height: '40px', borderRadius: '9999px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-          background: 'rgba(245, 158, 11, 0.25)',
-          color: 'var(--color-warning)',
-          fontWeight: 700,
-        },
-        'aria-hidden': 'true',
-      },
-      '!',
-    ),
-    h(
-      'div',
-      { style: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' } },
-      h(
-        'div',
-        {
-          style: {
-            fontSize: '10px',
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            opacity: 0.75,
-          },
-        },
-        labelText,
-      ),
-      fromText
-        ? h('div', { style: { fontSize: '14px', fontWeight: 600 } }, fromText)
-        : null,
-    ),
-  );
+  return h(SenderWarning, { externals, fails });
 }
 
 // shouldShow runs in the background iframe; it gets the host's extraProps
