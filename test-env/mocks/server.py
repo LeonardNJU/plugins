@@ -367,11 +367,29 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', '0')
         self.end_headers()
 
+    def read_chunked(self):
+        body = b''
+        while True:
+            size = int(self.rfile.readline().split(b';')[0].strip() or b'0', 16)
+            if size == 0:
+                # Trailer lines end with an empty line.
+                while self.rfile.readline() not in (b'
+', b'
+', b''):
+                    pass
+                return body
+            body += self.rfile.read(size)
+            self.rfile.readline()
+
     def dispatch(self, method):
         # Always drain the body, so an early error answer does not leave it
         # in the socket for the next keep-alive request.
-        length = int(self.headers.get('Content-Length') or 0)
-        self.raw_body = self.rfile.read(length) if length else b''
+        # Bodies sent through the webmail's plugin proxy arrive chunked.
+        if 'chunked' in (self.headers.get('Transfer-Encoding') or '').lower():
+            self.raw_body = self.read_chunked()
+        else:
+            length = int(self.headers.get('Content-Length') or 0)
+            self.raw_body = self.rfile.read(length) if length else b''
         url = urlparse(self.path)
         path = url.path.rstrip('/') or '/'
         query = {k: v[0] for k, v in parse_qs(url.query).items()}
