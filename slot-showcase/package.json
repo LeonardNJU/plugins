@@ -1,0 +1,9 @@
+{
+  "name": "bulwark-plugin-slot-showcase",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node ../scripts/build.mjs slot-showcase"
+  }
+}
