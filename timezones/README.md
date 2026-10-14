@@ -21,8 +21,8 @@ address), where you can add or remove them.
 ![Settings page](screenshots/settings-light.png)
 ![Settings page, dark](screenshots/settings-dark.png)
 
-The settings fields themselves are labelled in English: the webmail shows a
-plugin's setting labels as written in its manifest.
+The settings fields are labelled in the user's language: their labels are
+keys of the plugin's own translations.
 
 ## Event form
 

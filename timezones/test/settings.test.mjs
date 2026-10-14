@@ -129,6 +129,19 @@ describe('manifest', () => {
     const keys = Object.keys(manifest.locales.en).sort();
     for (const l of LOCALES) expect(Object.keys(manifest.locales[l]).sort(), l).toEqual(keys);
   });
+  it('labels every setting with a translated key', () => {
+    for (const field of Object.values(manifest.settingsSchema)) {
+      for (const l of LOCALES) {
+        expect(manifest.locales[l][field.label], `${l} ${field.label}`).toBeTruthy();
+        expect(manifest.locales[l][field.description], `${l} ${field.description}`).toBeTruthy();
+      }
+    }
+    expect(manifest.locales.de[manifest.settingsSchema.favouriteZones.label]).toBe('Bevorzugte Zeitzonen');
+  });
+  it('points to the settings field by its translated name', () => {
+    expect(manifest.locales.de['settings.noFavourites']).toContain('„Bevorzugte Zeitzonen“');
+    expect(manifest.locales.fr['settings.noFavourites']).not.toContain('Favourite time zones');
+  });
   it('has no escaped characters in the translations', () => {
     for (const l of LOCALES) for (const v of Object.values(manifest.locales[l])) expect(v).not.toMatch(/\\u[0-9a-f]{4}/i);
   });
