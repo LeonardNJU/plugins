@@ -1,13 +1,16 @@
 import { test, expect } from '@playwright/test';
 import { adminApi, install } from './admin.mjs';
 import { installPlugin, uninstallPlugin, preparePage, signIn, waitForPlugin, shoot } from '../../e2e/helpers.mjs';
-import { ID, configure, acceptPrivacy, composeWith, openAssistant, OLLAMA_CONFIG, mockReadsChunked, ollamaUp } from './common.mjs';
+import {
+  ID, assistantButton, assistantDialog, configure, acceptPrivacy, composeWith, editor, editorText, openAssistant,
+  OLLAMA_CONFIG, mockReadsChunked, ollamaUp,
+} from './common.mjs';
 
-// The composer: rewrite and translate the user's draft, undo, copy; and the
-// errors users see. Answers come from the test-env mocks (deterministic
-// text) and from Ollama, which speaks both the OpenAI and the Anthropic API.
-
-test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
+// The composer: the Assistant button in the composer's bottom bar opens the
+// assistant for the selection or the whole message; Replace and Insert
+// below change the text in the real editor, in one undo step. Answers come
+// from the test-env mocks (deterministic text) and from Ollama, which
+// speaks both the OpenAI and the Anthropic API.
 
 const MOCK_REPLY = /Mock reply\. You asked: .*This text comes from the Bulwark test mock\./s;
 const DRAFT = 'hi bob, can we meet on tuesday? i has some questions';
@@ -32,84 +35,208 @@ const SERVICES = [
   },
 ];
 
+const slug = (s) => s.replace(/\W+/g, '-').toLowerCase();
+
+async function start(page, api, { config = {}, theme = 'light' } = {}) {
+  await configure(api, config);
+  await preparePage(page, { theme });
+  await signIn(page);
+  await waitForPlugin(page, ID);
+}
+
 for (const service of SERVICES) {
-  test(`rewrite, undo, translate and copy in the composer with ${service.name}`, async ({ page }) => {
-    test.skip(!(await service.available()), `${service.name} is not reachable through the proxy (see README)`);
+  test(`rewrite the whole message in the composer, and undo it, with ${service.name}`, async ({ page }) => {
+    test.skip(!(await service.available()), `${service.name} is not reachable (see README)`);
     const api = await install(await adminApi(), ID, installPlugin);
     try {
-      await configure(api, service.config);
-      await preparePage(page, { theme: service.theme });
-      await signIn(page);
-      await waitForPlugin(page, ID);
+      await start(page, api, service);
       await composeWith(page, DRAFT);
+      const before = await editorText(page);
 
-      const dialog = await openAssistant(page);
-      const text = dialog.getByLabel('Your text');
-      await expect(text).toHaveValue(DRAFT);
+      const { box, frame } = await openAssistant(page);
+      await expect(frame.getByText('Works on your whole message, without the signature and the quoted email:')).toBeVisible();
+      await expect(frame.getByText(DRAFT)).toBeVisible();
+      await frame.getByRole('radio', { name: 'More formal' }).click();
+      await shoot(page, ID, `composer-choose-${slug(service.name)}`, service.theme);
+      await box.getByRole('button', { name: 'Rewrite' }).click();
+      await acceptPrivacy(page, { inDialog: true, expectText: service.provider });
 
-      await dialog.getByLabel('How to rewrite').selectOption('formal');
-      await dialog.getByRole('button', { name: 'Rewrite' }).click();
-      await acceptPrivacy(dialog, { expectText: service.provider });
-      const result = dialog.getByTestId('ai-result');
-      await expect(dialog.getByRole('button', { name: 'Use this' })).toBeVisible({ timeout: 90_000 });
-      await expect(result).toContainText('Rewritten text');
-      await expect(result).toContainText(service.answer);
-      const suggested = (await result.locator('.ai-out').innerText()).trim();
-      await shoot(page, ID, `composer-rewrite-${service.name.replace(/\W+/g, '-').toLowerCase()}`, service.theme);
+      const replace = box.getByRole('button', { name: 'Replace' });
+      await expect(replace).toBeEnabled({ timeout: 90_000 });
+      const preview = frame.getByLabel('Suggested change');
+      await expect(preview).toContainText(service.answer);
+      // The change is marked: the old words struck out, the new ones added.
+      await expect(preview.locator('ins').first()).toBeVisible();
+      const suggested = (await preview.locator('span, ins').allInnerTexts()).join('').trim();
+      await shoot(page, ID, `composer-preview-${slug(service.name)}`, service.theme);
 
-      await dialog.getByRole('button', { name: 'Use this' }).click();
-      await expect(text).toHaveValue(suggested);
-      await dialog.getByRole('button', { name: 'Undo' }).click();
-      await expect(text).toHaveValue(DRAFT);
+      await replace.click();
+      await expect(box).toHaveCount(0);
+      const box1 = editor(page);
+      // (The mock's answer quotes the draft, so check the text as a whole.)
+      await expect.poll(() => editorText(page)).not.toBe(before);
+      const firstLine = suggested.split('\n')[0].slice(0, 40);
+      await expect(box1).toContainText(firstLine);
 
-      // The privacy notice comes only once per service.
-      await dialog.getByLabel('Translate into').selectOption('fr');
-      await dialog.getByRole('button', { name: 'Translate' }).click();
-      await expect(dialog.getByRole('button', { name: 'Use this' })).toBeVisible({ timeout: 90_000 });
-      await expect(dialog.getByRole('alertdialog')).toHaveCount(0);
-      await expect(result).toContainText('Translation');
-      const translated = (await result.locator('.ai-out').innerText()).trim();
-      await dialog.getByRole('button', { name: 'Use this' }).click();
-
-      await dialog.getByRole('button', { name: 'Copy and close' }).click();
-      await expect(page.getByRole('dialog').filter({ hasText: 'Writing assistant' })).toHaveCount(0);
-      // Reading the clipboard needs a focused document.
-      await page.locator('[contenteditable="true"]').first().focus();
-      // Windows adds \r; innerText drops trailing spaces of lines.
-      const norm = (s) => s.replace(/\r/g, '').split('\n').map((l) => l.trimEnd()).join('\n').trim();
-      expect(norm(await page.evaluate(() => navigator.clipboard.readText()))).toBe(norm(translated));
+      // One Ctrl+Z takes the whole change back.
+      await box1.click();
+      await box1.press('ControlOrMeta+z');
+      await expect.poll(() => editorText(page)).toBe(before);
     } finally {
       await uninstallPlugin(api, ID);
     }
   });
 }
 
-test('write from a prompt, and stop a running answer', async ({ page }) => {
-  test.skip(!(await ollamaUp()), 'Ollama is not running (docker compose --profile ai up)');
+/** Fails when a plugin button in the composer bar lies on top of Discard or Send. */
+async function expectNoOverlap(page) {
+  const own = page.locator('[data-plugin-action]').filter({ visible: true });
+  for (const mine of await own.all()) {
+    const m = await mine.boundingBox();
+    if (!m) continue;
+    for (const name of ['Discard', 'Send']) {
+      for (const other of await page.getByRole('button', { name, exact: true }).all()) {
+        if (!(await other.isVisible())) continue;
+        const o = await other.boundingBox();
+        const overlaps = m.x < o.x + o.width && o.x < m.x + m.width && m.y < o.y + o.height && o.y < m.y + m.height;
+        expect(overlaps, `a plugin button covers ${name}`).toBe(false);
+      }
+    }
+  }
+}
+
+test('at 1280 px the assistant is in the Options menu, and nothing covers Discard or Send', async ({ page }) => {
   const api = await install(await adminApi(), ID, installPlugin);
   try {
-    await configure(api, { ...OLLAMA_CONFIG, defaultProvider: 'openai' });
-    await preparePage(page);
-    await signIn(page);
-    await waitForPlugin(page, ID);
-    await composeWith(page, ' ');
-    const dialog = await openAssistant(page);
-    const prompt = dialog.getByLabel('What should the email say?');
-    await prompt.fill('a long, detailed email thanking Anna for the workshop, with five paragraphs');
-    await dialog.getByRole('button', { name: 'Write', exact: true }).click();
-    await acceptPrivacy(dialog);
-    const result = dialog.getByTestId('ai-result');
-    // Stop while it runs. (The webmail hands a proxied answer over in one
-    // piece when the request has a body, so there is no partial text here.)
-    await dialog.getByRole('button', { name: 'Stop' }).click();
-    await expect(result).toContainText('Stopped.');
-    await expect(dialog.getByRole('button', { name: 'Stop' })).toHaveCount(0);
-    // Writing again works after a stop.
-    await prompt.fill('a short thank-you note to Anna');
-    await dialog.getByRole('button', { name: 'Write', exact: true }).click();
-    await expect(dialog.getByRole('button', { name: 'Use this' })).toBeVisible({ timeout: 90_000 });
-    await dialog.getByRole('button', { name: 'Use this' }).click();
-    await expect(dialog.getByLabel('Your text')).not.toHaveValue('');
+    await start(page, api);
+    await composeWith(page, 'Hello there');
+    await expectNoOverlap(page);
+    await expect(assistantButton(page)).toBeHidden();
+    await page.getByRole('button', { name: 'Options' }).last().click();
+    await page.getByRole('menuitem', { name: /Assistant/ }).click();
+    const { box } = assistantDialog(page);
+    await expect(box).toBeVisible();
+  } finally {
+    await uninstallPlugin(api, ID);
+  }
+});
+
+test('in a wide window the Assistant button is in the composer bar and opens the assistant', async ({ page }) => {
+  const api = await install(await adminApi(), ID, installPlugin);
+  try {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await start(page, api);
+    await composeWith(page, 'Hello there');
+    await expect(assistantButton(page)).toBeVisible();
+    await expect(assistantButton(page)).toContainText('Assistant');
+    await expectNoOverlap(page);
+    const { box } = await openAssistant(page, { click: true });
+    await expect(box).toBeVisible();
+  } finally {
+    await uninstallPlugin(api, ID);
+  }
+});
+
+test('translate a selected line and insert it below', async ({ page }) => {
+  test.skip(!(await mockReadsChunked()), 'the mock does not read chunked bodies');
+  const api = await install(await adminApi(), ID, installPlugin);
+  try {
+    await start(page, api);
+    await composeWith(page, 'Dear team,\nGuten Tag, wir sehen uns am Dienstag.');
+    // Select the second line.
+    const box1 = editor(page);
+    await box1.press('End');
+    await box1.press('Shift+Home');
+
+    const { box, frame } = await openAssistant(page);
+    await expect(frame.getByText('Works on the text you selected:')).toBeVisible();
+    await expect(frame.getByText('Guten Tag, wir sehen uns am Dienstag.')).toBeVisible();
+    await frame.getByRole('radio', { name: 'Translate' }).click();
+    await frame.getByLabel('Translate into').selectOption('en');
+    await box.getByRole('button', { name: 'Translate' }).click();
+    await acceptPrivacy(page, { inDialog: true });
+    const below = box.getByRole('button', { name: 'Insert below' });
+    await expect(below).toBeEnabled({ timeout: 60_000 });
+    await below.click();
+    await expect(box).toHaveCount(0);
+
+    const text = await editorText(page);
+    const lines = text.split('\n').filter((l) => l.trim());
+    // The selection is still there, the answer follows it.
+    expect(lines[0]).toBe('Dear team,');
+    expect(lines[1]).toBe('Guten Tag, wir sehen uns am Dienstag.');
+    expect(lines[2]).toMatch(/^Mock reply\. You asked: .*Guten Tag/);
+  } finally {
+    await uninstallPlugin(api, ID);
+  }
+});
+
+test('replace only the selection', async ({ page }) => {
+  test.skip(!(await mockReadsChunked()), 'the mock does not read chunked bodies');
+  const api = await install(await adminApi(), ID, installPlugin);
+  try {
+    await start(page, api);
+    await composeWith(page, 'Keep this line.\nchange this line please');
+    const box1 = editor(page);
+    await box1.press('End');
+    await box1.press('Shift+Home');
+    const { box, frame } = await openAssistant(page);
+    await expect(frame.getByText('Works on the text you selected:')).toBeVisible();
+    await frame.getByRole('radio', { name: 'Improve' }).click();
+    await box.getByRole('button', { name: 'Rewrite' }).click();
+    await acceptPrivacy(page, { inDialog: true });
+    await expect(box.getByRole('button', { name: 'Replace' })).toBeEnabled({ timeout: 60_000 });
+    await box.getByRole('button', { name: 'Replace' }).click();
+    await expect(box).toHaveCount(0);
+    const lines = (await editorText(page)).split('\n').filter((l) => l.trim());
+    expect(lines[0]).toBe('Keep this line.');
+    expect(lines[1]).toMatch(/^Mock reply\. You asked: .*change this line please/);
+    expect(lines.join('\n')).not.toContain('\nchange this line please');
+  } finally {
+    await uninstallPlugin(api, ID);
+  }
+});
+
+test('write an empty message from a description', async ({ page }) => {
+  test.skip(!(await mockReadsChunked()), 'the mock does not read chunked bodies');
+  const api = await install(await adminApi(), ID, installPlugin);
+  try {
+    await start(page, api);
+    await composeWith(page, '');
+    const { box, frame } = await openAssistant(page);
+    await frame.getByLabel('What should the email say?').fill('thank Anna for the workshop');
+    await shoot(page, ID, 'composer-write', 'light');
+    await box.getByRole('button', { name: 'Write', exact: true }).click();
+    await acceptPrivacy(page, { inDialog: true });
+    const insert = box.getByRole('button', { name: 'Insert', exact: true });
+    await expect(insert).toBeEnabled({ timeout: 60_000 });
+    await insert.click();
+    await expect(box).toHaveCount(0);
+    await expect(editor(page)).toContainText(/Mock reply\. You asked: "Instructions: thank Anna for the workshop/);
+  } finally {
+    await uninstallPlugin(api, ID);
+  }
+});
+
+test('Discard stops a running answer and goes back to the choice', async ({ page }) => {
+  test.skip(!(await ollamaUp()), 'Ollama is not running (test-env/up.ps1 -WithAI)');
+  const api = await install(await adminApi(), ID, installPlugin);
+  try {
+    await start(page, api, { config: { ...OLLAMA_CONFIG, defaultProvider: 'openai' } });
+    await composeWith(page, 'Thanks for the workshop, Anna. It was great.');
+    const before = await editorText(page);
+    const { box, frame } = await openAssistant(page);
+    await frame.getByRole('radio', { name: 'Own instruction' }).click();
+    await frame.getByLabel('Instruction').fill('make it a long letter with five paragraphs');
+    await box.getByRole('button', { name: 'Rewrite' }).click();
+    await acceptPrivacy(page, { inDialog: true });
+    await expect(box.getByRole('button', { name: 'Replace' })).toBeDisabled();
+    await expect(box.getByRole('button', { name: 'Insert below' })).toBeDisabled();
+    await box.getByRole('button', { name: 'Discard' }).click();
+    await expect(frame.getByRole('radio', { name: 'Own instruction' })).toBeVisible();
+    await box.getByRole('button', { name: 'Cancel' }).click();
+    await expect(box).toHaveCount(0);
+    expect(await editorText(page)).toBe(before);
   } finally {
     await uninstallPlugin(api, ID);
   }
@@ -125,19 +252,17 @@ for (const [name, config, message] of ERRORS) {
   test(`explains ${name}`, async ({ page }) => {
     const api = await install(await adminApi(), ID, installPlugin);
     try {
-      await configure(api, config);
-      await preparePage(page);
-      await signIn(page);
-      await waitForPlugin(page, ID);
+      await start(page, api, { config });
       await composeWith(page, 'Hello there');
-      const dialog = await openAssistant(page);
-      await dialog.getByRole('button', { name: 'Rewrite' }).click();
-      await acceptPrivacy(dialog);
-      await expect(dialog.locator('.ai-error')).toContainText(message);
+      const { box, frame } = await openAssistant(page);
+      await box.getByRole('button', { name: 'Rewrite' }).click();
+      await acceptPrivacy(page, { inDialog: true });
+      await expect(frame.getByRole('alert').filter({ hasText: message })).toBeVisible();
+      await expect(box.getByRole('button', { name: 'Replace' })).toBeDisabled();
       if (name.startsWith('a rate limit')) {
-        await expect(dialog.getByRole('button', { name: 'Try again' })).toBeDisabled();
+        await expect(frame.getByRole('button', { name: 'Try again' })).toBeDisabled();
         await shoot(page, ID, 'composer-rate-limit', 'light');
-        await expect(dialog.getByRole('button', { name: 'Try again' })).toBeEnabled({ timeout: 10_000 });
+        await expect(frame.getByRole('button', { name: 'Try again' })).toBeEnabled({ timeout: 10_000 });
       }
     } finally {
       await uninstallPlugin(api, ID);

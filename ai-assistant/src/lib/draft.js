@@ -23,30 +23,3 @@ export function ownText(text) {
   }
   return lines.slice(0, end).join('\n').trim();
 }
-
-/** A small undo stack for the text the assistant works on. */
-export function createHistory(initial = '', limit = 50) {
-  const past = [];
-  let current = initial;
-  return {
-    get current() { return current; },
-    get canUndo() { return past.length > 0; },
-    /** Replace the text; the old one can be brought back with undo(). */
-    apply(next) {
-      if (next === current) return current;
-      past.push(current);
-      if (past.length > limit) past.shift();
-      current = next;
-      return current;
-    },
-    /** Edits typed by the user: no undo step for every key press. */
-    set(next) {
-      current = next;
-      return current;
-    },
-    undo() {
-      if (past.length) current = past.pop();
-      return current;
-    },
-  };
-}

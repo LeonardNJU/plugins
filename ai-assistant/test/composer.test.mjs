@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { fakeApi } from '../../test-utils/fake-api.mjs';
-import { createBackground, DRAFT_KEY } from '../src/lib/background.js';
-import { ownText, createHistory } from '../src/lib/draft.js';
+import { createBackground, DRAFT_KEY, COMPOSER_SURFACE } from '../src/lib/background.js';
+import { ownText } from '../src/lib/draft.js';
 import { buildPrompt, clip, REWRITE_STYLES } from '../src/lib/prompts.js';
 import { defaultTarget, languageOptions } from '../src/lib/languages.js';
 import plugin from '../src/index.js';
@@ -22,20 +22,6 @@ describe('ownText', () => {
 
   it('keeps text without any of those', () => {
     expect(ownText('Line one\r\nLine two: details')).toBe('Line one\nLine two: details');
-  });
-});
-
-describe('createHistory', () => {
-  it('undoes applied changes one at a time, but not typing', () => {
-    const h = createHistory('a');
-    h.set('ab');
-    expect(h.canUndo).toBe(false);
-    h.apply('AB');
-    h.apply('AB!');
-    expect(h.undo()).toBe('AB');
-    expect(h.undo()).toBe('ab');
-    expect(h.canUndo).toBe(false);
-    expect(h.undo()).toBe('ab');
   });
 });
 
@@ -75,13 +61,13 @@ describe('translation languages', () => {
 });
 
 describe('background', () => {
-  it('keeps the open draft for the dialog and forgets it when the composer closes', async () => {
+  it('keeps only the subject of the open draft and forgets it when the composer closes', async () => {
     const api = fakeApi({ handlers: configured });
     const bg = createBackground(api);
     await bg.activate();
     await bg.hooks.onDraftChange({ subject: 'Hi', textBody: 'Hello there', to: ['a@b.c'] });
-    expect(await api.storage.get(DRAFT_KEY)).toMatchObject({ subject: 'Hi', text: 'Hello there' });
-    expect(Object.keys(await api.storage.get(DRAFT_KEY))).not.toContain('to');
+    expect(await api.storage.get(DRAFT_KEY)).toMatchObject({ subject: 'Hi' });
+    expect(Object.keys(await api.storage.get(DRAFT_KEY)).sort()).toEqual(['at', 'subject']);
     await bg.hooks.onComposerClose({ sent: false });
     expect(await api.storage.get(DRAFT_KEY)).toBeNull();
   });
@@ -93,13 +79,47 @@ describe('background', () => {
     expect(await api.storage.get(DRAFT_KEY)).toBeNull();
   });
 
-  it('shows the composer button only when a service is set up', async () => {
-    const off = createBackground(fakeApi({ handlers: { 'admin.getAllConfig': async () => ({}) } }));
+  it('offers the composer button with Alt+A only when a service is set up', async () => {
+    const offApi = fakeApi({ handlers: { 'admin.getAllConfig': async () => ({}) } });
+    const off = createBackground(offApi);
     await off.activate();
     expect(off.shouldShow.composer()).toBe(false);
-    const on = createBackground(fakeApi({ handlers: configured }));
+    expect(offApi.calls('ui.setActions').map((c) => c.args)).toEqual([[COMPOSER_SURFACE, []]]);
+    const onApi = fakeApi({ handlers: configured });
+    const on = createBackground(onApi);
     await on.activate();
     expect(on.shouldShow.composer()).toBe(true);
+    expect(onApi.calls('ui.setActions').map((c) => c.args)).toEqual([[COMPOSER_SURFACE, [
+      { id: 'assistant', label: 'composer.open', icon: 'sparkles', shortcut: 'Alt+A' },
+    ]]]);
+  });
+
+  it('takes the button away again when the service is removed', async () => {
+    let config = { anthropicBaseUrl: 'https://api.anthropic.com/v1' };
+    const api = fakeApi({ handlers: { 'admin.getAllConfig': async () => config } });
+    const bg = createBackground(api);
+    await bg.activate();
+    config = {};
+    await bg.refresh(true);
+    await bg.refresh(true);
+    expect(api.calls('ui.setActions').map((c) => c.args[1].length)).toEqual([1, 0]);
+  });
+
+  it('opens the assistant dialog for the composer that was clicked, once at a time', async () => {
+    let close;
+    const api = fakeApi({ handlers: { ...configured, 'ui.openDialog': () => new Promise((r) => { close = r; }) } });
+    const bg = createBackground(api);
+    await bg.activate();
+    bg.hooks.onAction({ surface: COMPOSER_SURFACE, actionId: 'assistant', context: { composerId: 'c7' } });
+    bg.hooks.onAction({ surface: COMPOSER_SURFACE, actionId: 'assistant', context: { composerId: 'c7' } });
+    bg.hooks.onAction({ surface: 'reader-actions', actionId: 'assistant', context: { composerId: 'c8' } });
+    const calls = api.calls('ui.openDialog');
+    expect(calls).toHaveLength(1);
+    expect(calls[0].args[0]).toMatchObject({ slot: 'plugin-dialog', extraProps: { composerId: 'c7' } });
+    close(null);
+    await new Promise((r) => setTimeout(r, 0));
+    bg.hooks.onAction({ surface: COMPOSER_SURFACE, actionId: 'assistant', context: { composerId: 'c9' } });
+    expect(api.calls('ui.openDialog')[1].args[0].extraProps).toEqual({ composerId: 'c9' });
   });
 
   it('notices a newly set up service at once, and a removed one within 30 s', async () => {
@@ -125,16 +145,18 @@ describe('background', () => {
 
 describe('plugin wiring', () => {
   it('declares a slot or hook for each permission it asks for', () => {
-    expect(Object.keys(plugin.slots)).toEqual(expect.arrayContaining(['composer-toolbar', 'plugin-dialog', 'settings-section']));
-    expect(Object.keys(plugin.hooks)).toEqual(expect.arrayContaining(['onDraftChange', 'onComposerOpen', 'onComposerClose']));
-    expect(manifest.permissions).toEqual(expect.arrayContaining(['email:read', 'ui:composer-toolbar']));
+    expect(Object.keys(plugin.slots)).toEqual(expect.arrayContaining(['plugin-dialog', 'settings-section']));
+    expect(Object.keys(plugin.slots)).not.toContain('composer-toolbar');
+    expect(Object.keys(plugin.hooks)).toEqual(expect.arrayContaining(['onAction', 'onDraftChange', 'onComposerOpen', 'onComposerClose']));
+    expect(manifest.permissions).toEqual(expect.arrayContaining(['email:read', 'ui:composer-toolbar', 'compose:read', 'compose:write', 'compose:open']));
   });
 
   it('routes the hooks to the background after activate', async () => {
     const api = fakeApi({ handlers: configured });
     await plugin.activate(api);
     await plugin.hooks.onDraftChange({ subject: 'S', textBody: 'T' });
-    expect(await api.storage.get(DRAFT_KEY)).toMatchObject({ text: 'T' });
-    expect(plugin.slots['composer-toolbar'].shouldShow()).toBe(true);
+    expect(await api.storage.get(DRAFT_KEY)).toMatchObject({ subject: 'S' });
+    plugin.hooks.onAction({ surface: COMPOSER_SURFACE, actionId: 'assistant', context: { composerId: 'c1' } });
+    expect(api.calls('ui.openDialog')[0].args[0].extraProps).toEqual({ composerId: 'c1' });
   });
 });

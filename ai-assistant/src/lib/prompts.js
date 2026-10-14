@@ -5,14 +5,13 @@
 /** Longest text sent in one request, in characters. */
 export const MAX_INPUT_CHARS = 30_000;
 
-export const REWRITE_STYLES = ['shorter', 'longer', 'formal', 'friendly', 'tone'];
+export const REWRITE_STYLES = ['improve', 'shorter', 'formal', 'casual'];
 
 const STYLE_INSTRUCTIONS = {
+  improve: 'Improve the writing: make it clearer and read more smoothly, and fix mistakes. Keep the meaning, the tone and roughly the length.',
   shorter: 'Make it noticeably shorter. Keep every fact, request and date.',
-  longer: 'Make it somewhat longer and more complete, without inventing facts.',
   formal: 'Make it more formal and professional.',
-  friendly: 'Make it warmer and friendlier, still appropriate for email.',
-  tone: 'Fix the tone: make it polite, calm and constructive. Remove anything that sounds rude, passive-aggressive or harsh.',
+  casual: 'Make it more casual and relaxed, still appropriate for email.',
 };
 
 /** Cut text to the limit, at a line break when there is one nearby. */
@@ -56,7 +55,7 @@ function user(content) {
 
 /**
  * The prompt for a task.
- * task: write | rewrite | translate | grammar | summary | actions | replies | thread
+ * task: write | rewrite | edit | translate | grammar | summary | actions | replies | thread
  * input: the task's fields; `language` is the user's UI language tag.
  */
 export function buildPrompt(task, input = {}) {
@@ -70,9 +69,15 @@ export function buildPrompt(task, input = {}) {
       };
     case 'rewrite':
       return {
-        system: `You edit emails. ${STYLE_INSTRUCTIONS[input.style] ?? STYLE_INSTRUCTIONS.tone} Keep the language of the text, its line breaks where sensible, names, numbers and links. ${PLAIN} ${DATA_RULE}`,
+        system: `You edit emails. ${STYLE_INSTRUCTIONS[input.style] ?? STYLE_INSTRUCTIONS.improve} Keep the language of the text, its line breaks where sensible, names, numbers and links. ${PLAIN} ${DATA_RULE}`,
         messages: user(`<draft>\n${clip(input.text)}\n</draft>`),
         maxTokens: 2000,
+      };
+    case 'edit':
+      return {
+        system: `You edit a piece of an email the way the user asks. Change only what the instruction asks for; keep everything else, including the language unless the instruction asks for another one, names, numbers and links. ${PLAIN} ${DATA_RULE}`,
+        messages: user(`Instruction: ${clip(input.instruction, 2000)}\n\n<draft>\n${clip(input.text)}\n</draft>`),
+        maxTokens: 2500,
       };
     case 'translate':
       return {

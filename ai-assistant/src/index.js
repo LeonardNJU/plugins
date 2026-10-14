@@ -7,7 +7,6 @@
 
 import { createBackground } from './lib/background.js';
 import { SettingsPanel } from './ui/SettingsPanel.jsx';
-import { ComposerButton } from './ui/Composer.jsx';
 import { Dialog } from './ui/Dialog.jsx';
 import { ReaderBar, ThreadSummary } from './ui/Reader.jsx';
 
@@ -20,6 +19,7 @@ export default {
     await background.activate();
   },
   hooks: {
+    onAction: (event) => bg().hooks.onAction?.(event),
     onDraftChange: (draft) => bg().hooks.onDraftChange?.(draft),
     onComposerOpen: () => bg().hooks.onComposerOpen?.(),
     onComposerClose: () => bg().hooks.onComposerClose?.(),
@@ -28,7 +28,6 @@ export default {
   slots: {
     'email-banner': { component: ReaderBar, shouldShow: () => bg().shouldShow.reader() },
     'thread-summary': { component: ThreadSummary, shouldShow: (ctx) => bg().shouldShow.thread(ctx) },
-    'composer-toolbar': { component: ComposerButton, shouldShow: () => bg().shouldShow.composer() },
     'plugin-dialog': { component: Dialog },
     'settings-section': { component: SettingsPanel },
   },

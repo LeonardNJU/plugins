@@ -1,8 +1,8 @@
-// The one dialog slot, shared by every view the plugin opens with
-// api.ui.openDialog({ extraProps: { view } }).
+// The one dialog slot: the assistant dialog the composer's Assistant
+// button opens (api.ui.openDialog({ extraProps: { composerId } })).
 
-import { ComposerDialog } from './Composer.jsx';
+import { AssistantDialog } from './AssistantDialog.jsx';
 
 export function Dialog(props) {
-  return <ComposerDialog {...props} />;
+  return <AssistantDialog {...props} />;
 }

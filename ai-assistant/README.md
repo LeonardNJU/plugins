@@ -11,37 +11,33 @@ answers, and has to confirm.
 
 ## What it does
 
-In the composer, the **Assistant** button (in the composer's plugin row,
-also on phones) opens the writing assistant. It starts with the user's
-own text from the draft, without the quoted message of a reply and
-without the signature. From there:
+In the composer, the **Assistant** button in the bottom bar (after
+Attach, Templates and Options), or **Alt+A** while writing, opens the
+writing assistant. It works on the selected text, or on the whole
+message when nothing is selected. The signature and the quoted message
+of a reply are never sent and never changed. Pick what to do:
 
-- **Write**: describe the email ("thank Anna and propose Tuesday at 10")
-  and get a text.
-- **Rewrite**: shorter, longer, more formal, friendlier, or fix the tone.
+- **Improve**, **Shorten**, **More formal**, **More casual**.
 - **Translate** into one of 32 languages (the last one used is remembered).
-- **Check spelling and grammar**: each correction is shown in the text,
-  crossed out and replaced, and is accepted (✓) or kept as written (✕)
-  one by one, or all at once.
+- **Own instruction**: say what to change ("add that I'm away next week").
+- **Fix spelling**: each correction is listed and accepted or kept as
+  written one by one, or all at once.
 
-Answers can be stopped while they run. **Use this** puts an answer into
-the working text; **Undo** takes back the last change, including single
-grammar corrections. **Copy and close** copies the text, to paste into the
-message.
+The answer comes in as a preview with the change marked: removed words
+struck out, new ones highlighted. **Replace** puts it in place of the
+selection (or the whole message), **Insert below** adds it after the
+selection, **Discard** goes back. Either change is one step in the
+composer's undo, so Ctrl+Z takes it back. When the message is still
+empty, the assistant writes it from a description instead ("thank Anna
+and propose Tuesday at 10") and **Insert** puts it in.
 
-The webmail has no way yet for a plugin to change the text in the open
-composer, so the result is copied instead of inserted. When that arrives,
-Use this can write into the message directly.
-
-Above an open message, a small bar offers:
+Above an open message, an info bar offers:
 
 - **Summarize**: two to four points, in the user's language.
 - **To-dos and dates**: action items with due dates, and deadlines and
   appointments, as two lists. **Copy list** copies them as a checklist.
-  Plugins can't call each other yet, so with the Email to task plugin the
-  user makes a task from the message with its own button.
-- **Reply ideas**: three short replies in the language of the message;
-  **Copy** one, then click Reply and paste.
+- **Reply ideas**: three short replies in the language of the message.
+  **Reply** next to one opens a reply that already says it.
 
 Above a conversation, **Summarize this conversation** summarises up to the
 last 20 messages. The bar can be hidden in the plugin's settings.
@@ -90,26 +86,29 @@ and only sent to the address they approved there.
 
 | When the user clicks | What is sent to the AI service |
 | --- | --- |
-| Write | The instruction, the subject and the working text |
-| Rewrite, Translate, Check spelling and grammar | The working text |
+| Write (empty message) | The description and the subject |
+| Improve, Shorten, More formal, More casual, Translate, Own instruction, Fix spelling | The selected text, or the user's own text of the message (no signature, no quote), and the instruction |
 | Summarize, To-dos and dates, Reply ideas | Sender, date, subject and text of the open message |
 | Summarize this conversation | Sender, date, subject and text (without quotes) of up to 20 messages |
 
 Nothing else leaves the webmail. In the browser the plugin keeps the
-user's choices and which services they confirmed, and, while a composer
-is open, a copy of the draft's subject and text so the assistant dialog
-can start from it (removed when the composer closes).
+user's choices, which services they confirmed, and, while a composer is
+open, the draft's subject for the write prompt (removed when the
+composer closes).
 
 ## Permissions
 
 | Permission | Why |
 | --- | --- |
-| `email:read` | Read the open message and conversation for summaries, and the draft (onDraftChange) for the composer |
+| `email:read` | Read the open message and conversation for summaries, and the draft's subject (onDraftChange) |
 | `http:proxy` | Send requests to the AI service through the webmail's server, which adds the API key |
 | `admin:config` | Read the administrator's settings (addresses and models; the host never hands out the keys) |
 | `ui:email-banner` | The bar above a message and the conversation summary (`email-banner`, `thread-summary`) |
-| `ui:composer-toolbar` | The Assistant button in the composer |
+| `ui:composer-toolbar` | The Assistant button in the composer's bottom bar (`composer-toolbar-actions`) |
 | `ui:settings-section` | The plugin's settings page |
+| `compose:read` | Read the selection or the user's own text of the message the assistant was opened for |
+| `compose:write` | Replace the selection or the message, or insert below it, when the user clicks Replace or Insert |
+| `compose:open` | Open a reply with a reply idea in it |
 
 ## Credentials
 
@@ -150,8 +149,9 @@ to alice's inbox for the conversation summary.
 
 | | |
 | --- | --- |
-| ![Rewrite, light](screenshots/composer-rewrite-ollama-openai-compatible-light.png) | ![Rewrite, dark](screenshots/composer-rewrite-ollama-anthropic-messages-api-dark.png) |
-| ![Grammar, light](screenshots/composer-grammar-light.png) | ![Grammar, dark](screenshots/composer-grammar-dark.png) |
-| ![Summary, light](screenshots/reader-summary-light.png) | ![Summary, dark](screenshots/reader-summary-dark.png) |
+| ![Choosing what to do, light](screenshots/composer-choose-the-anthropic-mock-light.png) | ![Preview of the change, light](screenshots/composer-preview-the-anthropic-mock-light.png) |
+| ![Preview, dark](screenshots/composer-preview-the-openai-mock-dark.png) | ![Writing an empty message](screenshots/composer-write-light.png) |
+| ![Spelling fixes, light](screenshots/composer-grammar-light.png) | ![Spelling fixes, dark](screenshots/composer-grammar-dark.png) |
+| ![The reader bar](screenshots/reader-bar-light.png) | ![Summary, dark](screenshots/reader-summary-dark.png) |
 | ![Reply ideas](screenshots/reader-replies-light.png) | ![Conversation on a phone](screenshots/thread-summary-phone-light.png) |
 | ![Rate limit](screenshots/composer-rate-limit-light.png) | ![Settings, dark](screenshots/settings-own-key-dark.png) |

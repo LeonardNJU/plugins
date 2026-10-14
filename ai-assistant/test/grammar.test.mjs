@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { diffSuggestions, applySuggestions, pendingSuggestions, tokenize } from '../src/lib/grammar.js';
-import { reviewStep } from '../src/ui/GrammarReview.jsx';
+import { reviewStep } from '../src/lib/grammar.js';
 import { buildPrompt } from '../src/lib/prompts.js';
 
 const original = 'hi bob, can we meet on tuesday? i has some  questions.';

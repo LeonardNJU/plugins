@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { adminApi, install } from './admin.mjs';
-import { installPlugin, uninstallPlugin, setPluginConfig, preparePage, signIn, waitForPlugin, shoot } from '../../e2e/helpers.mjs';
+import { installPlugin, uninstallPlugin, preparePage, setPluginConfig, signIn, waitForPlugin, shoot } from '../../e2e/helpers.mjs';
 
 // Settings: which service is used, and connecting the user's own key
 // through the host's dialog (the key goes to the server, never the plugin).

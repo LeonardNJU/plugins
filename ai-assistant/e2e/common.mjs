@@ -22,27 +22,51 @@ export async function configure(api, overrides = {}) {
   for (const [key, value] of Object.entries(values)) await setPluginConfig(api, ID, key, value);
 }
 
-/** Click Continue in the privacy notice (shown in the plugin's frame) the first time a service is used. */
-export async function acceptPrivacy(frame, { expectText } = {}) {
-  const notice = frame.getByRole('alertdialog').filter({ hasText: 'Send text to the AI service?' });
+/**
+ * Answer the privacy notice the first time a service is used: in the
+ * reader it is the host's confirm dialog; in the assistant dialog it is
+ * shown in the dialog body, with Continue in the dialog's footer.
+ */
+export async function acceptPrivacy(page, { expectText, inDialog = false } = {}) {
+  if (inDialog) {
+    const { box, frame } = assistantDialog(page);
+    await expect(frame.getByText('Send text to the AI service?')).toBeVisible();
+    if (expectText) await expect(frame.getByRole('status')).toContainText(expectText);
+    await box.getByRole('button', { name: 'Continue' }).click();
+    return;
+  }
+  const notice = page.getByRole('alertdialog').or(page.getByRole('dialog')).filter({ hasText: 'Send text to the AI service?' });
   await expect(notice).toBeVisible();
   if (expectText) await expect(notice).toContainText(expectText);
   await notice.getByRole('button', { name: 'Continue' }).click();
 }
 
-/** Open the composer and type a message body. */
+/** The composer's editor. */
+export const editor = (page) => page.locator('[contenteditable="true"]').first();
+
+/** Open the composer and type a message body; lines are separate paragraphs. */
 export async function composeWith(page, text) {
   await page.getByRole('button', { name: 'Compose' }).first().click();
-  const editor = page.locator('[contenteditable="true"]').first();
-  await editor.click();
-  await editor.pressSequentially(text, { delay: 5 });
-  // onDraftChange is debounced.
-  await page.waitForTimeout(2500);
+  const box = editor(page);
+  await box.click();
+  const lines = text.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    if (i > 0) await box.press('Enter');
+    if (lines[i]) await box.pressSequentially(lines[i], { delay: 5 });
+  }
+  // onDraftChange (the subject) is debounced.
+  await page.waitForTimeout(1500);
 }
 
-/** The assistant dialog's frame. */
+/** The editor's own text: the lines above the signature, as the user sees them. */
+export async function editorText(page) {
+  return (await editor(page).innerText()).replace(/\r/g, '');
+}
+
+/** The assistant dialog: the host's box (title, footer buttons) and the plugin's frame inside it. */
 export function assistantDialog(page) {
-  return page.getByRole('dialog').filter({ hasText: 'Writing assistant' }).frameLocator(`iframe[title="plugin-${ID}-slot"]`);
+  const box = page.getByRole('dialog').filter({ hasText: 'Writing assistant' });
+  return { box, frame: box.frameLocator(`iframe[title="plugin-${ID}-slot"]`) };
 }
 
 export const OLLAMA = 'http://localhost:11434';
@@ -84,9 +108,17 @@ export async function ollamaUp() {
   }
 }
 
-/** Open the assistant dialog from the composer's plugin row. */
-export async function openAssistant(page) {
-  await page.locator(`[data-composer-plugin-row] iframe[title="plugin-${ID}-slot"]`).first()
-    .contentFrame().getByRole('button', { name: 'Assistant' }).click();
-  return assistantDialog(page);
+/** The Assistant button in the composer's bottom bar. */
+export const assistantButton = (page) => page.locator(`[data-plugin-action="${ID}:assistant"]`).first();
+
+/**
+ * Open the assistant with Alt+A, or with `click: true` from its button in
+ * the composer's bottom bar (the button test checks that one on its own).
+ */
+export async function openAssistant(page, { click = false } = {}) {
+  if (click) await assistantButton(page).click();
+  else await editor(page).press('Alt+a');
+  const dialog = assistantDialog(page);
+  await expect(dialog.box).toBeVisible();
+  return dialog;
 }

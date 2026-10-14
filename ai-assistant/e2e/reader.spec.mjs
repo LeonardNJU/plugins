@@ -4,11 +4,14 @@ import { fileURLToPath } from 'node:url';
 import { test, expect } from '@playwright/test';
 import { adminApi, install } from './admin.mjs';
 import { installPlugin, uninstallPlugin, preparePage, signIn, waitForPlugin, shoot } from '../../e2e/helpers.mjs';
-import { ID, configure, acceptPrivacy, OLLAMA_CONFIG, ollamaUp, mockReadsChunked } from './common.mjs';
+import { ID, configure, acceptPrivacy, editor, OLLAMA_CONFIG, ollamaUp, mockReadsChunked } from './common.mjs';
 
-// The reader: summary, to-dos and dates, reply ideas above a message, and a
-// summary of a whole conversation. Answers come from Ollama (Anthropic
-// Messages API), or from the mock when it reads the proxy's request bodies.
+// The reader: an info bar above the message with Summarize, To-dos and
+// dates, and Reply ideas, the results inside the bar; a reply idea opens a
+// reply that already says it; and a summary of a whole conversation.
+// Answers come from the mock when it reads the proxy's request bodies, else
+// from Ollama (Anthropic Messages API). The privacy notice is the host's
+// confirm dialog.
 
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
@@ -77,47 +80,52 @@ for (const theme of ['light', 'dark']) {
       const svc = await setUp(page, api, { theme });
       await openMessage(page, 'Can we meet on Thursday?', page.getByText('send me the slides').first());
       const bar = await slotWith(page, 'Summarize');
+      await expect(bar.getByText('AI assistant')).toBeVisible();
+      if (theme === 'light') await shoot(page, ID, 'reader-bar', theme);
       await bar.getByRole('button', { name: 'Summarize' }).click();
-      await acceptPrivacy(bar);
-      const result = bar.getByTestId('ai-reader-result');
-      await expect(result.getByRole('button', { name: 'Copy' })).toBeVisible({ timeout: 90_000 });
-      await expect(result).toContainText('Summary');
-      await expect(result).toContainText(svc.answer);
+      await acceptPrivacy(page);
+      await expect(bar.getByRole('button', { name: 'Copy' })).toBeVisible({ timeout: 90_000 });
+      await expect(bar.getByText('Summary', { exact: true })).toBeVisible();
+      await expect(bar.locator('body')).toContainText(svc.answer);
       await shoot(page, ID, 'reader-summary', theme);
-      await result.getByRole('button', { name: 'Close' }).click();
-      await expect(result).toHaveCount(0);
+      await bar.getByRole('button', { name: 'Close' }).click();
+      await expect(bar.getByText('Summary', { exact: true })).toHaveCount(0);
+      await expect(bar.getByRole('button', { name: 'Summarize' })).toBeVisible();
     } finally {
       await uninstallPlugin(api, ID);
     }
   });
 }
 
-test('to-dos and dates, and reply ideas', async ({ page }) => {
+test('to-dos and dates, and a reply idea that opens a reply', async ({ page }) => {
   const api = await install(await adminApi(), ID, installPlugin);
   try {
     await setUp(page, api);
     await openMessage(page, 'Can we meet on Thursday?', page.getByText('send me the slides').first());
     const bar = await slotWith(page, 'To-dos and dates');
     await bar.getByRole('button', { name: 'To-dos and dates' }).click();
-    await acceptPrivacy(bar);
-    const result = bar.getByTestId('ai-reader-result');
-    await expect(result.getByRole('button', { name: 'Copy list' }).or(result.getByText('Nothing to do'))).toBeVisible({ timeout: 90_000 });
-    if (await result.getByRole('button', { name: 'Copy list' }).count()) {
+    await acceptPrivacy(page);
+    await expect(bar.getByRole('button', { name: 'Copy list' }).or(bar.getByText(/Nothing to do/))).toBeVisible({ timeout: 90_000 });
+    if (await bar.getByRole('button', { name: 'Copy list' }).count()) {
       await shoot(page, ID, 'reader-todos', 'light');
-      await result.getByRole('button', { name: 'Copy list' }).click();
+      await bar.getByRole('button', { name: 'Copy list' }).click();
       expect((await readClipboard(page)).replace(/\r/g, '')).toMatch(/^(To-dos|Dates):\s*\n- /);
     }
 
-    // The notice was answered once; reply ideas go straight through.
+    // Close brings the actions back. The notice was answered once; reply ideas go straight through.
+    await bar.getByRole('button', { name: 'Close' }).click();
     await bar.getByRole('button', { name: 'Reply ideas' }).click();
-    await expect(bar.getByRole('alertdialog')).toHaveCount(0);
-    const replies = result.getByTestId('ai-reply');
-    await expect(replies.first()).toBeVisible({ timeout: 90_000 });
-    expect(await replies.count()).toBeLessThanOrEqual(3);
-    const first = (await replies.first().locator('div').first().innerText()).trim();
+    const replyButtons = bar.getByRole('button', { name: 'Reply', exact: true });
+    await expect(replyButtons.first()).toBeVisible({ timeout: 90_000 });
+    expect(await replyButtons.count()).toBeLessThanOrEqual(3);
+    // The idea is the text next to its button.
+    const idea = (await replyButtons.first().locator('xpath=following-sibling::*[1]').innerText()).replace(/\r/g, '').trim();
+    expect(idea.length).toBeGreaterThan(3);
     await shoot(page, ID, 'reader-replies', 'light');
-    await replies.first().getByRole('button', { name: 'Copy' }).click();
-    expect((await readClipboard(page)).replace(/\r/g, '').trim()).toBe(first.replace(/\r/g, ''));
+    await replyButtons.first().click();
+    // A reply opens with the idea already in it.
+    const firstLine = idea.split('\n')[0].slice(0, 40);
+    await expect(editor(page)).toContainText(firstLine, { timeout: 20_000 });
   } finally {
     await uninstallPlugin(api, ID);
   }
@@ -132,11 +140,10 @@ test('summarise a conversation on a phone', async ({ page }) => {
     await openMessage(page, 'Team offsite in November', page.getByText('Budget is 2000 EUR').first());
     const slot = await slotWith(page, /Summarize this conversation \(\d+ messages\)/);
     await slot.getByRole('button', { name: /Summarize this conversation/ }).click();
-    await acceptPrivacy(slot);
-    const result = slot.getByTestId('ai-thread-result');
-    await expect(result.getByRole('button', { name: 'Copy' })).toBeVisible({ timeout: 90_000 });
-    await expect(result).toContainText(/Conversation summary \(\d+ messages\)/);
-    await expect(result).toContainText(svc.answer);
+    await acceptPrivacy(page);
+    await expect(slot.getByRole('button', { name: 'Copy' })).toBeVisible({ timeout: 90_000 });
+    await expect(slot.getByText(/Conversation summary \(\d+ messages\)/)).toBeVisible();
+    await expect(slot.locator('body')).toContainText(svc.answer);
     await shoot(page, ID, 'thread-summary-phone', 'light');
   } finally {
     await uninstallPlugin(api, ID);

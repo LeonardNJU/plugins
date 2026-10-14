@@ -108,3 +108,34 @@ export function applySuggestions(segments, states = {}) {
 export function pendingSuggestions(segments, states = {}) {
   return segments.filter((s) => s.kind === 'change' && !states[s.id]);
 }
+
+/** Review state after one decision; `text` is what the user's text becomes. */
+export function reviewStep(review, id, state) {
+  const states = { ...review.states, [id]: state };
+  return { review: { ...review, states }, text: applySuggestions(review.segments, states) };
+}
+
+/** Accept every suggestion not decided yet. */
+export function acceptAll(review) {
+  const states = { ...review.states };
+  for (const s of pendingSuggestions(review.segments, states)) states[s.id] = 'accepted';
+  return { review: { ...review, states }, text: applySuggestions(review.segments, states) };
+}
+
+/** DiffView parts of a review: open suggestions marked, decided ones as they now read. */
+export function reviewParts(segments, states = {}) {
+  const parts = [];
+  const push = (type, text) => {
+    if (!text) return;
+    const last = parts[parts.length - 1];
+    if (last && last.type === type) last.text += text;
+    else parts.push({ type, text });
+  };
+  for (const s of segments) {
+    if (s.kind === 'same') push('same', s.text);
+    else if (states[s.id] === 'accepted') push('same', s.to);
+    else if (states[s.id] === 'skipped') push('same', s.from);
+    else { push('del', s.from); push('add', s.to); }
+  }
+  return parts;
+}
