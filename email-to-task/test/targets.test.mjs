@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fakeApi, proxyResponse } from '../../test-utils/fake-api.mjs';
 import { vikunja } from '../src/lib/targets/vikunja.js';
+import { todoist } from '../src/lib/targets/todoist.js';
 import { errorForResponse, errorText, request, toTaskError } from '../src/lib/errors.js';
 
 const TASK = { title: 'Pay invoice', description: 'From: Bob\nOpen the message: https://m/mail/message/M1', due: '2026-10-20', priority: 'high', containerId: '2', link: 'https://m/mail/message/M1' };
@@ -57,6 +58,39 @@ describe('Vikunja', () => {
   });
 });
 
+describe('Todoist', () => {
+  const MOCK = 'http://localhost:18099/todoist/api/v1';
+
+  it('posts to the API address the administrator set, with Todoist priority and due_date', async () => {
+    let sent;
+    const api = proxyApi((id, url, init) => { sent = { id, url, init }; return proxyResponse({ id: '6Xt0000000000100' }); });
+    const out = await todoist.create({ api, origin: 'http://localhost:18099', config: { todoistApiUrl: MOCK } }, TASK);
+    expect(sent.id).toBe('todoist');
+    expect(sent.url).toBe(`${MOCK}/tasks`);
+    expect(JSON.parse(sent.init.body)).toEqual({ content: 'Pay invoice', description: TASK.description, priority: 4, project_id: '2', due_date: '2026-10-20' });
+    // No web app link for a server that isn't Todoist's.
+    expect(out).toEqual({ taskId: '6Xt0000000000100', url: null });
+  });
+
+  it('links to the Todoist web app for the real service', async () => {
+    const api = proxyApi(() => proxyResponse({ id: 'abc' }));
+    const out = await todoist.create({ api, origin: 'https://api.todoist.com', config: {} }, { ...TASK, containerId: null });
+    expect(out.url).toBe('https://app.todoist.com/app/task/abc');
+  });
+
+  it('lists projects with the inbox first, following the cursor', async () => {
+    const api = proxyApi((id, url) => (url.includes('cursor=c2')
+      ? proxyResponse({ results: [{ id: 'in', name: 'Inbox', inbox_project: true }], next_cursor: null })
+      : proxyResponse({ results: [{ id: 'w', name: 'Work' }], next_cursor: 'c2' })));
+    expect(await todoist.containers({ api, origin: 'https://api.todoist.com', config: {} })).toEqual([{ id: 'in', name: 'Inbox' }, { id: 'w', name: 'Work' }]);
+  });
+
+  it('turns a 429 into a rate-limit error with the wait time', async () => {
+    const api = proxyApi(() => proxyResponse({ error: 'Too many' }, { status: 429, headers: { 'retry-after': '7' } }));
+    const err = await todoist.create({ api, origin: 'https://api.todoist.com', config: {} }, TASK).catch((e) => e);
+    expect(err).toMatchObject({ code: 'rate_limited', retryAfter: 7 });
+  });
+});
 
 
 

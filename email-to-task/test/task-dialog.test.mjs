@@ -60,6 +60,22 @@ describe('TaskDialog', () => {
     expect(api.calls('toast.success')[0].args[0]).toBe('Task created in Vikunja');
   });
 
+  it('asks to connect a service that is not connected, and then loads its projects', async () => {
+    let accounts = [];
+    const api = makeApi({
+      accounts: () => accounts,
+      connect: async () => { accounts = [{ credentialId: 'todoist', origin: 'http://localhost:18099', connected: true }]; return { connected: true }; },
+      fetch: async () => proxyResponse({ results: [{ id: 'in', name: 'Inbox', inbox_project: true }], next_cursor: null }),
+    });
+    await open(api);
+    fireEvent.change(screen.getByLabelText('Add to'), { target: { value: 'todoist' } });
+    const button = await screen.findByRole('button', { name: 'Connect Todoist' });
+    expect(screen.getByRole('button', { name: 'Create task' }).disabled).toBe(true);
+    await act(async () => { fireEvent.click(button); });
+    expect(api.calls('proxy.connect')[0].args).toEqual(['todoist', { mode: 'password', server: 'https://api.todoist.com' }]);
+    expect(await screen.findByRole('option', { name: 'Inbox' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Connect Todoist' })).toBeNull();
+  });
 
   it('shows a rejected token in plain words with a way to connect again', async () => {
     const api = makeApi({
