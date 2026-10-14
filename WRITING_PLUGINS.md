@@ -1641,7 +1641,9 @@ https. The `http:proxy` permission covers all of it.
 ```js
 // let the user connect an account (user scope)
 const { connected, origin } = await api.proxy.connect('nextcloud', { mode: 'password', server: 'https://cloud.example.com' });
-await api.proxy.accounts()       // [{ credentialId, origin, username, connected }]
+await api.proxy.accounts()
+// [{ credentialId, scope: 'user', origin, username, connected },
+//  { credentialId, scope: 'admin', connected }]   admin: set up or not, no address
 await api.proxy.disconnect('nextcloud')
 
 // make a request
@@ -1670,7 +1672,10 @@ const reader = stream.body.getReader();
   headers itself; a plugin can't set them. It passes back
   `content-type`, `etag`, `retry-after`, rate limit headers and a few more.
 - Limits: 300 requests a minute per user and plugin, 8 at once per user, 10
-  minutes per request, 3 redirects. `res.proxyError` is set when the proxy
+  minutes per request, 3 redirects. Redirects are followed only on the
+  credential's own server (with the body for 307/308); when one happened,
+  `res.headers['x-bulwark-url']` is where the request ended up, which CalDAV
+  discovery needs. A redirect to another server is refused. `res.proxyError` is set when the proxy
   itself refused the request (for example a rate limit or a blocked
   address).
 - The proxy only reaches public addresses. To reach a server on the local
