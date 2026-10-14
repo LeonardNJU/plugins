@@ -604,7 +604,6 @@ api.upfiles.save(formedFileId, file) // take File and formedFileId
 | [hello-world](hello-world/) | `hook`         | Minimal plugin, logs lifecycle events    |
 | [email-stats](email-stats/) | `sidebar-app`  | Sidebar widget showing email statistics  |
 | [auto-tag](auto-tag/)       | `hook`         | Automatically tags emails based on rules |
-| [send-later](send-later/)   | `ui-extension` | Adds "Send Later" button to composer     |
 | [quick-notes](quick-notes/) | `sidebar-app`  | Per-email sticky notes in the sidebar    |
 | [calendar-agenda](calendar-agenda/) | `sidebar-app` | Agenda of upcoming calendar events in the sidebar |
 
