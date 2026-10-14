@@ -1,0 +1,11 @@
+{
+  "name": "bulwark-plugin-nextcloud",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "locales": "node scripts/sync-locales.mjs",
+    "build": "node scripts/sync-locales.mjs && node ../scripts/build.mjs nextcloud",
+    "test": "node ../node_modules/vitest/vitest.mjs run nextcloud"
+  }
+}
