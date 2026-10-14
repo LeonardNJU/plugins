@@ -15,8 +15,9 @@ describe('buttons', () => {
     const { api, wiring } = setup();
     await wiring.activate(api);
     const set = Object.fromEntries(api.calls('ui.setActions').map((c) => [c.args[0], c.args[1]]));
-    expect(Object.keys(set).sort()).toEqual(['message-row-actions', 'reader-actions']);
+    expect(Object.keys(set).sort()).toEqual(['message-bulk-actions', 'message-row-actions', 'reader-actions']);
     expect(set['message-row-actions']).toEqual([{ id: 'create-task', label: 'Create task', icon: 'checklist', order: 60 }]);
+    expect(set['message-bulk-actions'][0]).toMatchObject({ id: 'create-tasks', label: 'Create tasks' });
   });
 
   it('relabels the buttons when the language changes', async () => {
@@ -40,6 +41,12 @@ describe('clicks', () => {
     expect(call.args[0]).toMatchObject({ slot: 'plugin-dialog', extraProps: { emailIds: ['M1'] } });
   });
 
+  it('opens it for all selected messages from the selection toolbar', async () => {
+    const { api, wiring } = setup();
+    wiring.hooks.onAction({ surface: 'message-bulk-actions', actionId: 'create-tasks', context: { emailIds: ['M1', 'M2'] } });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(api.calls('ui.openDialog')[0].args[0].extraProps).toEqual({ emailIds: ['M1', 'M2'] });
+  });
 
   it('ignores other surfaces and actions, and returns before the user answers', () => {
     const { api, wiring } = setup({ 'ui.openDialog': () => new Promise(() => {}) });

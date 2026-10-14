@@ -64,9 +64,11 @@ export function TaskDialog({ api, emailIds, onResult }) {
   const [target, setTarget] = useState(null);
   const [containers, setContainers] = useState({ status: 'idle', list: [], error: null });
   const [containerId, setContainerId] = useState('');
+  const [bulkPriority, setBulkPriority] = useState('auto');
   const [manualUrl, setManualUrl] = useState('');
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState(null);
+  const [failures, setFailures] = useState({});
   const firstField = useRef(null);
   const single = items.length === 1;
 
@@ -155,10 +157,11 @@ export function TaskDialog({ api, emailIds, onResult }) {
 
   const create = async () => {
     setError(null);
+    setFailures({});
     const form = {
       target,
       containerId,
-      items: chosen,
+      items: chosen.map((i) => ({ ...i, priority: single || bulkPriority === 'auto' ? i.priority : bulkPriority })),
     };
     setBusy({ done: 0, total: form.items.length });
     let result;
@@ -183,6 +186,7 @@ export function TaskDialog({ api, emailIds, onResult }) {
     // Keep the messages that failed, with what went wrong.
     const createdIds = new Set(created.map((c) => c.emailId));
     setItems((now) => now.filter((i) => !createdIds.has(i.emailId)));
+    setFailures(Object.fromEntries(failed.map((f) => [f.emailId, f.error])));
     setError(failed[0].error);
   };
 
@@ -239,10 +243,11 @@ export function TaskDialog({ api, emailIds, onResult }) {
 
 
   const priorityOptions = (withAuto) => [
+    ...(withAuto ? [h('option', { key: 'auto', value: 'auto' }, t('priority.auto'))] : []),
     ...PRIORITIES.map((p) => h('option', { key: p, value: p }, t(`priority.${p}`))),
   ];
 
-  const fields = (() => {
+  const fields = single ? (() => {
     const item = items[0];
     return [
       h('label', { key: 'title', className: 'field' }, t('dialog.title'),
@@ -259,7 +264,35 @@ export function TaskDialog({ api, emailIds, onResult }) {
         h('label', { className: 'field' }, t('dialog.priority'),
           h('select', { value: item.priority, onChange: (e) => update(item.emailId, { priority: e.target.value }) }, priorityOptions(false)))),
     ];
-  })();
+  })() : [
+    h('p', { key: 'count', className: 'hint', style: { margin: 0 } }, t('dialog.bulk_intro', { count: items.length })),
+    h('ul', { key: 'items', className: 'items' }, items.map((item, index) => h('li', { key: item.emailId },
+      h('input', {
+        type: 'checkbox',
+        checked: item.include,
+        'aria-label': t('dialog.include', { title: item.title }),
+        onChange: (e) => update(item.emailId, { include: e.target.checked }),
+      }),
+      h('input', {
+        type: 'text',
+        className: 'title',
+        ref: index === 0 ? firstField : undefined,
+        value: item.title,
+        maxLength: 500,
+        'aria-label': t('dialog.title_for', { subject: item.subject || item.title }),
+        onChange: (e) => update(item.emailId, { title: e.target.value }),
+      }),
+      h('input', {
+        type: 'date',
+        value: item.due,
+        'aria-label': t('dialog.due_for', { subject: item.subject || item.title }),
+        title: item.dueMatch ? t('dialog.due_found', { words: item.dueMatch }) : undefined,
+        onChange: (e) => update(item.emailId, { due: e.target.value }),
+      }),
+      failures[item.emailId] ? h('span', { className: 'item-error' }, errorText(t, failures[item.emailId], serviceName)) : null))),
+    h('label', { key: 'priority', className: 'field' }, t('dialog.priority'),
+      h('select', { value: bulkPriority, onChange: (e) => setBulkPriority(e.target.value) }, priorityOptions(true))),
+  ];
 
   const reconnect = error && RECONNECT_CODES.has(error.code);
 
@@ -277,6 +310,8 @@ export function TaskDialog({ api, emailIds, onResult }) {
   targetField,
   connectBox,
   containerField,
+  state.missing.length > 0 && h('p', { className: 'note warn' }, t('dialog.missing', { count: state.missing.length })),
+  state.skipped > 0 && h('p', { className: 'note warn' }, t('dialog.too_many', { count: state.skipped })),
   ...fields,
   error && h('div', { className: 'error', role: 'alert' }, errorText(t, error, serviceName),
     reconnect ? h('span', null, ' ', h('button', { type: 'button', className: 'link', onClick: connect }, t('connect.again'))) : null),

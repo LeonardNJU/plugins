@@ -3,7 +3,9 @@
 
 
 export const SINGLE_SURFACES = ['message-row-actions', 'reader-actions'];
+export const BULK_SURFACE = 'message-bulk-actions';
 export const ACTION_ID = 'create-task';
+export const BULK_ACTION_ID = 'create-tasks';
 
 export function createWiring(initialApi) {
   let api = initialApi;
@@ -15,6 +17,7 @@ export function createWiring(initialApi) {
   async function setActions() {
     const single = [{ id: ACTION_ID, label: t('action.create'), icon: 'checklist', order: 60 }];
     for (const surface of SINGLE_SURFACES) await api.ui.setActions(surface, single);
+    await api.ui.setActions(BULK_SURFACE, [{ id: BULK_ACTION_ID, label: t('action.create_bulk'), icon: 'checklist', order: 60 }]);
   }
 
 
@@ -48,6 +51,8 @@ export function createWiring(initialApi) {
     onAction({ surface, actionId, context } = {}) {
       if (actionId === ACTION_ID && SINGLE_SURFACES.includes(surface)) {
         void openDialog(context?.emailId ? [context.emailId] : []);
+      } else if (actionId === BULK_ACTION_ID && surface === BULK_SURFACE) {
+        void openDialog(Array.isArray(context?.emailIds) ? context.emailIds : []);
       }
     },
     onEmailOpen(email) {
