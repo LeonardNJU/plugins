@@ -41,14 +41,17 @@ by name, and pick one or more files. Then:
   like any other attachment.
 - **Share as link…** creates a public, read-only Nextcloud link for each file.
   You can protect the links with a password (the plugin suggests one that
-  meets your server's password rules) and set an expiry date. The links are
-  added at the end of the message when you send it. The password is only written into the message if you tick
-  **Put the password in the message**; otherwise send it some other way.
-  Links picked for a message you then discard are dropped.
+  meets your server's password rules) and set an expiry date. The links go
+  into the message where the cursor is, as a short list under "Files shared
+  with Nextcloud". You see them, can edit or delete them like any text, and
+  one Ctrl+Z takes them out again. The password is only written into the
+  message if you tick **Put the password in the message**; otherwise send it
+  some other way.
 
 ![From Nextcloud in the Attach menu](screenshots/attach-menu-light.png)
 ![File picker](screenshots/picker-light.png)
 ![Share options](screenshots/share-options-dark.png)
+![Share links in the message](screenshots/links-in-message-light.png)
 
 ## Large attachments
 
@@ -128,8 +131,8 @@ Nextcloud needs no CORS setup.
 | `ui:settings-section` | The connect / disconnect section in Settings. |
 | `ui:composer-toolbar` | "From Nextcloud" in the composer's Attach menu (`composer-attach-menu`). |
 | `email:blob-write` | Upload a file picked in Nextcloud to the mail server and attach it to the composer (`api.composer.attach`). |
-| `email:send` | Add the picked share links to the message when it is sent (`onTransformOutgoingEmail`). |
-| `email:read` | Drop links picked for a discarded message (`onComposerClose`). |
+| `compose:write` | Put the share links into the message at the cursor (`api.composer.replaceSelection`). |
+| `email:read` | The "Save to Nextcloud" entry in the attachment menu (`attachment-menu`) and reading the subject of a message you save. |
 | `email:blob-read` | Read a large file you just attached (`upfiles.get`), and an attachment or the message source you save (`email.getAttachment`, `email.getRaw`). |
 | `ui:toolbar` | The "Save message to Nextcloud" button in the reader (`reader-actions`). |
 | `ui:app-page` | The Nextcloud page and its entry in the navigation. |
@@ -138,9 +141,6 @@ Nextcloud needs no CORS setup.
 
 The server address the administrator set is read with `api.config.get()`,
 which needs no permission.
-
-`email:read` also covers the "Save to Nextcloud" entry in the attachment menu
-(`attachment-menu`) and reading the subject of a message you save.
 
 `email:blob-write` also covers the `onBeforeBlobUpload` hook, which is how the
 large-attachment offer gets in before the file is uploaded to the mail

@@ -1,7 +1,8 @@
+// @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
 import { fakeApi } from '../../test-utils/fake-api.mjs';
-import { linkBlock, appendLinks, addPending, getPending, removePending, escapeHtml } from '../src/lib/links.js';
-import { addLinksToMessage, hooks, activate } from '../src/index.js';
+import { linkBlock, escapeHtml } from '../src/lib/links.js';
+import { hooks } from '../src/index.js';
 import manifest from '../manifest.json' with { type: 'json' };
 
 const en = manifest.locales.en;
@@ -32,41 +33,17 @@ describe('the link block', () => {
     expect(escapeHtml('"x\'')).toBe('&quot;x&#39;');
   });
 
-  it('appends to the HTML and to the plain text, without creating an HTML part for plain mail', () => {
-    const block = { html: '<p>L</p>', text: '\nL' };
-    expect(appendLinks({ htmlBody: '<p>Hi</p>', textBody: 'Hi' }, block)).toMatchObject({ htmlBody: '<p>Hi</p><p>L</p>', textBody: 'Hi\nL' });
-    expect(appendLinks({ htmlBody: '', textBody: 'Hi' }, block)).toMatchObject({ htmlBody: '', textBody: 'Hi\nL' });
-    expect(appendLinks({ htmlBody: '<p>Hi</p>', textBody: '' }, block)).toMatchObject({ htmlBody: '<p>Hi</p><p>L</p>', textBody: '' });
+  it('makes real links, so the composer shows them as links', () => {
+    const { html } = linkBlock(t, [link()], 'en');
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    expect([...doc.querySelectorAll('a')].map((a) => [a.getAttribute('href'), a.textContent])).toEqual([['https://c.example/s/abc', 'Report 2026.pdf']]);
   });
 });
 
-describe('links picked in the composer', () => {
-  it('are kept until removed', async () => {
-    const api = fakeApi();
-    await addPending(api.storage, [link(), link({ id: 'l2' })]);
-    expect((await getPending(api.storage)).map((l) => l.id)).toEqual(['l1', 'l2']);
-    await removePending(api.storage, 'l1');
-    expect((await getPending(api.storage)).map((l) => l.id)).toEqual(['l2']);
-  });
-
-  it('go into the message once, when it is sent', async () => {
-    const api = fakeApi({ translations: manifest.locales });
-    await addPending(api.storage, [link()]);
-    const out = await addLinksToMessage(api, { htmlBody: '<p>Hi</p>', textBody: 'Hi', subject: 's' });
-    expect(out.htmlBody).toContain('https://c.example/s/abc');
-    expect(out.subject).toBe('s');
-    expect(await getPending(api.storage)).toEqual([]);
-    expect(await addLinksToMessage(api, { htmlBody: '<p>Hi</p>', textBody: 'Hi' })).toBeUndefined();
-  });
-
-  it('are wired to the send and close hooks', async () => {
-    const api = fakeApi({ translations: manifest.locales, handlers: { 'proxy.accounts': async () => [] } });
-    await activate(api);
-    await addPending(api.storage, [link()]);
-    const out = await hooks.onTransformOutgoingEmail({ htmlBody: '<p>x</p>', textBody: 'x' });
-    expect(out.textBody).toContain('Report 2026.pdf');
-    await addPending(api.storage, [link()]);
-    await hooks.onComposerClose({ draftId: 'd', sent: false });
-    expect(await getPending(api.storage)).toEqual([]);
+describe('the send', () => {
+  it('is left alone: links are already in the body, nothing is added on send or kept for later', () => {
+    expect(hooks.onTransformOutgoingEmail).toBeUndefined();
+    expect(hooks.onComposerClose).toBeUndefined();
+    expect(manifest.permissions).not.toContain('email:send');
   });
 });

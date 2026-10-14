@@ -3,11 +3,10 @@
 // goes to the picker dialog, and the picker attaches to that composer.
 import { afterEach, describe, expect, it } from 'vitest';
 import * as React from 'react';
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { fakeApi } from '../../test-utils/fake-api.mjs';
 import { onAction, registerActions, slots } from '../src/index.js';
 import { PickerDialog } from '../src/ui/picker-dialog.js';
-import { getPending } from '../src/lib/links.js';
 import manifest from '../manifest.json' with { type: 'json' };
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -53,6 +52,16 @@ function row(name) {
 }
 
 describe('the Attach menu entry', () => {
+  it('reports when the composer is gone instead of losing the links', async () => {
+    const api = fakeApi({ translations: manifest.locales, handlers: {
+      'ui.openDialog': async () => ({ action: 'links', links: [{ id: 'x', name: 'n', url: 'https://c/s/1' }] }),
+      'composer.replaceSelection': async () => { throw new Error('composer.replaceSelection: that composer is not open any more'); },
+    } });
+    await onAction(api, { surface: 'composer-attach-menu', actionId: 'from-nextcloud', context: { composerId: 'c1' } });
+    expect(api.calls('toast.error')).toHaveLength(1);
+    expect(api.calls('toast.success')).toHaveLength(0);
+  });
+
   it('is registered in the Attach menu instead of a composer slot', async () => {
     const api = fakeApi({ translations: manifest.locales });
     await registerActions(api);
@@ -94,7 +103,7 @@ describe('the Attach menu entry', () => {
     expect(api.calls('toast.success')[0].args[0]).toBe('Attached from Nextcloud: 1');
   });
 
-  it('keeps "Share as link" for the send', async () => {
+  it('puts "Share as link" links into the message at the caret', async () => {
     const api = apiWithPicker();
     const done = onAction(api, { surface: 'composer-attach-menu', actionId: 'from-nextcloud', context: { composerId: 'c1' } });
     await screen.findByText('a.pdf');
@@ -102,8 +111,14 @@ describe('the Attach menu entry', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Share as link…' }));
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Add links' })); });
     await done;
-    const pending = await getPending(api.storage);
-    expect(pending.map((l) => [l.name, l.url])).toEqual([['a.pdf', 'https://c.example/s/a.pdf']]);
+    const [call] = api.calls('composer.replaceSelection');
+    expect(call.args[0]).toBe('c1');
+    expect(Object.keys(call.args[1])).toEqual(['html']);
+    expect(call.args[1].html).toContain('<a href="https://c.example/s/a.pdf">a.pdf</a>');
+    expect(call.args[1].html).toContain('Files shared with Nextcloud');
+    expect(call.args[2]).toBeUndefined();
+    expect(api.storageSnapshot()).not.toHaveProperty('pendingLinks');
+    expect(api.calls('toast.success')[0].args[0]).toBe('Links added to the message: 1');
     expect(api.calls('composer.attach')).toHaveLength(0);
   });
 
@@ -114,6 +129,6 @@ describe('the Attach menu entry', () => {
     await onAction(api, { surface: 'composer-attach-menu', actionId: 'from-nextcloud', context: { composerId: 'c1' } });
     expect(api.calls('ui.openDialog')).toHaveLength(1);
     expect(api.calls('toast.success')).toHaveLength(0);
-    await waitFor(async () => expect(await getPending(api.storage)).toEqual([]));
+    expect(api.calls('composer.replaceSelection')).toHaveLength(0);
   });
 });

@@ -1,10 +1,8 @@
-// Share links in the message: the block that lists them, and the links the
-// user picked in the composer, which are added when the message is sent.
+// Share links in the message: the block that lists them. The picker puts it
+// into the message at the caret; the large-file offer hands it to the
+// composer in place of the attachment.
 
 import { formatSize } from './format.js';
-
-export const PENDING_KEY = 'pendingLinks';
-export const MAX_PENDING = 50;
 
 export function escapeHtml(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -38,35 +36,4 @@ export function linkBlock(t, links, locale) {
     return `- ${l.name || l.url}: ${safeUrl(l.url)}${extra.length ? ` (${extra.join(', ')})` : ''}`;
   });
   return { html, text: `\n\n${title}\n${lines.join('\n')}\n` };
-}
-
-/** Add the link block to an outgoing message (htmlBody and/or textBody). */
-export function appendLinks(outgoing, block) {
-  if (!block.html && !block.text) return outgoing;
-  const next = { ...outgoing };
-  if (outgoing.htmlBody) next.htmlBody = outgoing.htmlBody + block.html;
-  if (outgoing.textBody || !outgoing.htmlBody) next.textBody = (outgoing.textBody || '') + block.text;
-  return next;
-}
-
-export async function getPending(storage) {
-  const value = await storage.get(PENDING_KEY);
-  return Array.isArray(value) ? value : [];
-}
-
-export async function addPending(storage, links) {
-  const current = await getPending(storage);
-  const next = [...current, ...links].slice(-MAX_PENDING);
-  await storage.set(PENDING_KEY, next);
-  return next;
-}
-
-export async function removePending(storage, id) {
-  const next = (await getPending(storage)).filter((l) => l.id !== id);
-  await storage.set(PENDING_KEY, next);
-  return next;
-}
-
-export async function clearPending(storage) {
-  await storage.set(PENDING_KEY, []);
 }

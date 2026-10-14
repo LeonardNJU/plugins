@@ -50,11 +50,17 @@ test.describe.serial('attach from Nextcloud', () => {
       await shoot(page, PLUGIN, 'share-options', theme);
       await dialog.getByRole('button', { name: 'Add links' }).click();
       await expect(dialog).toBeHidden({ timeout: 30_000 });
-      await expect(page.getByText(/Links added: 1/)).toBeVisible();
+      await expect(page.getByText('Links added to the message: 1')).toBeVisible();
 
       const shares = await ncFetch(`/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json&path=${encodeURIComponent('/Photos/blue.png')}`).then((r) => r.json());
       const link = shares.ocs.data.find((s) => s.share_type === 3);
       expect(link?.password).toBeTruthy();
+      // The links are in the body right away, as real links, where the user can see and edit them.
+      const editor = page.locator('.ProseMirror').first();
+      await expect(editor).toContainText('Files shared with Nextcloud');
+      await expect(editor.locator(`a[href="${link.url}"]`)).toHaveText('blue.png');
+      await expect(editor).not.toContainText(password);
+      await shoot(page, PLUGIN, 'links-in-message', theme);
 
       // 3. Send it to alice herself; the sent message has the attachment and the link.
       const subject = `Nextcloud e2e ${theme} ${Date.now()}`;

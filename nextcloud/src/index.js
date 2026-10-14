@@ -8,7 +8,6 @@
 import { setApi } from './lib/host.js';
 import { storedAccount } from './lib/connection.js';
 import { emlName } from './lib/save.js';
-import { appendLinks, clearPending, getPending, linkBlock } from './lib/links.js';
 import { applyPickerResult } from './lib/picker-result.js';
 import { SettingsSection } from './ui/settings-section.js';
 import { PluginDialog } from './ui/dialog.js';
@@ -52,7 +51,7 @@ export async function activate(api) {
 /**
  * "From Nextcloud" in the composer's Attach menu: the picker attaches the
  * chosen files to that composer (its composerId goes to the dialog) or
- * hands back share links for the send.
+ * hands back share links, which go into the message at the caret.
  */
 export async function attachFromNextcloud(api, composerId) {
   if (typeof composerId !== 'string' || !composerId) return { attached: 0, links: 0 };
@@ -62,7 +61,7 @@ export async function attachFromNextcloud(api, composerId) {
     extraProps: { view: 'picker', composerId },
     width: 760,
   });
-  return applyPickerResult(api, result);
+  return applyPickerResult(api, result, composerId);
 }
 
 /**
@@ -89,15 +88,6 @@ export async function onAction(api, { surface, actionId, context } = {}) {
   const title = props.kind === 'message' ? t('save.titleMessage') : t('save.titleAttachment', { name: props.name });
   const result = await api.ui.openDialog({ title, slot: 'plugin-dialog', extraProps: { view: 'save', ...props }, width: 640 });
   if (result && typeof result.path === 'string') api.toast.success(t('save.saved', { path: result.path }));
-}
-
-/** Add the share links picked in the composer to the message being sent. */
-export async function addLinksToMessage(api, outgoing) {
-  const links = await getPending(api.storage);
-  if (!links.length) return undefined;
-  const next = appendLinks(outgoing, linkBlock(api.i18n.t, links, api.i18n.getLocale()));
-  await clearPending(api.storage);
-  return next;
 }
 
 const MB = 1024 * 1024;
@@ -134,9 +124,6 @@ export async function offerLargeUpload(api, payload) {
 export const hooks = {
   onAction: (payload) => (bg ? onAction(bg, payload) : undefined),
   onBeforeBlobUpload: (payload) => (bg ? offerLargeUpload(bg, payload) : undefined),
-  onTransformOutgoingEmail: (outgoing) => (bg ? addLinksToMessage(bg, outgoing) : undefined),
-  // Links picked for a message that was then discarded don't carry over to the next one.
-  onComposerClose: () => (bg ? clearPending(bg.storage) : undefined),
 };
 
 export const slots = {
