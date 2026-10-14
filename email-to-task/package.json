@@ -1,0 +1,10 @@
+{
+  "name": "bulwark-plugin-email-to-task",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node ../scripts/build.mjs email-to-task",
+    "test": "node ../node_modules/vitest/vitest.mjs run email-to-task"
+  }
+}
