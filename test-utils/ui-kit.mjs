@@ -55,10 +55,10 @@ export function Select({ options, children, onChange, block, ...rest }) {
     options?.map((o) => h('option', { key: o.value, value: o.value, disabled: o.disabled }, o.label)), children);
 }
 
-export function Checkbox({ checked, onChange, label, hint, disabled = false, id }) {
+export function Checkbox({ checked, onChange, label, hint, disabled = false, id, ariaLabel }) {
   const autoId = React.useId();
   const boxId = id ?? autoId;
-  const box = h('button', { id: boxId, type: 'button', role: 'checkbox', 'aria-checked': checked, disabled, onClick: () => onChange?.(!checked) });
+  const box = h('button', { id: boxId, type: 'button', role: 'checkbox', 'aria-checked': checked, 'aria-label': label ? undefined : ariaLabel, disabled, onClick: () => onChange?.(!checked) });
   if (!label) return box;
   return h('div', { className: cls('checkbox') }, box, h('label', { htmlFor: boxId }, label), hint ? h('p', null, hint) : null);
 }
@@ -132,12 +132,12 @@ export function List({ children, label }) {
   return h('div', { role: 'list', 'aria-label': label }, children);
 }
 
-export function ListRow({ title, subtitle, meta, selected = false, checked, onCheck, onClick, onDoubleClick, actions, disabled = false }) {
+export function ListRow({ title, subtitle, meta, selected = false, checked, onCheck, checkLabel, onClick, onDoubleClick, actions, disabled = false }) {
   return h('div', {
     role: 'listitem', 'aria-selected': selected || undefined, 'aria-disabled': disabled || undefined, tabIndex: onClick ? 0 : undefined,
     onClick: disabled ? undefined : onClick, onDoubleClick: disabled ? undefined : onDoubleClick,
   },
-  checked !== undefined ? h(Checkbox, { checked, onChange: onCheck, disabled }) : null,
+  checked !== undefined ? h(Checkbox, { checked, onChange: onCheck, disabled, ariaLabel: checkLabel ?? (typeof title === 'string' ? title : undefined) }) : null,
   h('span', null, title), subtitle ? h('span', null, subtitle) : null,
   ...(meta ?? []).map((m, i) => h('span', { key: i }, m)),
   actions ?? null);
@@ -203,4 +203,12 @@ export function DialogButtons({ buttons, onClick }) {
 export function DiffView({ parts, streaming = false, label }) {
   return h('div', { 'aria-label': label, 'aria-busy': streaming || undefined },
     parts.map((p, i) => (p.type === 'del' ? h('del', { key: i }, p.text) : p.type === 'add' ? h('ins', { key: i }, p.text) : h('span', { key: i }, p.text))));
+}
+
+export function Panel({ children }) { return h('div', { className: cls('panel') }, children); }
+export function DetailHeading({ children }) { return h('div', null, children); }
+export function DetailList({ children }) { return h('dl', null, children); }
+export function DetailRow({ label, children }) { return h(React.Fragment, null, h('dt', null, label), h('dd', null, children)); }
+export function ColorDot({ color, label }) {
+  return h('span', { 'data-color': color, role: label ? 'img' : undefined, 'aria-label': label, 'aria-hidden': label ? undefined : true });
 }
