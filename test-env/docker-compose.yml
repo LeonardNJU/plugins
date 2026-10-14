@@ -50,7 +50,53 @@ services:
       retries: 60
       start_period: 60s
 
+  paperless-redis:
+    image: redis:8.2.10-alpine
+    container_name: bpt-paperless-redis
+    volumes:
+      - paperless-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  paperless:
+    image: ghcr.io/paperless-ngx/paperless-ngx:3.2.1
+    container_name: bpt-paperless
+    depends_on:
+      paperless-redis:
+        condition: service_healthy
+    ports:
+      - "18010:8000"
+    volumes:
+      - paperless-data:/usr/src/paperless/data
+      - paperless-media:/usr/src/paperless/media
+    environment:
+      # No PAPERLESS_DBHOST, so Paperless uses SQLite in the data volume.
+      PAPERLESS_REDIS: redis://paperless-redis:6379
+      PAPERLESS_URL: http://localhost:18010
+      PAPERLESS_ALLOWED_HOSTS: localhost,127.0.0.1,bpt-paperless,paperless
+      PAPERLESS_CSRF_TRUSTED_ORIGINS: http://localhost:18010,http://127.0.0.1:18010
+      PAPERLESS_SECRET_KEY: bulwark-plugin-test-only-not-secret
+      PAPERLESS_ADMIN_USER: admin
+      PAPERLESS_ADMIN_PASSWORD: ${PAPERLESS_ADMIN_PASSWORD:-admin-pass-123}
+      PAPERLESS_ADMIN_MAIL: admin@example.org
+      PAPERLESS_TIME_ZONE: Europe/Berlin
+      PAPERLESS_OCR_LANGUAGE: eng
+      # The seeded PDFs have a text layer; skip OCR so consumption is quick.
+      PAPERLESS_OCR_MODE: skip
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "--max-time", "4", "-o", "/dev/null", "http://127.0.0.1:8000/"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 60s
+
 volumes:
   stalwart-data:
   stalwart-config:
   nextcloud-html:
+  paperless-redis:
+  paperless-data:
+  paperless-media:
