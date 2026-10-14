@@ -7,6 +7,7 @@
 //   BULWARK_USER / BULWARK_PASSWORD  mail account (default alice@example.org / test-pass-123)
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { request as playwrightRequest, expect } from '@playwright/test';
@@ -16,13 +17,34 @@ export const USER = process.env.BULWARK_USER || 'alice@example.org';
 export const PASSWORD = process.env.BULWARK_PASSWORD || 'test-pass-123';
 export const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
+// The admin sign-in allows 5 attempts per address in 15 minutes, counting
+// successful ones, and every test run comes from 127.0.0.1. So the session
+// cookie is kept in a file and reused while it is valid, and a 429 is waited
+// out instead of failing the run.
+const ADMIN_STATE = process.env.BULWARK_ADMIN_STATE || path.join(os.tmpdir(), 'bulwark-e2e-admin-state.json');
+const ADMIN_WAIT_MS = 16 * 60 * 1000;
+
 /** An API client signed in to the admin dashboard. */
 export async function adminApi() {
+  if (fs.existsSync(ADMIN_STATE)) {
+    const api = await playwrightRequest.newContext({ baseURL: BASE, storageState: ADMIN_STATE });
+    if ((await api.get('/api/admin/plugins')).ok()) return api;
+    await api.dispose();
+  }
   const password = process.env.BULWARK_ADMIN_PASSWORD;
   if (!password) throw new Error('Set BULWARK_ADMIN_PASSWORD to the webmail admin password');
   const api = await playwrightRequest.newContext({ baseURL: BASE });
-  const res = await api.post('/api/admin/auth', { data: { password } });
-  if (!res.ok()) throw new Error(`Admin sign-in failed: HTTP ${res.status()} ${await res.text()}`);
+  const deadline = Date.now() + ADMIN_WAIT_MS;
+  for (;;) {
+    const res = await api.post('/api/admin/auth', { data: { password } });
+    if (res.ok()) break;
+    if (res.status() !== 429 || Date.now() > deadline) {
+      throw new Error(`Admin sign-in failed: HTTP ${res.status()} ${await res.text()}`);
+    }
+    const retryAfter = Number(res.headers()['retry-after']) || 30;
+    await new Promise((r) => setTimeout(r, Math.min(retryAfter, 60) * 1000));
+  }
+  await api.storageState({ path: ADMIN_STATE });
   return api;
 }
 
