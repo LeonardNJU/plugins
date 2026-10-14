@@ -1,639 +1,104 @@
-# Bulwark Mail Plugins
+# Bulwark plugins
 
-Example plugins and templates for [Bulwark Mail](https://github.com/bulwarkmail/webmail).
+Plugins for the [Bulwark webmail](https://github.com/bulwarkmail/webmail),
+with the tools to build and test them:
 
-## Quick start
+- one folder per plugin, each with its manifest, source, tests and a built ZIP;
+- `scripts/build.mjs`, which bundles and packages a plugin;
+- `scripts/gen-docs.mjs`, which refreshes the reference tables in the guide;
+- `test-utils/` and `e2e/`, helpers for unit and end-to-end tests;
+- `test-env/`, Docker services to test against (Stalwart, Nextcloud,
+  Paperless-ngx, Vikunja, mock APIs, Ollama);
+- [WRITING_PLUGINS.md](WRITING_PLUGINS.md), the guide for plugin authors, with
+  screenshots of every place a plugin can show something in `docs/screenshots/`.
 
-1. Copy `plugin-template/` and rename it
-2. Edit `manifest.json` with your plugin info
-3. Write your plugin code in `src/index.js`
-4. Build: `npm run build`
-5. ZIP the `dist/` output (`manifest.json` and your `.js` file at the ZIP root)
-6. Upload via **Admin → Plugins** in Bulwark Mail
+## Plugins
 
-## Plugin structure
+| Plugin | What it does | Permissions |
+|---|---|---|
+| [ai-assistant](ai-assistant/) | Writes, rewrites, translates and proofreads mail and summarises messages with an OpenAI-compatible service or Anthropic; text is only sent when you click | `email:read` `http:proxy` `admin:config` `ui:email-banner` `ui:composer-toolbar` `ui:settings-section` |
+| [auto-tag](auto-tag/) | Tags incoming mail by rules (newsletters, invoices, GitHub notifications, your own) | `email:read` `email:write` |
+| [birthdays](birthdays/) | Upcoming birthdays from your contacts in the sidebar, with reminders, a quick greeting and optional calendar events | `contacts:read` `ui:sidebar-widget` `ui:notifications` `compose:open` `calendar:read` `calendar:write` |
+| [calendar-agenda](calendar-agenda/) | An agenda of your next events in the sidebar | `calendar:read` `ui:sidebar-widget` `ui:email-details` `ui:app-top-banner` `http:post` |
+| [email-stats](email-stats/) | Counts the mail you open and send during a session, in the sidebar | `email:read` `ui:sidebar-widget` |
+| [email-to-task](email-to-task/) | Turns a message into a task in Bulwark, Vikunja, Todoist or a CalDAV list, with a link back and a due date from the text | `email:read` `email:write` `email:render-takeover` `tasks:read` `tasks:write` `http:proxy` `ui:message-list` `ui:toolbar` `ui:observe` `ui:keyboard` `admin:config` |
+| [external-link-warning](external-link-warning/) | Asks before opening links to domains that aren't on a trusted list | `admin:config` |
+| [external-mail-warning](external-mail-warning/) | Asks before sending outside your safe domains and marks mail from outside with a banner | `email:read` `email:send` `identity:read` `ui:email-banner` `admin:config` |
+| [gravatar](gravatar/) | Sender pictures from Gravatar | `email:read` `http:fetch` |
+| [hello-world](hello-world/) | The smallest example: logs app and mail events to the console | `email:read` |
+| [impersonation-notice](impersonation-notice/) | A banner while an admin is signed in as another user (Stalwart master user), with a way back | `account:read` `auth:emit` `ui:app-top-banner` `admin:config` |
+| [jitsi-meet](jitsi-meet/) | An "Add Jitsi Meeting" button in the event form | `calendar:read` `calendar:write` `ui:calendar-action` `http:post` |
+| [libravatar](libravatar/) | Sender pictures from Libravatar | `email:read` `http:fetch` |
+| [nextcloud](nextcloud/) | Attach files from Nextcloud, send large files as share links, save attachments and messages there | `http:proxy` `ui:settings-section` `ui:composer-toolbar` `email:read` `email:send` `email:blob-write` `email:blob-read` `ui:toolbar` `ui:app-page` `compose:open` `ui:download-file` |
+| [outlook-style-headers](outlook-style-headers/) | Outlook-style From / Sent / To / Subject block above quoted replies and forwards | `email:send` |
+| [paperless](paperless/) | Send attachments and messages to Paperless-ngx, find documents there and attach them to new mail | `http:proxy` `admin:config` `email:read` `email:blob-read` `email:blob-write` `compose:open` `ui:message-list` `ui:toolbar` `ui:app-page` `ui:settings-section` `ui:notifications` `ui:download-file` |
+| [plugin-template](plugin-template/) | A starting point for a new plugin | `email:read` `ui:sidebar-widget` |
+| [quick-notes](quick-notes/) | Notes per message, shown again when you open it | `email:read` `ui:email-banner` `ui:email-details` |
+| [reply-all-guardrail](reply-all-guardrail/) | Asks before a reply-all (or any send) to more recipients than a limit | `email:read` `email:send` `admin:config` |
+| [slot-showcase](slot-showcase/) | For plugin authors: a labelled box in every UI slot and a button on every action surface | every `ui:*` permission, plus `account:read` `email:read` `email:send` `compose:open` `calendar:read` `contacts:read` `tasks:read` `files:read` |
+| [smime](smime/) | S/MIME signing and encryption, verifying and decrypting, with keys kept in the browser (privileged tier) | `crypto:full` `email:blob-read` `email:raw-send` `email:render-takeover` `email:read` `email:send` `smime:read` `ui:composer-toolbar` `ui:email-banner` `ui:settings-section` `app:lifecycle` |
+| [spam-score](spam-score/) | A spam analysis section in the message details, from the spam filter's headers | `email:read` `ui:email-details` |
+| [translate](translate/) | Translates received mail with MyMemory or LibreTranslate | `email:read` `ui:email-banner` `http:post` |
+
+What each permission allows is listed in
+[WRITING_PLUGINS.md](WRITING_PLUGINS.md#permissions).
+
+## Build
+
+Install the development tools once with `npm install` (esbuild, JSZip,
+Vitest, Playwright). Plugins are written as ES modules in `<plugin>/src/`
+and bundled into one CommonJS file with React and the host API left
+external. From the repository root:
 
 ```
-my-plugin/
-├── manifest.json        # Plugin metadata (required)
-├── src/
-│   └── index.js         # Plugin source code
-├── dist/                # Build output (this gets zipped)
-│   ├── manifest.json
-│   └── index.js
-├── package.json         # Build tooling
-└── README.md
+node scripts/build.mjs                  # every plugin
+node scripts/build.mjs nextcloud smime  # some plugins
+node scripts/build.mjs --check          # fail if a committed ZIP is out of date
 ```
 
-## manifest.json
+Each build writes `<plugin>/<plugin>.zip` with `manifest.json` and `index.js`
+at its root. That ZIP is what the admin upload, the user upload and the
+extension directory take.
 
-```json
-{
-  "id": "my-plugin",
-  "name": "My Plugin",
-  "version": "1.0.0",
-  "author": "Your Name",
-  "description": "What this plugin does",
-  "type": "hook",
-  "permissions": ["email:read"],
-  "entrypoint": "index.js",
-  "minAppVersion": "1.0.0",
-  "settingsSchema": {
-    "enabled": {
-      "type": "boolean",
-      "label": "Enable feature",
-      "description": "Toggle this plugin's main feature",
-      "default": true
-    }
-  }
-}
+## Test
+
+```
+npm test                                # unit tests (Vitest): <plugin>/test/*.test.mjs
+npm run test:e2e                        # Playwright: <plugin>/e2e/*.spec.mjs and e2e/*.spec.mjs
+./test-env/up.sh                        # or .\test-env\up.ps1: the Docker test services
 ```
 
-### Fields
+Unit tests import a plugin's logic directly and use
+`test-utils/fake-api.mjs` for the `api` object. End-to-end tests need a
+running webmail (default `http://localhost:3100`, set `BULWARK_URL`) signed
+in to the Stalwart from `test-env`, and the admin password in
+`BULWARK_ADMIN_PASSWORD`; they install the plugin's ZIP through the admin
+API. See [test-env/README.md](test-env/README.md) for the services, users
+and the `PLUGIN_PROXY_PRIVATE_ORIGINS` value the webmail needs to reach them.
 
-| Field            | Required | Description                                                                                                 |
-| ---------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
-| `id`             | Yes      | Unique identifier. Lowercase alphanumeric + hyphens, min 2 chars. Pattern: `/^[a-z0-9][a-z0-9-]*[a-z0-9]$/` |
-| `name`           | Yes      | Display name                                                                                                |
-| `version`        | Yes      | Semantic version                                                                                            |
-| `author`         | Yes      | Author name                                                                                                 |
-| `description`    | Yes      | Short description                                                                                           |
-| `type`           | Yes      | `"ui-extension"`, `"sidebar-app"`, or `"hook"`                                                              |
-| `permissions`    | Yes      | Array of required permissions (see below)                                                                   |
-| `entrypoint`     | Yes      | Path to the main JS file                                                                                    |
-| `minAppVersion`  | No       | Minimum Bulwark Mail version                                                                                |
-| `settingsSchema` | No       | User-configurable settings (shown in plugin settings UI)                                                    |
+## Install
 
-### Plugin types
+- **Admin:** turn on plugins in the webmail's admin dashboard and upload the
+  ZIP under Plugins. Choose whether it is on for everyone or each user turns
+  it on in Settings > Plugins.
+- **User:** upload the ZIP in Settings > Plugins, if the admin allows it. The
+  webmail asks to confirm the plugin's permissions, and may wait for the
+  admin to approve it.
+- **Development:** start the webmail with `PLUGIN_DEV_DIR` set to this
+  repository. It loads every plugin folder from source and rebuilds it on
+  each page load.
 
-| Type           | Use Case                                                |
-| -------------- | ------------------------------------------------------- |
-| `ui-extension` | Adds buttons, banners, or UI elements to existing views |
-| `sidebar-app`  | Adds a new panel in the sidebar                         |
-| `hook`         | Reacts to events without adding visible UI              |
+## Writing a plugin
 
-### Settings schema types
+Start from `plugin-template/` or `hello-world/` and read
+[WRITING_PLUGINS.md](WRITING_PLUGINS.md). After the webmail's hook or slot
+catalogue changed, refresh the tables in the guide:
 
-```json
-{
-  "toggle": { "type": "boolean", "label": "Enable", "default": true },
-  "name": { "type": "string", "label": "Name", "default": "value" },
-  "count": {
-    "type": "number",
-    "label": "Count",
-    "default": 5,
-    "min": 1,
-    "max": 100
-  },
-  "mode": {
-    "type": "select",
-    "label": "Mode",
-    "default": "auto",
-    "options": ["auto", "manual"]
-  }
-}
 ```
-
-## Plugin API
-
-Every plugin exports an `activate(api)` function that receives the full Plugin API:
-
-```javascript
-export function activate(api) {
-  // api.plugin   — Plugin metadata and settings
-  // api.ui       — Register UI components
-  // api.hooks    — Subscribe to events
-  // api.toast    — Show notifications
-  // api.storage  — Persistent key-value storage
-  // api.log      — Scoped logging
-
-  return {
-    dispose: () => {
-      /* cleanup */
-    },
-  };
-}
-
-export function deactivate() {
-  // Optional: extra cleanup when plugin is disabled
-}
-```
-
-### api.plugin
-
-```javascript
-api.plugin.id; // "my-plugin"
-api.plugin.version; // "1.0.0"
-api.plugin.settings; // { enabled: true, ... } — user-configured values
-```
-
-### api.ui: UI registration
-
-```javascript
-// Add button to email toolbar
-api.ui.registerToolbarAction({
-  id: "my-action",
-  label: "Do Something",
-  icon: "🔧",
-  onClick: () => {
-    /* ... */
-  },
-  order: 100,
-});
-
-// Show banner above email content
-api.ui.registerEmailBanner({
-  shouldShow: (email) => email.from.includes("important"),
-  render: ({ email }) => React.createElement("div", null, "Important!"),
-});
-
-// Add section below email content
-api.ui.registerEmailFooter(MyFooterComponent);
-
-// Add section in Settings
-api.ui.registerSettingsSection({
-  id: "my-settings",
-  label: "My Plugin Settings",
-  icon: "⚙️",
-  render: MySettingsComponent,
-});
-
-// Add button to composer toolbar
-api.ui.registerComposerAction({
-  id: "my-composer-action",
-  label: "Insert Template",
-  icon: "📝",
-  onClick: () => {
-    /* ... */
-  },
-});
-
-// Add widget in sidebar
-api.ui.registerSidebarWidget({
-  id: "my-widget",
-  label: "My Widget",
-  render: MyWidgetComponent,
-  order: 50,
-});
-
-// Add item to email right-click menu
-api.ui.registerContextMenuItem({
-  id: "my-context-action",
-  label: "Process Selected",
-  icon: "⚡",
-  onClick: (emailIds) => {
-    /* ... */
-  },
-});
-
-// Add item at bottom of navigation rail
-api.ui.registerNavigationRailItem(MyNavComponent);
-```
-
-### UI slot names
-
-| Slot                     | Location                  |
-| ------------------------ | ------------------------- |
-| `toolbar-actions`        | Email toolbar area        |
-| `email-banner`           | Above email content       |
-| `email-footer`           | Below email content       |
-| `composer-toolbar`       | Composer toolbar          |
-| `sidebar-widget`         | Sidebar panel area        |
-| `settings-section`       | Settings page             |
-| `context-menu-email`     | Email right-click menu    |
-| `navigation-rail-bottom` | Bottom of navigation rail |
-
-### api.hooks: event hooks
-
-All hooks return a `Disposable` with a `.dispose()` method. Call it to unsubscribe.
-
-```javascript
-const sub = api.hooks.onEmailOpen((email) => {
-  api.log.info("Opened:", email.subject);
-});
-
-// Later: sub.dispose();
-```
-
-### api.toast: notifications
-
-```javascript
-api.toast.success("Operation completed");
-api.toast.error("Something went wrong");
-api.toast.info("FYI: new emails arrived");
-api.toast.warning("Attachment too large");
-```
-
-### api.storage: persistent storage
-
-Plugin-scoped key-value storage (uses localStorage with `plugin:<id>:` prefix).
-
-```javascript
-api.storage.set("lastRun", Date.now());
-const lastRun = api.storage.get("lastRun");
-api.storage.remove("lastRun");
-const allKeys = api.storage.keys();
-```
-
-### api.log: logging
-
-```javascript
-api.log.debug("Verbose details");
-api.log.info("Normal operation");
-api.log.warn("Something unexpected");
-api.log.error("Error occurred", err);
-```
-### api.upfiles — Modifying uploaded attachments
-```javascript
-// fileId string is obtained with onBeforeBlobUpload Hook 
-api.upfiles.get(fileId); // return Promise <File | null> if file is found or not.
-api.upfiles.save(formedFileId, file) // take File and formedFileId 
-// to remove old version of file in storage.
-```
-
-## Complete hook reference
-
-### Email hooks (29)
-
-| Hook                     | Permission         | Description                                |
-| ------------------------ | ------------------ | ------------------------------------------ |
-| `onEmailOpen`            | `email:read`       | Email opened for reading                   |
-| `onEmailClose`           | `email:read`       | Email viewer closed                        |
-| `onEmailContentRender`   | `email:read`       | Email body rendered                        |
-| `onThreadExpand`         | `email:read`       | Thread conversation expanded               |
-| `onComposerOpen`         | `email:read`       | Compose window opened                      |
-| `onBeforeEmailSend`      | `email:send`       | Before email is sent (can cancel)          |
-| `onAfterEmailSend`       | `email:send`       | After email sent successfully              |
-| `onDraftAutoSave`        | `email:read`       | Draft auto-saved                           |
-| `onBeforeEmailDelete`    | `email:write`      | Before email deleted                       |
-| `onAfterEmailDelete`     | `email:write`      | After email deleted                        |
-| `onBeforeEmailMove`      | `email:write`      | Before email moved to folder               |
-| `onAfterEmailMove`       | `email:write`      | After email moved                          |
-| `onEmailReadStateChange` | `email:write`      | Read/unread toggled                        |
-| `onEmailStarToggle`      | `email:write`      | Star/flag toggled                          |
-| `onEmailSpamToggle`      | `email:write`      | Spam status changed                        |
-| `onEmailKeywordChange`   | `email:write`      | Tag/keyword added or removed               |
-| `onMailboxChange`        | `email:read`       | Active folder changed                      |
-| `onMailboxesRefresh`     | `email:read`       | Mailbox list refreshed                     |
-| `onMailboxCreate`        | `email:write`      | New folder created                         |
-| `onMailboxRename`        | `email:write`      | Folder renamed                             |
-| `onMailboxDelete`        | `email:write`      | Folder deleted                             |
-| `onMailboxEmpty`         | `email:write`      | Folder emptied                             |
-| `onSearch`               | `email:read`       | Search initiated                           |
-| `onSearchResults`        | `email:read`       | Search results received                    |
-| `onEmailSelectionChange` | `email:read`       | Email selection changed                    |
-| `onNewEmailReceived`     | `email:read`       | New email arrived                          |
-| `onPushConnectionChange` | `email:read`       | Push notification connection state changed |
-| `onQuotaChange`          | `email:read`       | Storage quota updated                      |
-| `onBeforeBlobUpload`     | `email:blob-write` | Before Attachement is uploaded             |
-| `onBeforeDraftAutoSave`  | `email:write`      | Before the Draft is automatically saved    |
-| `onBeforeEditDraft`      | `email:write`      | Before the composer is populated by email  |
-| `onEmailsFetched`        | `email:read`       | Emails fetched from server                 |
-| `onSearchResults`        | `email:read`       | Server returned results of a search         |
-
-### Calendar hooks (16)
-
-| Hook                         | Permission       | Description                        |
-| ---------------------------- | ---------------- | ---------------------------------- |
-| `onCalendarEventOpen`        | `calendar:read`  | Calendar event opened              |
-| `onBeforeEventCreate`        | `calendar:write` | Before event created               |
-| `onAfterEventCreate`         | `calendar:write` | After event created                |
-| `onBeforeEventUpdate`        | `calendar:write` | Before event updated               |
-| `onAfterEventUpdate`         | `calendar:write` | After event updated                |
-| `onBeforeEventDelete`        | `calendar:write` | Before event deleted               |
-| `onAfterEventDelete`         | `calendar:write` | After event deleted                |
-| `onEventRsvp`                | `calendar:write` | RSVP response sent                 |
-| `onEventsImport`             | `calendar:write` | Calendar events imported           |
-| `onCalendarDateChange`       | `calendar:read`  | Calendar date navigated            |
-| `onCalendarViewChange`       | `calendar:read`  | View mode changed (day/week/month) |
-| `onCalendarChange`           | `calendar:write` | Calendar created/updated/deleted   |
-| `onCalendarVisibilityToggle` | `calendar:read`  | Calendar shown/hidden              |
-| `onICalSubscriptionChange`   | `calendar:write` | iCal subscription changed          |
-| `onCalendarAlert`            | `calendar:read`  | Calendar reminder triggered        |
-| `onCalendarAlertAcknowledge` | `calendar:read`  | Reminder dismissed                 |
-
-### Contact hooks (12)
-
-| Hook                         | Permission       | Description                           |
-| ---------------------------- | ---------------- | ------------------------------------- |
-| `onContactOpen`              | `contacts:read`  | Contact opened                        |
-| `onBeforeContactCreate`      | `contacts:write` | Before contact created                |
-| `onAfterContactCreate`       | `contacts:write` | After contact created                 |
-| `onBeforeContactUpdate`      | `contacts:write` | Before contact updated                |
-| `onAfterContactUpdate`       | `contacts:write` | After contact updated                 |
-| `onBeforeContactDelete`      | `contacts:write` | Before contact deleted                |
-| `onAfterContactDelete`       | `contacts:write` | After contact deleted                 |
-| `onContactsImport`           | `contacts:write` | Contacts imported                     |
-| `onContactSelectionChange`   | `contacts:read`  | Contact selection changed             |
-| `onContactGroupChange`       | `contacts:write` | Contact group changed                 |
-| `onContactGroupMemberChange` | `contacts:write` | Group membership changed              |
-| `onContactMove`              | `contacts:write` | Contact moved to another address book |
-
-### File hooks (15)
-
-| Hook                    | Permission    | Description            |
-| ----------------------- | ------------- | ---------------------- |
-| `onFileNavigate`        | `files:read`  | File browser navigated |
-| `onBeforeFileUpload`    | `files:write` | Before file upload     |
-| `onAfterFileUpload`     | `files:write` | After file uploaded    |
-| `onFileDownload`        | `files:read`  | File downloaded        |
-| `onFileUploadCancel`    | `files:write` | File upload cancelled  |
-| `onDirectoryCreate`     | `files:write` | Directory created      |
-| `onBeforeFileDelete`    | `files:write` | Before file deleted    |
-| `onAfterFileDelete`     | `files:write` | After file deleted     |
-| `onFileRename`          | `files:write` | File renamed           |
-| `onFileMove`            | `files:write` | File moved             |
-| `onFileCopy`            | `files:write` | File copied            |
-| `onFileDuplicate`       | `files:write` | File duplicated        |
-| `onFileFavoriteToggle`  | `files:write` | File favorite toggled  |
-| `onFileSelectionChange` | `files:read`  | File selection changed |
-| `onFileUndo`            | `files:write` | File operation undone  |
-
-### Auth hooks (8)
-
-| Hook              | Permission     | Description             |
-| ----------------- | -------------- | ----------------------- |
-| `onLogin`         | `auth:observe` | User logged in          |
-| `onBeforeLogout`  | `auth:observe` | Before logout           |
-| `onAfterLogout`   | `auth:observe` | After logout            |
-| `onAccountSwitch` | `auth:observe` | Account switched        |
-| `onAccountAdd`    | `auth:observe` | Account added           |
-| `onAccountRemove` | `auth:observe` | Account removed         |
-| `onTokenRefresh`  | `auth:observe` | Auth token refreshed    |
-| `onAuthReady`     | `auth:observe` | Auth system initialized |
-
-### Settings hooks (7)
-
-| Hook                    | Permission      | Description                       |
-| ----------------------- | --------------- | --------------------------------- |
-| `onSettingChange`       | `settings:read` | A setting was changed             |
-| `onSettingsExport`      | `settings:read` | Settings exported                 |
-| `onSettingsImport`      | `settings:read` | Settings imported                 |
-| `onSettingsReset`       | `settings:read` | Settings reset to defaults        |
-| `onSettingsSync`        | `settings:read` | Settings synced                   |
-| `onKeywordChange`       | `settings:read` | Keyword/tag configuration changed |
-| `onTrustedSenderChange` | `settings:read` | Trusted sender list changed       |
-
-### Identity hooks (6)
-
-| Hook                 | Permission       | Description             |
-| -------------------- | ---------------- | ----------------------- |
-| `onIdentitiesLoaded` | `identity:read`  | Identities loaded       |
-| `onIdentityCreate`   | `identity:write` | Identity created        |
-| `onIdentityUpdate`   | `identity:write` | Identity updated        |
-| `onIdentityDelete`   | `identity:write` | Identity deleted        |
-| `onIdentitySelect`   | `identity:read`  | Active identity changed |
-| `onSignatureRender`  | `identity:read`  | Signature rendered      |
-
-### Filter hooks (4)
-
-| Hook                  | Permission      | Description          |
-| --------------------- | --------------- | -------------------- |
-| `onFiltersLoaded`     | `filters:read`  | Filter rules loaded  |
-| `onFilterRuleChange`  | `filters:write` | Filter rule changed  |
-| `onFiltersSave`       | `filters:write` | Filters saved        |
-| `onSieveScriptChange` | `filters:write` | Sieve script changed |
-
-### Task hooks (6)
-
-| Hook                   | Permission    | Description                |
-| ---------------------- | ------------- | -------------------------- |
-| `onTasksLoaded`        | `tasks:read`  | Tasks loaded               |
-| `onTaskCreate`         | `tasks:write` | Task created               |
-| `onTaskUpdate`         | `tasks:write` | Task updated               |
-| `onTaskDelete`         | `tasks:write` | Task deleted               |
-| `onTaskToggleComplete` | `tasks:write` | Task completed/uncompleted |
-| `onTaskFilterChange`   | `tasks:read`  | Task filter changed        |
-
-### Template hooks (6)
-
-| Hook                | Permission        | Description        |
-| ------------------- | ----------------- | ------------------ |
-| `onTemplateCreate`  | `templates:write` | Template created   |
-| `onTemplateUpdate`  | `templates:write` | Template updated   |
-| `onTemplateDelete`  | `templates:write` | Template deleted   |
-| `onTemplateApply`   | `templates:read`  | Template applied   |
-| `onTemplatesImport` | `templates:write` | Templates imported |
-| `onTemplateRender`  | `templates:read`  | Template rendered  |
-
-### S/MIME hooks (4)
-
-| Hook                    | Permission   | Description                 |
-| ----------------------- | ------------ | --------------------------- |
-| `onSmimeKeyImport`      | `smime:read` | S/MIME key imported         |
-| `onSmimeCertImport`     | `smime:read` | S/MIME certificate imported |
-| `onSmimeKeyStateChange` | `smime:read` | S/MIME key state changed    |
-| `onSmimeDefaultsChange` | `smime:read` | S/MIME defaults changed     |
-
-### Vacation hooks (2)
-
-| Hook               | Permission       | Description                |
-| ------------------ | ---------------- | -------------------------- |
-| `onVacationLoaded` | `vacation:read`  | Vacation responder loaded  |
-| `onVacationUpdate` | `vacation:write` | Vacation responder updated |
-
-### UI hooks (7)
-
-| Hook                 | Permission   | Description                          |
-| -------------------- | ------------ | ------------------------------------ |
-| `onViewChange`       | `ui:observe` | View/page changed                    |
-| `onSidebarToggle`    | `ui:observe` | Sidebar opened/closed                |
-| `onSidebarCollapse`  | `ui:observe` | Sidebar collapsed                    |
-| `onDeviceTypeChange` | `ui:observe` | Device type changed (mobile/desktop) |
-| `onColumnResize`     | `ui:observe` | Column resized                       |
-| `onMobileBack`       | `ui:observe` | Mobile back navigation               |
-| `onMobileViewSwitch` | `ui:observe` | Mobile view switched                 |
-
-### Theme hooks (3)
-
-| Hook                  | Permission   | Description                        |
-| --------------------- | ------------ | ---------------------------------- |
-| `onThemeChange`       | `ui:observe` | Light/dark mode changed            |
-| `onCustomThemeChange` | `ui:observe` | Custom theme activated/deactivated |
-| `onLocaleChange`      | `ui:observe` | Language changed                   |
-
-### Toast hooks (3)
-
-| Hook                    | Permission   | Description                |
-| ----------------------- | ------------ | -------------------------- |
-| `onToastShow`           | `ui:observe` | Toast notification shown   |
-| `onToastDismiss`        | `ui:observe` | Toast dismissed            |
-| `onBrowserNotification` | `ui:observe` | Browser notification shown |
-
-### Drag and drop hooks (4)
-
-| Hook          | Permission    | Description             |
-| ------------- | ------------- | ----------------------- |
-| `onDragStart` | `ui:observe`  | Drag started            |
-| `onDragEnd`   | `ui:observe`  | Drag ended              |
-| `onEmailDrop` | `email:write` | Email dropped on target |
-| `onTagDrop`   | `email:write` | Tag dropped on email    |
-
-### Keyboard hooks (3)
-
-| Hook               | Permission    | Description                  |
-| ------------------ | ------------- | ---------------------------- |
-| `registerShortcut` | `ui:keyboard` | Register a keyboard shortcut |
-| `onBeforeShortcut` | `ui:keyboard` | Before shortcut executed     |
-| `onAfterShortcut`  | `ui:keyboard` | After shortcut executed      |
-
-### App lifecycle hooks (5)
-
-| Hook                 | Permission      | Description                           |
-| -------------------- | --------------- | ------------------------------------- |
-| `onAppReady`         | `app:lifecycle` | App fully loaded (implicit)           |
-| `onVisibilityChange` | `app:lifecycle` | Tab visibility changed (implicit)     |
-| `onBeforeUnload`     | `app:lifecycle` | Before page unload (implicit)         |
-| `onAppError`         | `app:lifecycle` | App error occurred (implicit)         |
-| `onInterval`         | `app:lifecycle` | Periodic callback (min 60s, implicit) |
-
-### Account security hooks (5)
-
-| Hook                  | Permission      | Description                 |
-| --------------------- | --------------- | --------------------------- |
-| `onPasswordChange`    | `security:read` | Password changed            |
-| `onTotpChange`        | `security:read` | TOTP 2FA changed            |
-| `onAppPasswordChange` | `security:read` | App password changed        |
-| `onEncryptionChange`  | `security:read` | Encryption settings changed |
-| `onDisplayNameChange` | `security:read` | Display name changed        |
-
-### Sidebar app hooks (3)
-
-| Hook                 | Permission   | Description                |
-| -------------------- | ------------ | -------------------------- |
-| `onSidebarAppOpen`   | `ui:observe` | Sidebar app opened         |
-| `onSidebarAppClose`  | `ui:observe` | Sidebar app closed         |
-| `onSidebarAppChange` | `ui:observe` | Active sidebar app changed |
-
-## All permissions
-
-### Email
-
-- `email:read` — Read emails, mailboxes, search, quota
-- `email:write` — Modify emails (move, delete, tag, flag)
-- `email:send` — Send emails
-- `email:blob-write` — Modify Attachments before their upload
-
-### Calendar
-
-- `calendar:read` — Read events, calendars, alerts
-- `calendar:write` — Create/modify/delete events
-
-### Contacts
-
-- `contacts:read` — Read contacts and groups
-- `contacts:write` — Create/modify/delete contacts
-
-### Files
-
-- `files:read` — Browse and download files
-- `files:write` — Upload, delete, move files
-
-### Identity
-
-- `identity:read` — Read sender identities
-- `identity:write` — Create/modify identities
-
-### Filters
-
-- `filters:read` — Read filter rules
-- `filters:write` — Create/modify filter rules
-
-### Tasks
-
-- `tasks:read` — Read tasks
-- `tasks:write` — Create/modify tasks
-
-### Templates
-
-- `templates:read` — Read/apply templates
-- `templates:write` — Create/modify templates
-
-### S/MIME
-
-- `smime:read` — Read S/MIME keys and certificates
-
-### Vacation
-
-- `vacation:read` — Read vacation responder
-- `vacation:write` — Modify vacation responder
-
-### Settings
-
-- `settings:read` — Read settings changes
-- `settings:write` — Modify settings
-
-### Security
-
-- `security:read` — Observe security changes
-
-### Auth
-
-- `auth:observe` — Observe auth state
-
-### UI
-
-- `ui:observe` — Observe UI state changes (implicit, always granted)
-- `ui:toolbar` — Add toolbar buttons
-- `ui:email-banner` — Show email banners
-- `ui:email-footer` — Show email footers
-- `ui:composer-toolbar` — Add composer buttons
-- `ui:sidebar-widget` — Add sidebar widgets
-- `ui:settings-section` — Add settings sections
-- `ui:context-menu` — Add context menu items
-- `ui:navigation-rail` — Add navigation items
-- `ui:keyboard` — Register keyboard shortcuts
-
-### App
-
-- `app:lifecycle` — App lifecycle events (implicit, always granted)
-
-## Validation rules
-
-- Maximum plugin ZIP size: **5 MB**
-- Allowed file extensions: `.js`, `.mjs`, `.css`, `.json`, `.png`, `.svg`, `.woff2`, `.jpg`, `.jpeg`, `.webp`
-- Code is scanned for suspicious patterns (`eval()`, `new Function()`, `document.cookie`, `document.write`, `innerHTML =`)
-- Plugin ID format: `/^[a-z0-9][a-z0-9-]*[a-z0-9]$/` (min 2 chars)
-- Plugins receive React, ReactDOM, and ReactJSX via `__PLUGIN_EXTERNALS__`, so do not bundle React
-- Auto-disabled after 3 errors within 60 seconds
-
-## Available examples
-
-| Plugin                      | Type           | Description                              |
-| --------------------------- | -------------- | ---------------------------------------- |
-| [hello-world](hello-world/) | `hook`         | Minimal plugin, logs lifecycle events    |
-| [email-stats](email-stats/) | `sidebar-app`  | Sidebar widget showing email statistics  |
-| [auto-tag](auto-tag/)       | `hook`         | Automatically tags emails based on rules |
-| [quick-notes](quick-notes/) | `sidebar-app`  | Per-email sticky notes in the sidebar    |
-| [calendar-agenda](calendar-agenda/) | `sidebar-app` | Agenda of upcoming calendar events in the sidebar |
-
-## Building plugins
-
-Plugins are ES modules. Use any bundler (esbuild, Rollup, webpack) to produce a single `.js` file.
-
-### Recommended: esbuild
-
-```bash
-npm install --save-dev esbuild
-npx esbuild src/index.js --bundle --format=esm --outfile=dist/index.js \
-  --external:react --external:react-dom --external:react/jsx-runtime
-```
-
-### Important: do not bundle React
-
-Bulwark Mail exposes React to plugins via `__PLUGIN_EXTERNALS__`. Mark React as external in your bundler:
-
-```javascript
-// esbuild
-{ external: ['react', 'react-dom', 'react/jsx-runtime'] }
-
-// Rollup
-{ external: ['react', 'react-dom', 'react/jsx-runtime'] }
-
-// webpack
-{ externals: { react: 'react', 'react-dom': 'react-dom', 'react/jsx-runtime': 'react/jsx-runtime' } }
+node scripts/gen-docs.mjs               # set BULWARK_WEBMAIL if the webmail isn't in ../jmap-webmail-plugins
 ```
 
 ## License
 
-All plugins in this repository are released under the [GNU Affero General Public License v3](LICENSE).
+All plugins in this repository are released under the
+[GNU Affero General Public License v3](LICENSE).
