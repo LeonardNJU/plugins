@@ -40,7 +40,7 @@ function api({ dialog = null, connected = true, extra = {} } = {}) {
 const noTimer = () => {};
 
 describe('registerUi', () => {
-  it('puts a button on the three mail surfaces', async () => {
+  it('puts a button on the three mail surfaces and a page in the navigation', async () => {
     const { api: a } = api();
     await createBackground(a, { setTimer: noTimer }).registerUi();
     const surfaces = a.calls('ui.setActions').map((c) => [c.args[0], c.args[1].map((x) => x.id)]);
@@ -49,6 +49,7 @@ describe('registerUi', () => {
       ['reader-actions', ['send-message']],
       ['message-bulk-actions', ['send-bulk']],
     ]);
+    expect(a.calls('ui.setPages')[0].args[0]).toEqual([{ id: 'documents', title: 'page.title', icon: 'archive' }]);
   });
 });
 
@@ -141,6 +142,6 @@ describe('plugin exports', () => {
     expect(a.calls('ui.setActions')).toHaveLength(3);
     // onAction must not wait for the dialog (the host gives hooks only seconds).
     expect(hooks.onAction({ actionId: 'send-message', context: { emailId: 'e1' } })).toBeUndefined();
-    expect(Object.keys(slots).sort()).toEqual(['plugin-dialog', 'settings-section']);
+    expect(Object.keys(slots).sort()).toEqual(['app-page', 'plugin-dialog', 'settings-section']);
   });
 });

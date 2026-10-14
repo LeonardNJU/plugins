@@ -5,6 +5,7 @@ import { createElement as h } from 'react';
 import { createBackground } from './lib/background.js';
 import { setApi } from './ui/host.js';
 import { SendDialog } from './ui/SendDialog.jsx';
+import { DocumentBrowser } from './ui/DocumentBrowser.jsx';
 import { Settings } from './ui/Settings.jsx';
 
 let background = null;
@@ -32,10 +33,12 @@ export const hooks = {
 };
 
 function Dialog(props) {
-  return h(SendDialog, props);
+  if (props.view === 'send') return h(SendDialog, props);
+  return h(DocumentBrowser, { inDialog: true, onClose: () => props.onResult?.(null) });
 }
 
 export const slots = {
   'plugin-dialog': { component: Dialog },
+  'app-page': { component: () => h(DocumentBrowser, {}) },
   'settings-section': { component: Settings },
 };

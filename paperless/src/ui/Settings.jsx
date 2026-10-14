@@ -22,6 +22,8 @@ export function Settings() {
     await refresh();
   };
 
+  const browse = () => api.ui.openDialog({ title: t('page.title'), slot: 'plugin-dialog', extraProps: { view: 'browse' }, width: 1000 });
+
   return (
     <div className="pl" style={{ padding: 4 }}>
       <Styles />
@@ -43,6 +45,7 @@ export function Settings() {
           </p>
           <ErrorBox error={error} />
           <div className="pl-actions" style={{ justifyContent: 'flex-start' }}>
+            <button type="button" className="pl-primary" onClick={browse}>{t('settings.browse')}</button>
             {connection.mode === 'personal' && <button type="button" onClick={disconnect}>{t('settings.disconnect')}</button>}
           </div>
         </div>
