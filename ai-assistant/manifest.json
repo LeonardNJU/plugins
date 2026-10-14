@@ -1,0 +1,151 @@
+{
+  "id": "ai-assistant",
+  "name": "AI Writing Assistant",
+  "version": "1.0.0",
+  "author": "Bulwark Mail Community",
+  "description": "Write, rewrite, translate and proofread emails, and summarise messages, with an OpenAI-compatible service (OpenAI, Ollama, ...) or Anthropic. Text is only sent when you click.",
+  "type": "ui-extension",
+  "permissions": [
+    "http:proxy",
+    "admin:config",
+    "ui:settings-section"
+  ],
+  "entrypoint": "index.js",
+  "minAppVersion": "1.9.0",
+  "configSchema": {
+    "defaultProvider": {
+      "type": "select",
+      "label": "Default service",
+      "description": "Used when both services below are set up and the user hasn't picked one.",
+      "default": "openai",
+      "options": [
+        { "label": "OpenAI-compatible", "value": "openai" },
+        { "label": "Anthropic", "value": "anthropic" }
+      ]
+    },
+    "openaiBaseUrl": {
+      "type": "string",
+      "label": "OpenAI-compatible API address",
+      "description": "Address up to and including /v1, e.g. https://api.openai.com/v1 or http://ollama:11434/v1. Leave empty to not offer it. A private address must be listed in PLUGIN_PROXY_PRIVATE_ORIGINS.",
+      "placeholder": "https://api.openai.com/v1"
+    },
+    "openaiKey": {
+      "type": "secret",
+      "label": "OpenAI-compatible API key",
+      "description": "Stays on the server. For Ollama, which needs no key, enter any text (for example: ollama)."
+    },
+    "openaiModel": {
+      "type": "string",
+      "label": "OpenAI-compatible model",
+      "description": "For example gpt-4o-mini, or qwen2.5:7b on Ollama. Users may pick another one.",
+      "placeholder": "gpt-4o-mini"
+    },
+    "anthropicBaseUrl": {
+      "type": "string",
+      "label": "Anthropic API address",
+      "description": "https://api.anthropic.com/v1, or a gateway that speaks the Messages API. Leave empty to not offer it.",
+      "placeholder": "https://api.anthropic.com/v1"
+    },
+    "anthropicKey": {
+      "type": "secret",
+      "label": "Anthropic API key",
+      "description": "Stays on the server."
+    },
+    "anthropicModel": {
+      "type": "string",
+      "label": "Anthropic model",
+      "description": "For example claude-haiku-4-5. Users may pick another one.",
+      "placeholder": "claude-haiku-4-5"
+    },
+    "allowUserKeys": {
+      "type": "boolean",
+      "label": "Let users connect their own API key",
+      "description": "Users then see a Connect button in the plugin's settings. Their key is stored encrypted on the server and replaces the keys above for them.",
+      "default": false
+    }
+  },
+  "credentials": {
+    "openai": {
+      "label": "OpenAI-compatible service",
+      "scope": "admin",
+      "inject": { "type": "bearer" },
+      "secretKey": "openaiKey",
+      "originKey": "openaiBaseUrl"
+    },
+    "anthropic": {
+      "label": "Anthropic",
+      "scope": "admin",
+      "inject": { "type": "header", "name": "x-api-key" },
+      "secretKey": "anthropicKey",
+      "originKey": "anthropicBaseUrl"
+    },
+    "own-openai": {
+      "label": "Your OpenAI-compatible API key",
+      "scope": "user",
+      "inject": { "type": "bearer" }
+    },
+    "own-anthropic": {
+      "label": "Your Anthropic API key",
+      "scope": "user",
+      "inject": { "type": "header", "name": "x-api-key" }
+    }
+  },
+  "locales": {
+    "en": {
+      "common.cancel": "Cancel",
+      "common.loading": "Loading…",
+      "common.retry": "Try again",
+      "common.thinking": "Thinking…",
+      "common.copy": "Copy",
+      "common.copied": "Copied",
+      "common.copy_failed": "Could not copy. Select the text and copy it yourself.",
+      "common.stop": "Stop",
+      "common.stopped": "Stopped.",
+      "common.close": "Close",
+      "privacy.title": "Send text to the AI service?",
+      "privacy.message": "The assistant sends the text you work on to {provider} at {host} (model {model}), set up by your administrator. Nothing is sent until you click a button, and only for that request.",
+      "privacy.message_own": "The assistant sends the text you work on to {provider} at {host} (model {model}) with your own key. Nothing is sent until you click a button, and only for that request.",
+      "privacy.continue": "Continue",
+      "error.not_configured": "The AI assistant isn't set up yet. Ask your administrator to add an AI service.",
+      "error.declined": "Nothing was sent.",
+      "error.bad_key": "The AI service didn't accept the API key. It may be wrong or expired.",
+      "error.forbidden": "The API key isn't allowed to use this model or service.",
+      "error.not_found": "The AI service doesn't know this model or address. Check the model name in the settings.",
+      "error.rate_limit": "The AI service is getting too many requests. Wait a moment and try again.",
+      "error.rate_limit_wait": "The AI service is getting too many requests. You can try again in {seconds} s.",
+      "error.rate_limit_now": "The AI service is getting too many requests. You can try again now.",
+      "error.quota": "The AI account has no credit or quota left.",
+      "error.busy": "The AI service is overloaded right now. Try again in a little while.",
+      "error.timeout": "The AI service took too long to answer.",
+      "error.too_long": "The text is too long for this model.",
+      "error.bad_request": "The AI service refused the request.",
+      "error.service_said": "It said: {detail}",
+      "error.blocked": "The webmail may not connect to this AI service address.",
+      "error.unreachable": "Could not reach the AI service.",
+      "error.server": "The AI service had a problem. Try again later.",
+      "error.empty": "The AI service sent an empty answer.",
+      "error.cancelled": "Stopped.",
+      "settings.service": "AI service",
+      "settings.status_admin": "Uses {provider} at {host}, model {model}, set up by your administrator.",
+      "settings.status_own": "Uses {provider} at {host}, model {model}, with your own key.",
+      "settings.not_set_up": "Not set up yet. Your administrator has to add an AI service first.",
+      "settings.not_set_up_own": "Not set up yet. Connect your own API key below, or ask your administrator to add an AI service.",
+      "settings.privacy": "Text is only sent when you click one of the assistant's buttons: the message you summarise, or the text you write. Before the first request you are asked to confirm.",
+      "settings.provider": "Service",
+      "settings.model": "Model",
+      "settings.model_hint": "Leave empty to use the default model.",
+      "settings.save": "Save",
+      "settings.saved": "Saved.",
+      "settings.show_in_reader": "Show the assistant above messages",
+      "settings.own_title": "Your own API key",
+      "settings.own_hint": "Use your own account with an AI service instead. The key is stored encrypted on the webmail server and is only sent to the address below.",
+      "settings.address": "API address",
+      "settings.bad_url": "Enter an address starting with https://",
+      "settings.connect": "Connect your key",
+      "settings.connected": "Connected to {host}.",
+      "settings.connect_failed": "Could not connect the key.",
+      "settings.disconnect": "Stop using my key",
+      "settings.disconnected": "Your key was removed."
+    }
+  }
+}

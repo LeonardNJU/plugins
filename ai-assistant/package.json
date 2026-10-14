@@ -1,0 +1,10 @@
+{
+  "name": "bulwark-plugin-ai-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node ../scripts/build.mjs ai-assistant",
+    "test": "node ../node_modules/vitest/vitest.mjs run ai-assistant"
+  }
+}
