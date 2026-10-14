@@ -37,7 +37,7 @@ docker run -d \
 
 ### 2. Configure Reverse Proxy
 
-The sidecar must be reachable at `/api/jitsi` on the same origin as Bulwark Mail. The plugin's client-side code calls `fetch("/api/jitsi", ...)`, so the browser treats it as a same-origin request. A reverse proxy in front of both the webmail and the sidecar routes this path to the sidecar while everything else goes to the webmail.
+The sidecar must be reachable at `/api/jitsi` on the same origin as Bulwark Mail. The plugin cannot make network requests itself: it calls `api.http.post('/api/jitsi', ...)`, and the webmail sends that same-origin request for it with the signed-in user's `Authorization` header. The manifest's `apiPostPaths` allows exactly this path. A reverse proxy in front of both the webmail and the sidecar routes this path to the sidecar while everything else goes to the webmail.
 
 For example, with nginx:
 
@@ -91,6 +91,10 @@ services:
 ```
 
 The key point is that the browser never contacts the sidecar directly. It only sees `mail.example.com/api/jitsi`, and the reverse proxy forwards that request (including the `Authorization` header) to the sidecar internally.
+
+### Sign-in requirement
+
+The sidecar accepts only `Authorization: Bearer` tokens, which it verifies against `OIDC_ISSUER_URL`. That header is only sent when users sign in to Bulwark Mail with OAuth/OIDC. With password login the webmail sends Basic credentials instead, the sidecar answers 401, and the button shows an error. Use this plugin only on deployments where users sign in through your OIDC provider.
 
 ### 3. Install the Plugin
 
