@@ -131,7 +131,9 @@
       "failed.body": "«{name}»: {error}",
       "failed.duplicate": "«{name}» موجود بالفعل في Paperless.",
       "failed.timeout": "لا يزال «{name}» في الانتظار في Paperless بعد 15 دقيقة. تحقق من قائمة المهام في Paperless.",
-      "failed.unknown": "خطأ غير معروف"
+      "failed.unknown": "خطأ غير معروف",
+      "send.already": "موجود بالفعل في Paperless: {title}",
+      "send.checking": "جارٍ التحقق مما إذا كانت موجودة في Paperless…"
     },
     "ca": {
       "action.send": "Envia a Paperless",
@@ -202,7 +204,9 @@
       "failed.body": "«{name}»: {error}",
       "failed.duplicate": "«{name}» ja és a Paperless.",
       "failed.timeout": "«{name}» encara està en espera a Paperless després de 15 minuts. Consulteu la llista de tasques a Paperless.",
-      "failed.unknown": "error desconegut"
+      "failed.unknown": "error desconegut",
+      "send.already": "Ja és a Paperless: {title}",
+      "send.checking": "S'està comprovant si ja són a Paperless…"
     },
     "cs": {
       "action.send": "Odeslat do Paperless",
@@ -273,7 +277,9 @@
       "failed.body": "„{name}“: {error}",
       "failed.duplicate": "„{name}“ už v Paperless je.",
       "failed.timeout": "„{name}“ v Paperless po 15 minutách stále čeká. Podívejte se do seznamu úloh v Paperless.",
-      "failed.unknown": "neznámá chyba"
+      "failed.unknown": "neznámá chyba",
+      "send.already": "Už v Paperless: {title}",
+      "send.checking": "Kontroluje se, zda už jsou v Paperless…"
     },
     "da": {
       "action.send": "Send til Paperless",
@@ -344,7 +350,9 @@
       "failed.body": "»{name}«: {error}",
       "failed.duplicate": "»{name}« er allerede i Paperless.",
       "failed.timeout": "»{name}« venter stadig i Paperless efter 15 minutter. Se opgavelisten i Paperless.",
-      "failed.unknown": "ukendt fejl"
+      "failed.unknown": "ukendt fejl",
+      "send.already": "Allerede i Paperless: {title}",
+      "send.checking": "Kontrollerer, om de allerede er i Paperless…"
     },
     "de": {
       "action.send": "An Paperless senden",
@@ -415,7 +423,9 @@
       "failed.body": "„{name}“: {error}",
       "failed.duplicate": "„{name}“ ist schon in Paperless.",
       "failed.timeout": "„{name}“ wartet nach 15 Minuten noch in Paperless. Sehen Sie in Paperless in der Aufgabenliste nach.",
-      "failed.unknown": "unbekannter Fehler"
+      "failed.unknown": "unbekannter Fehler",
+      "send.already": "Schon in Paperless: {title}",
+      "send.checking": "Prüfe, ob das schon in Paperless ist…"
     },
     "en": {
       "action.send": "Send to Paperless",
@@ -486,7 +496,9 @@
       "failed.body": "“{name}”: {error}",
       "failed.duplicate": "“{name}” is already in Paperless.",
       "failed.timeout": "“{name}” is still waiting in Paperless after 15 minutes. Check the task list in Paperless.",
-      "failed.unknown": "unknown error"
+      "failed.unknown": "unknown error",
+      "send.already": "Already in Paperless: {title}",
+      "send.checking": "Checking whether these are already in Paperless…"
     },
     "es": {
       "action.send": "Enviar a Paperless",
@@ -557,7 +569,9 @@
       "failed.body": "«{name}»: {error}",
       "failed.duplicate": "«{name}» ya está en Paperless.",
       "failed.timeout": "«{name}» sigue esperando en Paperless después de 15 minutos. Revisa la lista de tareas en Paperless.",
-      "failed.unknown": "error desconocido"
+      "failed.unknown": "error desconocido",
+      "send.already": "Ya está en Paperless: {title}",
+      "send.checking": "Comprobando si ya están en Paperless…"
     },
     "fa": {
       "action.send": "ارسال به Paperless",
@@ -628,7 +642,9 @@
       "failed.body": "«{name}»: {error}",
       "failed.duplicate": "«{name}» از قبل در Paperless هست.",
       "failed.timeout": "«{name}» پس از ۱۵ دقیقه هنوز در Paperless در انتظار است. فهرست کارها را در Paperless بررسی کنید.",
-      "failed.unknown": "خطای ناشناخته"
+      "failed.unknown": "خطای ناشناخته",
+      "send.already": "از قبل در Paperless هست: {title}",
+      "send.checking": "در حال بررسی اینکه آیا از قبل در Paperless هستند…"
     },
     "fr": {
       "action.send": "Envoyer à Paperless",
@@ -699,7 +715,9 @@
       "failed.body": "« {name} » : {error}",
       "failed.duplicate": "« {name} » est déjà dans Paperless.",
       "failed.timeout": "« {name} » est toujours en attente dans Paperless après 15 minutes. Consultez la liste des tâches dans Paperless.",
-      "failed.unknown": "erreur inconnue"
+      "failed.unknown": "erreur inconnue",
+      "send.already": "Déjà dans Paperless : {title}",
+      "send.checking": "Vérification de leur présence dans Paperless…"
     },
     "he": {
       "action.send": "שליחה ל-Paperless",
@@ -770,7 +788,9 @@
       "failed.body": "“{name}”: {error}",
       "failed.duplicate": "“{name}” כבר נמצא ב-Paperless.",
       "failed.timeout": "“{name}” עדיין ממתין ב-Paperless אחרי 15 דקות. בדקו את רשימת המשימות ב-Paperless.",
-      "failed.unknown": "שגיאה לא ידועה"
+      "failed.unknown": "שגיאה לא ידועה",
+      "send.already": "כבר נמצא ב-Paperless: {title}",
+      "send.checking": "בודק אם הם כבר נמצאים ב-Paperless…"
     },
     "hu": {
       "action.send": "Küldés a Paperlessbe",
@@ -841,7 +861,9 @@
       "failed.body": "„{name}”: {error}",
       "failed.duplicate": "„{name}” már szerepel a Paperlessben.",
       "failed.timeout": "„{name}” 15 perc után is várakozik a Paperlessben. Nézd meg a feladatlistát a Paperlessben.",
-      "failed.unknown": "ismeretlen hiba"
+      "failed.unknown": "ismeretlen hiba",
+      "send.already": "Már a Paperlessben van: {title}",
+      "send.checking": "Ellenőrzés, hogy ezek már a Paperlessben vannak-e…"
     },
     "it": {
       "action.send": "Invia a Paperless",
@@ -912,7 +934,9 @@
       "failed.body": "«{name}»: {error}",
       "failed.duplicate": "«{name}» è già in Paperless.",
       "failed.timeout": "«{name}» è ancora in attesa in Paperless dopo 15 minuti. Controlla l'elenco delle attività in Paperless.",
-      "failed.unknown": "errore sconosciuto"
+      "failed.unknown": "errore sconosciuto",
+      "send.already": "Già in Paperless: {title}",
+      "send.checking": "Controllo se sono già in Paperless…"
     },
     "ja": {
       "action.send": "Paperless に送る",
@@ -983,7 +1007,9 @@
       "failed.body": "「{name}」: {error}",
       "failed.duplicate": "「{name}」はすでに Paperless にあります。",
       "failed.timeout": "「{name}」は 15 分経っても Paperless で処理待ちのままです。Paperless のタスク一覧を確認してください。",
-      "failed.unknown": "不明なエラー"
+      "failed.unknown": "不明なエラー",
+      "send.already": "すでに Paperless にあります: {title}",
+      "send.checking": "すでに Paperless にあるか確認しています…"
     },
     "ko": {
       "action.send": "Paperless로 보내기",
@@ -1054,7 +1080,9 @@
       "failed.body": "“{name}”: {error}",
       "failed.duplicate": "“{name}”은(는) 이미 Paperless에 있어요.",
       "failed.timeout": "“{name}”이(가) 15분이 지나도 Paperless에서 대기 중이에요. Paperless의 작업 목록을 확인하세요.",
-      "failed.unknown": "알 수 없는 오류"
+      "failed.unknown": "알 수 없는 오류",
+      "send.already": "이미 Paperless에 있음: {title}",
+      "send.checking": "이미 Paperless에 있는지 확인하는 중…"
     },
     "lv": {
       "action.send": "Sūtīt uz Paperless",
@@ -1125,7 +1153,9 @@
       "failed.body": "„{name}”: {error}",
       "failed.duplicate": "„{name}” jau ir Paperless.",
       "failed.timeout": "„{name}” pēc 15 minūtēm joprojām gaida Paperless. Pārbaudiet uzdevumu sarakstu Paperless.",
-      "failed.unknown": "nezināma kļūda"
+      "failed.unknown": "nezināma kļūda",
+      "send.already": "Jau ir Paperless: {title}",
+      "send.checking": "Pārbauda, vai tie jau ir Paperless…"
     },
     "mn": {
       "action.send": "Paperless руу илгээх",
@@ -1196,7 +1226,9 @@
       "failed.body": "«{name}»: {error}",
       "failed.duplicate": "«{name}» Paperless-д аль хэдийн байна.",
       "failed.timeout": "«{name}» 15 минутын дараа ч Paperless-д хүлээгдэж байна. Paperless дахь даалгаврын жагсаалтыг шалгана уу.",
-      "failed.unknown": "тодорхойгүй алдаа"
+      "failed.unknown": "тодорхойгүй алдаа",
+      "send.already": "Paperless-д аль хэдийн байна: {title}",
+      "send.checking": "Эдгээр Paperless-д байгаа эсэхийг шалгаж байна…"
     },
     "nb": {
       "action.send": "Send til Paperless",
@@ -1267,7 +1299,9 @@
       "failed.body": "«{name}»: {error}",
       "failed.duplicate": "«{name}» er allerede i Paperless.",
       "failed.timeout": "«{name}» venter fortsatt i Paperless etter 15 minutter. Sjekk oppgavelisten i Paperless.",
-      "failed.unknown": "ukjent feil"
+      "failed.unknown": "ukjent feil",
+      "send.already": "Allerede i Paperless: {title}",
+      "send.checking": "Sjekker om disse allerede er i Paperless…"
     },
     "nl": {
       "action.send": "Naar Paperless sturen",
@@ -1338,7 +1372,9 @@
       "failed.body": "“{name}”: {error}",
       "failed.duplicate": "“{name}” staat al in Paperless.",
       "failed.timeout": "“{name}” wacht na 15 minuten nog steeds in Paperless. Kijk in de takenlijst van Paperless.",
-      "failed.unknown": "onbekende fout"
+      "failed.unknown": "onbekende fout",
+      "send.already": "Al in Paperless: {title}",
+      "send.checking": "Controleren of deze al in Paperless staan…"
     },
     "pl": {
       "action.send": "Wyślij do Paperless",
@@ -1409,7 +1445,9 @@
       "failed.body": "„{name}”: {error}",
       "failed.duplicate": "„{name}” jest już w Paperless.",
       "failed.timeout": "„{name}” po 15 minutach nadal czeka w Paperless. Sprawdź listę zadań w Paperless.",
-      "failed.unknown": "nieznany błąd"
+      "failed.unknown": "nieznany błąd",
+      "send.already": "Już w Paperless: {title}",
+      "send.checking": "Sprawdzanie, czy są już w Paperless…"
     },
     "pt": {
       "action.send": "Enviar para o Paperless",
@@ -1480,7 +1518,9 @@
       "failed.body": "“{name}”: {error}",
       "failed.duplicate": "“{name}” já está no Paperless.",
       "failed.timeout": "“{name}” ainda está aguardando no Paperless depois de 15 minutos. Confira a lista de tarefas no Paperless.",
-      "failed.unknown": "erro desconhecido"
+      "failed.unknown": "erro desconhecido",
+      "send.already": "Já está no Paperless: {title}",
+      "send.checking": "Verificando se já estão no Paperless…"
     },
     "ro": {
       "action.send": "Trimiteți în Paperless",
@@ -1551,7 +1591,9 @@
       "failed.body": "„{name}”: {error}",
       "failed.duplicate": "„{name}” este deja în Paperless.",
       "failed.timeout": "„{name}” încă așteaptă în Paperless după 15 minute. Verificați lista de sarcini din Paperless.",
-      "failed.unknown": "eroare necunoscută"
+      "failed.unknown": "eroare necunoscută",
+      "send.already": "Deja în Paperless: {title}",
+      "send.checking": "Se verifică dacă acestea sunt deja în Paperless…"
     },
     "ru": {
       "action.send": "Отправить в Paperless",
@@ -1622,7 +1664,9 @@
       "failed.body": "«{name}»: {error}",
       "failed.duplicate": "«{name}» уже есть в Paperless.",
       "failed.timeout": "«{name}» всё ещё ждёт в Paperless спустя 15 минут. Проверьте список задач в Paperless.",
-      "failed.unknown": "неизвестная ошибка"
+      "failed.unknown": "неизвестная ошибка",
+      "send.already": "Уже есть в Paperless: {title}",
+      "send.checking": "Проверяем, нет ли их уже в Paperless…"
     },
     "sk": {
       "action.send": "Odoslať do Paperless",
@@ -1693,7 +1737,9 @@
       "failed.body": "„{name}“: {error}",
       "failed.duplicate": "„{name}“ už v Paperless je.",
       "failed.timeout": "„{name}“ v Paperless po 15 minútach stále čaká. Pozrite si zoznam úloh v Paperless.",
-      "failed.unknown": "neznáma chyba"
+      "failed.unknown": "neznáma chyba",
+      "send.already": "Už v Paperless: {title}",
+      "send.checking": "Kontroluje sa, či už sú v Paperless…"
     },
     "tr": {
       "action.send": "Paperless'a gönder",
@@ -1764,7 +1810,9 @@
       "failed.body": "“{name}”: {error}",
       "failed.duplicate": "“{name}” zaten Paperless'ta.",
       "failed.timeout": "“{name}” 15 dakika sonra hâlâ Paperless'ta bekliyor. Paperless'taki görev listesini kontrol edin.",
-      "failed.unknown": "bilinmeyen hata"
+      "failed.unknown": "bilinmeyen hata",
+      "send.already": "Zaten Paperless'ta: {title}",
+      "send.checking": "Bunların Paperless'ta olup olmadığı kontrol ediliyor…"
     },
     "uk": {
       "action.send": "Надіслати в Paperless",
@@ -1835,7 +1883,9 @@
       "failed.body": "«{name}»: {error}",
       "failed.duplicate": "«{name}» уже є в Paperless.",
       "failed.timeout": "«{name}» досі чекає в Paperless через 15 хвилин. Перевірте список завдань у Paperless.",
-      "failed.unknown": "невідома помилка"
+      "failed.unknown": "невідома помилка",
+      "send.already": "Уже є в Paperless: {title}",
+      "send.checking": "Перевіряємо, чи їх уже немає в Paperless…"
     },
     "zh": {
       "action.send": "发送到 Paperless",
@@ -1906,7 +1956,9 @@
       "failed.body": "“{name}”：{error}",
       "failed.duplicate": "“{name}”已在 Paperless 中。",
       "failed.timeout": "“{name}”在 15 分钟后仍在 Paperless 中等待处理。请查看 Paperless 中的任务列表。",
-      "failed.unknown": "未知错误"
+      "failed.unknown": "未知错误",
+      "send.already": "已在 Paperless 中：{title}",
+      "send.checking": "正在检查这些内容是否已在 Paperless 中…"
     },
     "zh-TW": {
       "action.send": "傳送到 Paperless",
@@ -1977,7 +2029,9 @@
       "failed.body": "「{name}」：{error}",
       "failed.duplicate": "「{name}」已在 Paperless 中。",
       "failed.timeout": "「{name}」在 15 分鐘後仍在 Paperless 中等待處理。請查看 Paperless 中的工作清單。",
-      "failed.unknown": "未知的錯誤"
+      "failed.unknown": "未知的錯誤",
+      "send.already": "已在 Paperless 中：{title}",
+      "send.checking": "正在檢查這些項目是否已在 Paperless 中…"
     }
   }
 }

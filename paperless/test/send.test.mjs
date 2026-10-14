@@ -3,6 +3,7 @@ import { fakeApi } from '../../test-utils/fake-api.mjs';
 import {
   collectAttachment, collectMessage, collectMessages, consumability, effectiveType, emlName, forDialog, plannedUploads,
 } from '../src/lib/send.js';
+import { sha256Hex } from '../src/lib/hash.js';
 
 const enc = (s) => new TextEncoder().encode(s);
 const view = { subject: 'Invoice 10', from: [{ name: 'ACME', email: 'billing@acme.example' }], receivedAt: '2026-10-14T10:00:00Z' };
@@ -35,7 +36,7 @@ describe('file types', () => {
 });
 
 describe('collect', () => {
-  it('reads one attachment, ticked', async () => {
+  it('reads one attachment with its checksums, ticked', async () => {
     const api = fakeApi({
       handlers: {
         'email.get': async () => view,
@@ -45,7 +46,7 @@ describe('collect', () => {
     const [group] = await collectAttachment(api, { emailId: 'e1', blobId: 'b1', name: 'invoice.pdf', type: 'application/pdf' });
     expect(group.sender).toEqual({ name: 'ACME', email: 'billing@acme.example' });
     expect(group.items).toHaveLength(1);
-    expect(group.items[0]).toMatchObject({ key: 'a:b1', kind: 'file', name: 'invoice.pdf', size: 4, selected: true, title: 'invoice' });
+    expect(group.items[0]).toMatchObject({ key: 'a:b1', kind: 'file', name: 'invoice.pdf', size: 4, selected: true, sha256: sha256Hex('%PDF'), title: 'invoice' });
     expect(api.calls('email.getAttachment')[0].args).toEqual(['e1', 'b1']);
   });
 
@@ -77,6 +78,7 @@ describe('collect', () => {
     const api = fakeApi({ handlers: { 'email.get': async () => view, 'email.getRaw': async () => raw([['a.pdf', 'application/pdf', '%PDF']]) } });
     const dialog = forDialog([await collectMessage(api, 'e1')]);
     expect(dialog[0].items.every((i) => !('data' in i))).toBe(true);
+    expect(dialog[0].items[0].sha256).toBe(sha256Hex('%PDF'));
   });
 });
 

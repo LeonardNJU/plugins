@@ -11,8 +11,9 @@ function sameSender(groups) {
 }
 
 /**
- * The "Send to Paperless" dialog. Shows what will be sent and suggests
- * metadata from the sender. Hands the choice back with onResult; the background does the upload.
+ * The "Send to Paperless" dialog. Shows what will be sent, flags files that
+ * are already in Paperless (by checksum) and suggests metadata from the
+ * sender. Hands the choice back with onResult; the background does the upload.
  */
 export function SendDialog({ groups = [], connection: initialConnection, onResult }) {
   const { client, connection } = useConnection(initialConnection);
@@ -27,6 +28,8 @@ export function SendDialog({ groups = [], connection: initialConnection, onResul
   const [tags, setTags] = useState([]);
   const [suggestion, setSuggestion] = useState(null);
   const [remember, setRemember] = useState(true);
+  const [duplicates, setDuplicates] = useState({});
+  const [checking, setChecking] = useState(true);
 
   // Suggestions once the lists are in.
   useEffect(() => {
@@ -46,6 +49,28 @@ export function SendDialog({ groups = [], connection: initialConnection, onResul
     })();
     return () => { cancelled = true; };
   }, [tax]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // "Already in Paperless" by checksum.
+  useEffect(() => {
+    if (!client) return;
+    let cancelled = false;
+    (async () => {
+      const found = {};
+      for (const item of items) {
+        try {
+          const hit = await client.findByChecksum({ sha256: item.sha256, md5: item.md5 });
+          if (hit) found[item.key] = hit;
+        } catch { /* the check is a hint; sending still works */ }
+      }
+      if (cancelled) return;
+      setDuplicates(found);
+      setChecking(false);
+      if (Object.keys(found).length) {
+        setSelected((prev) => new Set([...prev].filter((k) => !found[k])));
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [client]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggle = (key) => setSelected((prev) => {
     const next = new Set(prev);
@@ -69,6 +94,8 @@ export function SendDialog({ groups = [], connection: initialConnection, onResul
     });
   };
 
+  const openDoc = (id) => { if (client) void getApi().ui.openExternalUrl(client.documentUrl(id)); };
+
   return (
     <div className="pl" style={{ padding: 4 }}>
       <Styles />
@@ -80,6 +107,7 @@ export function SendDialog({ groups = [], connection: initialConnection, onResul
           </div>
           <ul className="pl-list">
             {group.items.map((item) => {
+              const dup = duplicates[item.key];
               const id = `pl-item-${item.key.replace(/[^a-z0-9]/gi, '-')}`;
               return (
                 <li key={item.key} className={`pl-item${selected.has(item.key) ? ' pl-active' : ''}`}>
@@ -92,6 +120,12 @@ export function SendDialog({ groups = [], connection: initialConnection, onResul
                       <span className="pl-muted">{formatSize(item.size)}</span>
                       {item.support === 'tika' && <span className="pl-badge pl-warn">{t('send.needs_tika')}</span>}
                       {item.support === 'no' && <span className="pl-badge pl-warn">{t('send.unsupported')}</span>}
+                      {dup && (
+                        <span className="pl-badge pl-ok">
+                          {t('send.already', { title: dup.title })}
+                          <button type="button" className="pl-link" onClick={() => openDoc(dup.id)}>{t('common.open')}</button>
+                        </span>
+                      )}
                     </div>
                   </div>
                 </li>
@@ -100,6 +134,7 @@ export function SendDialog({ groups = [], connection: initialConnection, onResul
           </ul>
         </section>
       ))}
+      {checking && <p className="pl-muted" aria-live="polite">{t('send.checking')}</p>}
 
       <ErrorBox error={taxError} onRetry={reload} />
       {single && (

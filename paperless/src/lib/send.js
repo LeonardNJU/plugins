@@ -2,6 +2,7 @@
 // the message itself as .eml, or all of that for several selected messages.
 // The bytes are read once here and kept until the dialog closes.
 
+import { checksums } from './hash.js';
 import { parseMessage } from './mime.js';
 
 /** At most this many messages in one bulk send. */
@@ -58,6 +59,7 @@ function itemFor({ key, kind, name, type, data, emailId, subject, hasFiles }) {
     type: realType,
     size: bytes.byteLength,
     data: bytes,
+    ...checksums(bytes),
     support,
     title: kind === 'eml' ? String(subject || '').slice(0, 128) || titleFromName(name) : titleFromName(name),
     // Attachments are what people file; the message itself when it has none.
