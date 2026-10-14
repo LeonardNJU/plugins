@@ -4,6 +4,8 @@ Shows upcoming birthdays from your contacts in the mail sidebar, reminds you
 of them, opens a birthday greeting with one click and, if you want, keeps
 birthday events in your calendar.
 
+![Sidebar widget](screenshots/sidebar-light.png)
+
 ## What it does
 
 - **Sidebar widget.** Lists the birthdays of the next 30 days (setting), soonest
@@ -96,9 +98,26 @@ date, and whether it may have calendar events to clean up. With the calendar
 setting on it writes the contact's name and birthday into your own calendar
 on the same server.
 
+## Screenshots
+
+| | Light | Dark |
+| --- | --- | --- |
+| Sidebar | ![](screenshots/sidebar-light.png) | ![](screenshots/sidebar-dark.png) |
+| Reminders in the notification panel | ![](screenshots/reminders-light.png) | ![](screenshots/reminders-dark.png) |
+| Send greeting | ![](screenshots/greeting-light.png) | ![](screenshots/greeting-dark.png) |
+| Calendar | ![](screenshots/calendar-light.png) | |
+| Phone (menu) | ![](screenshots/phone-light.png) | |
+
 ## Development
 
 ```
 node scripts/build.mjs birthdays
 node node_modules/vitest/vitest.mjs run birthdays
+BULWARK_ADMIN_PASSWORD=... node node_modules/@playwright/test/cli.js test -c e2e/playwright.config.mjs birthdays.spec
 ```
+
+The end-to-end tests seed contacts in the Stalwart test server over JMAP
+(`e2e/stalwart.mjs`), install the plugin as admin and remove the contacts,
+events and greeting drafts they made afterwards. The admin session is kept in
+a temporary file between runs (`BIRTHDAYS_ADMIN_STATE`), because the admin
+sign-in allows only 5 attempts per 15 minutes.
