@@ -114,7 +114,6 @@ Nextcloud needs no CORS setup.
 | Permission | Why |
 | --- | --- |
 | `http:proxy` | All requests to Nextcloud go through the webmail's secret proxy with the user's app password. |
-| `admin:config` | Read the server address the administrator set. Users can't change admin settings with it; the server only lets admins write them. |
 | `ui:settings-section` | The connect / disconnect section in Settings. |
 | `ui:composer-toolbar` | The Nextcloud button in the composer (`composer-attachment-source`). |
 | `email:blob-write` | Upload a file picked in Nextcloud to the mail server to attach it. |
@@ -125,6 +124,9 @@ Nextcloud needs no CORS setup.
 | `ui:app-page` | The Nextcloud page and its entry in the navigation. |
 | `compose:open` | "Attach to new message" on the Nextcloud page. |
 | `ui:download-file` | "Download" on the Nextcloud page. |
+
+The server address the administrator set is read with `api.config.get()`,
+which needs no permission.
 
 `email:read` also covers the "Save to Nextcloud" entry in the attachment menu
 (`attachment-menu`) and reading the subject of a message you save.

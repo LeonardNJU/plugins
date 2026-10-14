@@ -11,10 +11,14 @@ export const POLL_INTERVAL_MS = 2000;
 /** Nextcloud keeps a login flow open for 20 minutes. */
 export const POLL_TIMEOUT_MS = 20 * 60 * 1000;
 
-/** The server the administrator fixed (configSchema serverUrl), as an origin, or null. */
+/**
+ * The server the administrator fixed (configSchema serverUrl), as an origin,
+ * or null. api.config.get returns the plugin's non-secret admin settings
+ * without the admin:config permission.
+ */
 export async function adminServer(api) {
   try {
-    const config = await api.admin.getAllConfig();
+    const config = await api.config.get();
     return originOf(config?.serverUrl) ?? null;
   } catch {
     return null;

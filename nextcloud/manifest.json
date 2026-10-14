@@ -7,7 +7,6 @@
   "type": "ui-extension",
   "permissions": [
     "http:proxy",
-    "admin:config",
     "ui:settings-section",
     "ui:composer-toolbar",
     "email:read",

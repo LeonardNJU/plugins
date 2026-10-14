@@ -8,9 +8,9 @@ const ORIGIN = 'https://cloud.example.com';
 
 describe('Login Flow v2 through the proxy', () => {
   it('reads the server the admin fixed', async () => {
-    const api = fakeApi({ handlers: { 'admin.getAllConfig': async () => ({ serverUrl: 'cloud.example.com/nextcloud/' }) } });
+    const api = fakeApi({ handlers: { 'config.get': async () => ({ serverUrl: 'cloud.example.com/nextcloud/' }) } });
     expect(await adminServer(api)).toBe(ORIGIN);
-    const none = fakeApi({ handlers: { 'admin.getAllConfig': async () => { throw new Error('no'); } } });
+    const none = fakeApi({ handlers: { 'config.get': async () => { throw new Error('no'); } } });
     expect(await adminServer(none)).toBeNull();
   });
 
