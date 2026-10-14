@@ -19,7 +19,8 @@ const styles = {
   row: { display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 },
   text: { flex: '1 1 auto', minWidth: 0 },
   name: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 },
-  when: { fontSize: '12px', color: 'var(--color-muted-foreground)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  // Wraps rather than cutting off the age next to a Send greeting button.
+  when: { fontSize: '12px', color: 'var(--color-muted-foreground)', overflowWrap: 'anywhere' },
   today: { color: 'var(--color-primary)', fontWeight: 600 },
   muted: { margin: 0, fontSize: '12px', color: 'var(--color-muted-foreground)' },
   error: { margin: 0, fontSize: '12px', color: 'var(--color-destructive)' },
