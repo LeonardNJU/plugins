@@ -2,6 +2,7 @@
 // computer, attach it to a new message, upload with resume.
 
 import { NcError, errorFromException, mailError } from './errors.js';
+import { joinPath, sanitizeFileName } from './paths.js';
 
 // What the host refuses to hand out from a plugin (see ui.downloadFile).
 const BLOCKED_EXT = new Set(['exe', 'msi', 'bat', 'cmd', 'com', 'scr', 'ps1', 'vbs', 'vbe', 'js', 'jse', 'wsf', 'hta', 'jar',
@@ -39,4 +40,23 @@ export async function attachToNewMessage(api, client, entry, { onProgress, signa
   return api.compose.open({
     attachments: [{ blobId: blob.blobId, name: entry.name, type: blob.type || type, size: blob.size ?? bytes.byteLength }],
   });
+}
+
+/**
+ * Ask for a name in the host's prompt and make that folder in `path`.
+ * Resolves to the new folder's path, or null when the user cancelled.
+ */
+export async function createFolder(api, client, path) {
+  const t = api.i18n.t;
+  const answer = await api.ui.prompt({
+    title: t('save.newFolder'),
+    confirmLabel: t('save.create'),
+    cancelLabel: t('common.cancel'),
+    fields: [{ name: 'name', label: t('save.folderName'), placeholder: t('save.folderName'), required: true }],
+  });
+  const clean = sanitizeFileName(answer?.name ?? '', '');
+  if (!clean) return null;
+  const target = joinPath(path, clean);
+  await client.mkdir(target);
+  return target;
 }

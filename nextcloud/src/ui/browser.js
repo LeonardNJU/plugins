@@ -1,26 +1,41 @@
-// A Nextcloud file browser: folders, recent files and search, used by the
-// file picker, the folder picker and the Files page.
+// The Nextcloud file browser shared by the file picker, the folder picker
+// and the Files page: the listing state (folder, recent files, search) and
+// the parts that show it, drawn with the app's UI kit like the Files app.
 
-import { createElement as h, useEffect, useRef, useState } from 'react';
+import { createElement as h, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Breadcrumbs, Button, EmptyState, List, ListRow, Loading, SearchInput, ToolbarButton,
+} from '@plugin-host/ui';
 import { breadcrumb, parentPath } from '../lib/paths.js';
 import { errorText } from '../lib/errors.js';
 import { formatDate, formatSize } from '../lib/format.js';
-import { Icon } from './icons.js';
+
+const SEARCH_DELAY_MS = 350;
 
 /**
- * mode: "files" (pick several files), "folder" (pick a folder), "manage"
- * (Files page: one item at a time). `selected` is a Map path -> entry.
+ * The listing of one place: the folder at `path`, recent files, or search
+ * results for what the user typed (searched once they stop typing).
  */
-export function FileBrowser({
-  api, client, mode, path, onNavigate, selected, onToggle, reloadKey = 0, onError, listHeight = 320, toolbar,
-}) {
-  const t = api.i18n.t;
+export function useBrowser({ api, client, path, reloadKey = 0, onError }) {
   const locale = api.i18n.getLocale();
   const [view, setView] = useState('files');
   const [query, setQuery] = useState('');
   const [searched, setSearched] = useState('');
   const [state, setState] = useState({ loading: true, entries: [], error: null });
+  const [retry, setRetry] = useState(0);
   const seq = useRef(0);
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) {
+      setView((v) => (v === 'search' ? 'files' : v));
+      return undefined;
+    }
+    const timer = setTimeout(() => { setSearched(q); setView('search'); }, SEARCH_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   useEffect(() => {
     const mine = ++seq.current;
@@ -35,100 +50,112 @@ export function FileBrowser({
       (error) => {
         if (seq.current !== mine) return;
         setState({ loading: false, entries: [], error });
-        onError?.(error);
+        onErrorRef.current?.(error);
       },
     );
-  }, [client, view, path, searched, reloadKey]);
+  }, [client, view, path, searched, reloadKey, retry]);
 
-  const runSearch = (e) => {
-    e?.preventDefault?.();
-    const q = query.trim();
-    if (!q) { setView('files'); return; }
-    setSearched(q);
-    setView('search');
+  const showView = useCallback((next) => {
+    setView(next);
+    if (next !== 'search') setQuery('');
+  }, []);
+
+  return {
+    view, query, searched, ...state,
+    setQuery,
+    showView,
+    reload: () => setRetry((n) => n + 1),
   };
+}
 
-  const shown = mode === 'folder' && view !== 'files' ? state.entries.filter((e) => e.isFolder) : state.entries;
-  const flat = view !== 'files';
+/** The breadcrumb items for where the browser is. Ids starting with "#" are views. */
+export function crumbItems(t, browser, path) {
+  if (browser.view === 'recent') return [{ id: '#files', label: t('browser.allFiles') }, { id: '#recent', label: t('browser.recent') }];
+  if (browser.view === 'search') return [{ id: '#files', label: t('browser.allFiles') }, { id: '#search', label: t('browser.results', { query: browser.searched }) }];
+  return breadcrumb(path).map((c) => ({ id: c.path, label: c.name || t('browser.home') }));
+}
 
-  const open = (entry) => {
-    if (entry.isFolder) {
-      setView('files');
-      onNavigate(entry.path);
-      return;
-    }
-    if (mode !== 'folder') onToggle?.(entry);
+/** Breadcrumbs, search box and the Recent toggle, for a Toolbar or a dialog's top row. */
+export function browserBar({ api, browser, path, onNavigate, compact = false, search = true }) {
+  const t = api.i18n.t;
+  const select = (id) => {
+    if (id === '#files') { browser.showView('files'); return; }
+    if (id.startsWith('#')) return;
+    browser.showView('files');
+    onNavigate(id);
   };
+  return [
+    h(Breadcrumbs, { key: 'crumbs', items: crumbItems(t, browser, path), onSelect: select, label: t('browser.location') }),
+    search ? h(SearchInput, {
+      key: 'search', value: browser.query, onChange: browser.setQuery,
+      placeholder: t('browser.searchPlaceholder'), label: t('browser.search'),
+    }) : null,
+    h(ToolbarButton, {
+      key: 'recent', icon: 'clock', label: t('browser.recent'), compact, active: browser.view === 'recent',
+      onClick: () => browser.showView(browser.view === 'recent' ? 'files' : 'recent'),
+    }),
+  ];
+}
 
-  const tab = (id, label) => h('button', {
-    type: 'button', role: 'tab', className: 'nc-tab', 'aria-selected': view === id ? 'true' : 'false',
-    onClick: () => { setView(id); if (id !== 'search') setQuery(''); },
-  }, label);
+/**
+ * The entries as Files app rows. mode: "files" (tick several files),
+ * "folder" (only folders can be opened), "manage" (Files page: one file
+ * selected at a time). `selected` is a Map path -> entry. `columns` adds the
+ * Files app's column header and the modified date.
+ */
+export function BrowserList({ api, browser, mode, selected, onNavigate, onToggle, columns = false, before = null, empty = null }) {
+  const t = api.i18n.t;
+  const locale = api.i18n.getLocale();
+  const flat = browser.view !== 'files';
+  const shown = mode === 'folder' && flat ? browser.entries.filter((e) => e.isFolder) : browser.entries;
 
-  const crumbs = breadcrumb(path);
-  return h('div', { className: 'nc-col' },
-    // No <form>: the sandboxed iframe may not submit forms.
-    h('div', { className: 'nc-row', role: 'search' },
-      h('label', { className: 'nc-sr', htmlFor: 'nc-search' }, t('browser.search')),
-      h('input', {
-        id: 'nc-search', className: 'nc-input nc-grow', type: 'search', value: query, placeholder: t('browser.searchPlaceholder'),
-        onChange: (e) => setQuery(e.target.value),
-        onKeyDown: (e) => { if (e.key === 'Enter') runSearch(e); },
-      }),
-      h('button', { type: 'button', className: 'nc-btn', onClick: runSearch }, t('browser.search')),
-    ),
-    h('div', { className: 'nc-tabs', role: 'tablist' },
-      tab('files', t('browser.allFiles')),
-      tab('recent', t('browser.recent')),
-      view === 'search' ? tab('search', t('browser.results', { query: searched })) : null,
-    ),
-    view === 'files'
-      ? h('nav', { className: 'nc-crumbs', 'aria-label': t('browser.location') },
-        path !== '/' ? h('button', {
-          type: 'button', className: 'nc-crumb', onClick: () => onNavigate(parentPath(path)), 'aria-label': t('browser.up'), title: t('browser.up'),
-        }, h(Icon, { name: 'up', size: 14, className: '' })) : null,
-        ...crumbs.map((c, i) => [
-          i > 0 ? h('span', { key: `s${i}`, className: 'nc-muted', 'aria-hidden': 'true' }, '/') : null,
-          h('button', {
-            key: c.path, type: 'button', className: 'nc-crumb', onClick: () => onNavigate(c.path),
-            'aria-current': i === crumbs.length - 1 ? 'page' : undefined,
-          }, c.name || t('browser.home')),
-        ]).flat().filter(Boolean),
-      )
-      : null,
-    toolbar ?? null,
-    h('div', { className: 'nc-list', style: { maxHeight: listHeight, minHeight: Math.min(listHeight, 160) }, 'aria-busy': state.loading ? 'true' : 'false' },
-      state.loading
-        ? h('div', { className: 'nc-empty', role: 'status' }, t('browser.loading'))
-        : state.error
-          ? h('div', { className: 'nc-empty nc-error', role: 'alert' }, errorText(t, state.error))
-          : shown.length === 0
-            ? h('div', { className: 'nc-empty' }, view === 'search' ? t('browser.noResults') : view === 'recent' ? t('browser.noRecent') : t('browser.empty'))
-            : shown.map((entry) => {
-              const isSelected = selected?.has(entry.path) ?? false;
-              const pickable = entry.isFolder || mode !== 'folder';
-              const meta = entry.isFolder
-                ? (flat ? parentPath(entry.path) : '')
-                : [flat ? parentPath(entry.path) : '', formatSize(entry.size, locale), formatDate(entry.modified, locale)].filter(Boolean).join(' · ');
-              return h('button', {
-                key: entry.path,
-                type: 'button',
-                className: 'nc-item',
-                disabled: !pickable,
-                'data-checked': isSelected ? 'true' : 'false',
-                'aria-pressed': !entry.isFolder && mode !== 'folder' ? (isSelected ? 'true' : 'false') : undefined,
-                'data-path': entry.path,
-                onClick: () => open(entry),
-                style: pickable ? undefined : { opacity: 0.5, cursor: 'default' },
-              },
-              mode === 'files' && !entry.isFolder
-                ? h('input', { type: 'checkbox', className: 'nc-check', checked: isSelected, readOnly: true, tabIndex: -1, 'aria-hidden': 'true' })
-                : null,
-              h(Icon, { name: entry.isFolder ? 'folder' : 'file' }),
-              h('span', { className: 'nc-name', title: entry.name }, entry.name),
-              meta ? h('span', { className: 'nc-meta nc-hide-narrow' }, meta) : null,
-              );
-            }),
-    ),
-  );
+  let body;
+  if (browser.loading) {
+    body = h(Loading, { label: t('browser.loading') });
+  } else if (browser.error) {
+    body = h(EmptyState, {
+      icon: 'alert-triangle', compact: !columns, title: errorText(t, browser.error),
+      actions: h(Button, { variant: 'secondary', size: 'sm', onClick: browser.reload }, t('browser.retry')),
+    });
+  } else if (shown.length === 0) {
+    body = browser.view === 'search'
+      ? h(EmptyState, { icon: 'search', compact: !columns, title: t('browser.noResults') })
+      : browser.view === 'recent'
+        ? h(EmptyState, { icon: 'clock', compact: !columns, title: t('browser.noRecent') })
+        : (empty ?? h(EmptyState, { icon: 'folder-open', compact: !columns, title: t('browser.empty') }));
+  } else {
+    body = shown.map((entry) => {
+      const isSelected = selected?.has(entry.path) ?? false;
+      const pickable = entry.isFolder || mode !== 'folder';
+      const size = entry.isFolder ? '—' : formatSize(entry.size, locale);
+      const meta = columns ? [size, formatDate(entry.modified, locale)] : entry.isFolder ? undefined : [size];
+      const parent = parentPath(entry.path);
+      const where = flat ? (parent === '/' ? t('browser.home') : parent) : undefined;
+      const tickable = mode === 'files' && !entry.isFolder;
+      return h(ListRow, {
+        key: entry.path,
+        title: entry.name,
+        subtitle: where,
+        icon: entry.isFolder ? 'folder' : entry.name,
+        folder: entry.isFolder,
+        meta,
+        selected: isSelected,
+        disabled: !pickable,
+        checked: tickable ? isSelected : undefined,
+        onCheck: tickable ? () => onToggle?.(entry) : undefined,
+        onClick: () => {
+          if (entry.isFolder) { browser.showView('files'); onNavigate(entry.path); return; }
+          if (mode !== 'folder') onToggle?.(entry);
+        },
+      });
+    });
+  }
+
+  const hasRows = !browser.loading && !browser.error && shown.length > 0;
+  const cols = columns && (hasRows || before) ? [
+    { label: t('files.name') },
+    { label: t('files.size'), align: 'end' },
+    { label: t('files.modified'), align: 'end', hideNarrow: true },
+  ] : undefined;
+  return h(List, { label: t('browser.location'), columns: cols }, before, body);
 }

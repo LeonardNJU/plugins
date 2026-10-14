@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { installPlugin, uninstallPlugin, setPluginConfig, preparePage, signIn, waitForPlugin, shoot } from '../../e2e/helpers.mjs';
 import {
-  NC_URL, PLUGIN, admin, deleteShares, ensureConnected, findMail, ncFetch, openComposer, pluginFrame,
+  NC_URL, PLUGIN, admin, deleteShares, ensureConnected, findMail, ncFetch, openComposer, openPicker,
 } from './nc-helpers.mjs';
 
-// The composer's Nextcloud button against the Nextcloud container: attach a
-// real copy of a file, and send a share link that Nextcloud really created.
+// Attach > From Nextcloud against the Nextcloud container: attach a real
+// copy of a file, and send a share link that Nextcloud really created.
 test.describe.serial('attach from Nextcloud', () => {
   let api;
   test.beforeAll(async () => {
@@ -27,35 +27,30 @@ test.describe.serial('attach from Nextcloud', () => {
       await ensureConnected(page, theme);
 
       // 1. Attach a copy of Documents/Report 2026.pdf.
-      let button = await openComposer(page);
-      await button.getByRole('button', { name: 'Nextcloud' }).click();
-      const dialog = page.getByRole('dialog').filter({ hasText: 'Attach from Nextcloud' });
-      await expect(dialog).toBeVisible();
-      let picker = await pluginFrame(page, 'text=All files');
-      await picker.locator('button.nc-item', { hasText: 'Documents' }).click();
-      await picker.locator('button.nc-item', { hasText: 'Report 2026.pdf' }).click();
-      await expect(picker.getByText(/Selected: 1/)).toBeVisible();
+      await openComposer(page);
+      let { dialog, picker } = await openPicker(page, { shot: () => shoot(page, PLUGIN, 'attach-menu', theme) });
+      let frame = await picker();
+      await frame.getByRole('listitem').filter({ hasText: 'Documents' }).click();
+      await frame.getByRole('listitem').filter({ hasText: 'Report 2026.pdf' }).click();
+      await expect(frame.getByText(/Selected: 1/)).toBeVisible();
       await shoot(page, PLUGIN, 'picker', theme);
-      await picker.getByRole('button', { name: 'Attach copies' }).click();
+      await dialog.getByRole('button', { name: 'Attach copies' }).click();
       await expect(dialog).toBeHidden({ timeout: 60_000 });
       await expect(page.getByText('Report 2026.pdf').first()).toBeVisible();
 
       // 2. Search, pick Photos/blue.png and share it as a link with a password.
-      button = await pluginFrame(page, 'button[title="Attach files from Nextcloud or share them as links"]');
-      await button.getByRole('button', { name: 'Nextcloud' }).click();
-      picker = await pluginFrame(page, 'text=All files');
-      await picker.getByRole('searchbox').fill('blue');
-      await picker.getByRole('button', { name: 'Search', exact: true }).click();
-      await picker.locator('button.nc-item', { hasText: 'blue.png' }).click();
-      await picker.getByRole('button', { name: 'Share as link…' }).click();
-      await picker.getByLabel('Protect the link with a password').check();
-      await expect(picker.getByLabel('Password', { exact: true })).not.toHaveValue('');
-      const password = await picker.getByLabel('Password', { exact: true }).inputValue();
+      ({ dialog, picker } = await openPicker(page));
+      frame = await picker();
+      await frame.getByRole('searchbox').fill('blue');
+      await frame.getByRole('listitem').filter({ hasText: 'blue.png' }).click();
+      await dialog.getByRole('button', { name: 'Share as link…' }).click();
+      await frame.getByRole('checkbox', { name: 'Protect the link with a password' }).click();
+      await expect(frame.getByLabel('Password', { exact: true })).not.toHaveValue('');
+      const password = await frame.getByLabel('Password', { exact: true }).inputValue();
       await shoot(page, PLUGIN, 'share-options', theme);
-      await picker.getByRole('button', { name: 'Add links' }).click();
+      await dialog.getByRole('button', { name: 'Add links' }).click();
       await expect(dialog).toBeHidden({ timeout: 30_000 });
-      await expect(button.getByText('blue.png')).toBeVisible();
-      await shoot(page, PLUGIN, 'composer-links', theme);
+      await expect(page.getByText(/Links added: 1/)).toBeVisible();
 
       const shares = await ncFetch(`/ocs/v2.php/apps/files_sharing/api/v1/shares?format=json&path=${encodeURIComponent('/Photos/blue.png')}`).then((r) => r.json());
       const link = shares.ocs.data.find((s) => s.share_type === 3);

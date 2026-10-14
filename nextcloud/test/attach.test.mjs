@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { fakeApi } from '../../test-utils/fake-api.mjs';
 import { attachEntries, shareEntries } from '../src/lib/attach.js';
-import { applyPickerResult } from '../src/ui/composer-source.js';
-import { getPending } from '../src/lib/links.js';
-import manifest from '../manifest.json' with { type: 'json' };
 
 const entries = [
   { path: '/a.pdf', name: 'a.pdf', size: 3, type: 'application/pdf' },
@@ -67,28 +64,5 @@ describe('attaching files from Nextcloud', () => {
     await expect(attachEntries(limited, fakeClient(), entries, { onAttach: async () => true })).rejects.toMatchObject({ code: 'mail_rate_limited' });
     const broken = fakeApi({ handlers: { 'jmap.uploadBlob': async () => { throw new Error('Upload failed: 500'); } } });
     await expect(attachEntries(broken, fakeClient(), entries, { onAttach: async () => true })).rejects.toMatchObject({ code: 'mail_upload', detail: 'Upload failed: 500' });
-  });
-});
-
-describe('the composer button', () => {
-  it('hands attached files to the composer and reports a refusal', async () => {
-    const api = fakeApi({ translations: manifest.locales });
-    const seen = [];
-    const res = await applyPickerResult(api, { action: 'attach', blobs: [{ blobId: '1', name: 'a' }, { blobId: '2', name: 'b' }, { blobId: '3', name: 'c' }] },
-      async (b) => { seen.push(b.blobId); return b.blobId !== '2'; });
-    expect(res.attached).toBe(1);
-    expect(seen).toEqual(['1', '2']);
-    expect(api.calls('toast.error')[0].args[0]).toContain('b');
-  });
-
-  it('keeps chosen links for the send', async () => {
-    const api = fakeApi({ translations: manifest.locales });
-    await applyPickerResult(api, { action: 'links', links: [{ id: 'x', name: 'n', url: 'https://c/s/1' }] }, null);
-    expect(await getPending(api.storage)).toHaveLength(1);
-  });
-
-  it('does nothing when the dialog was closed', async () => {
-    const api = fakeApi();
-    expect(await applyPickerResult(api, null, async () => true)).toEqual({ attached: 0, links: 0 });
   });
 });

@@ -2,41 +2,14 @@
 // or the whole message there.
 
 import { createElement as h, useEffect, useRef, useState } from 'react';
+import {
+  Alert, DialogButtons, ProgressBar, Row, Stack, Text, ToolbarButton,
+} from '@plugin-host/ui';
 import { NcError, errorText } from '../lib/errors.js';
 import { formatSize } from '../lib/format.js';
-import { joinPath, sanitizeFileName } from '../lib/paths.js';
+import { createFolder } from '../lib/files.js';
 import { SAVE_FOLDER_KEY, saveAttachment, saveMessage } from '../lib/save.js';
-import { FileBrowser } from './browser.js';
-
-export function NewFolder({ api, client, path, onCreated, onError }) {
-  const t = api.i18n.t;
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState('');
-  const create = async () => {
-    const clean = sanitizeFileName(name, '');
-    if (!clean) return;
-    try {
-      const target = joinPath(path, clean);
-      await client.mkdir(target);
-      setOpen(false);
-      setName('');
-      onCreated(target);
-    } catch (err) {
-      onError(err);
-    }
-  };
-  if (!open) return h('button', { type: 'button', className: 'nc-btn', onClick: () => setOpen(true) }, t('save.newFolder'));
-  return h('div', { className: 'nc-row' },
-    h('label', { className: 'nc-sr', htmlFor: 'nc-new-folder' }, t('save.folderName')),
-    h('input', {
-      id: 'nc-new-folder', className: 'nc-input', value: name, placeholder: t('save.folderName'), autoFocus: true,
-      onChange: (e) => setName(e.target.value),
-      onKeyDown: (e) => { if (e.key === 'Enter') void create(); if (e.key === 'Escape') setOpen(false); },
-    }),
-    h('button', { type: 'button', className: 'nc-btn', disabled: !name.trim(), onClick: () => void create() }, t('save.create')),
-    h('button', { type: 'button', className: 'nc-btn', onClick: () => setOpen(false) }, t('common.cancel')),
-  );
-}
+import { BrowserList, browserBar, useBrowser } from './browser.js';
 
 export function SaveDialog({ api, client, onResult, report, kind, emailId, blobId, name, size }) {
   const t = api.i18n.t;
@@ -45,6 +18,7 @@ export function SaveDialog({ api, client, onResult, report, kind, emailId, blobI
   const [reloadKey, setReloadKey] = useState(0);
   const [state, setState] = useState({ phase: 'pick' });
   const abortRef = useRef(null);
+  const browser = useBrowser({ api, client, path, reloadKey, onError: report });
 
   useEffect(() => {
     api.storage.get(SAVE_FOLDER_KEY).then((p) => { if (typeof p === 'string' && p) setPath(p); }).catch(() => {});
@@ -55,6 +29,15 @@ export function SaveDialog({ api, client, onResult, report, kind, emailId, blobI
     if (err instanceof NcError && err.code === 'cancelled') { setState({ phase: 'pick' }); return; }
     report?.(err);
     setState({ phase: 'error', error: err });
+  };
+
+  const newFolder = async () => {
+    try {
+      const created = await createFolder(api, client, path);
+      if (created) { browser.showView('files'); setPath(created); setReloadKey((k) => k + 1); }
+    } catch (err) {
+      fail(err);
+    }
   };
 
   const save = async () => {
@@ -73,25 +56,27 @@ export function SaveDialog({ api, client, onResult, report, kind, emailId, blobI
     }
   };
 
-  const percent = state.phase === 'saving' && state.total ? Math.round((state.loaded / state.total) * 100) : 0;
-  return h('div', { className: 'nc nc-col' },
-    h('p', { style: { margin: 0 } }, t('save.choose', { name: size ? `${name} (${formatSize(size, locale)})` : name })),
-    h(FileBrowser, {
-      api, client, mode: 'folder', path, onNavigate: setPath, reloadKey, onError: report, listHeight: 300,
-      toolbar: h('div', { className: 'nc-row' },
-        h(NewFolder, { api, client, path, onCreated: (p) => { setPath(p); setReloadKey((k) => k + 1); }, onError: fail })),
+  const saving = state.phase === 'saving';
+  const click = (id) => {
+    if (id === 'cancel') { if (saving) abortRef.current?.abort(); else onResult(null); }
+    if (id === 'save') void save();
+  };
+  return h(Stack, { gap: 3 },
+    h(Text, null, t('save.choose', { name: size ? `${name} (${formatSize(size, locale)})` : name })),
+    h(Row, { gap: 2, wrap: false },
+      ...browserBar({ api, browser, path, onNavigate: setPath, compact: true }),
+      h(ToolbarButton, { icon: 'folder-plus', label: t('save.newFolder'), compact: true, disabled: saving || browser.view !== 'files', onClick: () => void newFolder() })),
+    h(BrowserList, { api, browser, mode: 'folder', onNavigate: setPath }),
+    saving ? h(Stack, { gap: 2 },
+      h(Text, { size: 'xs' }, t('save.saving')),
+      h(ProgressBar, { value: state.total ? state.loaded / state.total : null, label: t('picker.progress') })) : null,
+    state.phase === 'error' ? h(Alert, { tone: 'danger', icon: 'alert-triangle' }, errorText(t, state.error)) : null,
+    h(DialogButtons, {
+      buttons: [
+        { id: 'cancel', label: t('common.cancel'), variant: 'secondary' },
+        { id: 'save', label: t('save.here'), variant: 'primary', busy: saving, disabled: browser.view !== 'files' },
+      ],
+      onClick: click,
     }),
-    state.phase === 'saving' ? h('div', { className: 'nc-col', role: 'status' },
-      h('span', { className: 'nc-small' }, t('save.saving')),
-      h('div', { className: 'nc-bar', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': percent, 'aria-label': t('picker.progress') },
-        h('span', { style: { width: `${percent}%` } })),
-    ) : null,
-    state.phase === 'error' ? h('p', { className: 'nc-error', role: 'alert', style: { margin: 0 } }, errorText(t, state.error)) : null,
-    h('div', { className: 'nc-row nc-footer', style: { justifyContent: 'flex-end' } },
-      state.phase === 'saving'
-        ? h('button', { type: 'button', className: 'nc-btn', onClick: () => abortRef.current?.abort() }, t('common.cancel'))
-        : h('button', { type: 'button', className: 'nc-btn', onClick: () => onResult(null) }, t('common.cancel')),
-      h('button', { type: 'button', className: 'nc-btn nc-primary', disabled: state.phase === 'saving', onClick: () => void save() }, t('save.here')),
-    ),
   );
 }

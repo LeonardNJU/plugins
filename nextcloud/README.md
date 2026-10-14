@@ -11,6 +11,14 @@ creates an app password for Bulwark, and the webmail server stores it right
 away. The plugin never sees it: every request goes through the webmail's
 plugin proxy, which adds the password and only talks to that one server.
 
+Settings then show which Nextcloud account is connected ("Connected to
+Nextcloud at cloud.example.com as Alice Example (alice)"). That is the account
+that was signed in on Nextcloud's page when you connected, which doesn't have
+to be your mail account: if someone else was signed in to Nextcloud in that
+browser, their account gets connected. **Use another Nextcloud account**
+disconnects and starts the sign-in again; if Nextcloud's page still shows the
+wrong person, log out there first.
+
 **Disconnect** deletes the stored password and revokes it in Nextcloud. If
 the app password is revoked in Nextcloud (or expires), the plugin says so and
 offers to sign in again.
@@ -26,23 +34,21 @@ maintenance mode, and Nextcloud's own message for things like password rules.
 
 ## Attach from Nextcloud
 
-In the composer, the **Nextcloud** button (in the row under the message)
-opens a file picker. Browse your folders, look at **Recent** files or search
+In the composer, **Attach > From Nextcloud** opens a file picker. Browse your folders, look at **Recent** files or search
 by name, and pick one or more files. Then:
 
 - **Attach copies** downloads the files through the proxy and attaches them
   like any other attachment.
 - **Share as link…** creates a public, read-only Nextcloud link for each file.
   You can protect the links with a password (the plugin suggests one that
-  meets your server's password rules) and set an expiry date. The links show
-  as chips next to the button and are added at the end of the message when
-  you send it. The password is only written into the message if you tick
+  meets your server's password rules) and set an expiry date. The links are
+  added at the end of the message when you send it. The password is only written into the message if you tick
   **Put the password in the message**; otherwise send it some other way.
   Links picked for a message you then discard are dropped.
 
+![From Nextcloud in the Attach menu](screenshots/attach-menu-light.png)
 ![File picker](screenshots/picker-light.png)
 ![Share options](screenshots/share-options-dark.png)
-![Links waiting in the composer](screenshots/composer-links-light.png)
 
 ## Large attachments
 
@@ -73,9 +79,11 @@ file with the same name gets " (2)" added. Attachments and messages of up to
 
 ## The Nextcloud page
 
-**Nextcloud** in the navigation opens your files in the webmail. Browse,
-search and look at recent files; **Upload** (or drop files onto the page)
-with progress, cancel, resume and remove; **New folder**. Select a file to
+**Nextcloud** in the navigation opens your files in the webmail, laid out
+like the Files app. Browse, search and look at recent files; **Upload** (or
+drop files onto the page) with progress, cancel, resume and remove; **New
+folder**. The account button at the end of the toolbar shows which Nextcloud
+account is connected and lets you use another one. Select a file to
 **Download** it, create a **Share link**, **Attach to new message** (opens the
 composer with the file attached) or **Open in Nextcloud**. The webmail
 refuses to hand out some file types from a plugin (HTML, SVG, programs);
@@ -84,7 +92,10 @@ this page into a composer: the page and the composer are separate frames,
 so "Attach to new message" does that job.
 
 ![The Nextcloud page](screenshots/files-page-light.png)
+![Creating a share link](screenshots/share-link-light.png)
+![The connected Nextcloud account](screenshots/account-dark.png)
 ![The Nextcloud page on a phone](screenshots/files-page-phone-dark.png)
+![The Nextcloud page before connecting](screenshots/files-page-disconnected-light.png)
 
 ## Settings
 
@@ -115,8 +126,8 @@ Nextcloud needs no CORS setup.
 | --- | --- |
 | `http:proxy` | All requests to Nextcloud go through the webmail's secret proxy with the user's app password. |
 | `ui:settings-section` | The connect / disconnect section in Settings. |
-| `ui:composer-toolbar` | The Nextcloud button in the composer (`composer-attachment-source`). |
-| `email:blob-write` | Upload a file picked in Nextcloud to the mail server to attach it. |
+| `ui:composer-toolbar` | "From Nextcloud" in the composer's Attach menu (`composer-attach-menu`). |
+| `email:blob-write` | Upload a file picked in Nextcloud to the mail server and attach it to the composer (`api.composer.attach`). |
 | `email:send` | Add the picked share links to the message when it is sent (`onTransformOutgoingEmail`). |
 | `email:read` | Drop links picked for a discarded message (`onComposerClose`). |
 | `email:blob-read` | Read a large file you just attached (`upfiles.get`), and an attachment or the message source you save (`email.getAttachment`, `email.getRaw`). |

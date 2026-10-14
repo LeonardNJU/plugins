@@ -2,13 +2,16 @@
 // put a share link in the message instead.
 
 import { createElement as h, useEffect, useRef, useState } from 'react';
+import {
+  Alert, DialogButtons, Heading, ProgressBar, Stack, Text,
+} from '@plugin-host/ui';
 import { uploadFile } from '../lib/chunked.js';
 import { NcError, errorText } from '../lib/errors.js';
 import { formatSize } from '../lib/format.js';
 import { linkBlock } from '../lib/links.js';
 import { uploadFolder } from '../lib/paths.js';
 import { planUpload } from '../lib/save.js';
-import { ShareOptions, defaultShareOptions } from './picker-dialog.js';
+import { ShareOptions, defaultShareOptions } from './share-options.js';
 
 /** Upload, share and build the link block. Exported for tests. */
 export async function offloadFile(api, client, file, { share, onProgress, signal, folder }) {
@@ -56,28 +59,33 @@ export function OffloadDialog({ api, client, onResult, report, fileId, name, siz
     }
   };
 
-  const percent = state.phase === 'upload' && state.total ? Math.round((state.loaded / state.total) * 100) : 0;
-  return h('div', { className: 'nc nc-col' },
-    h('p', { style: { margin: 0 } }, t('offload.intro', { name, size: formatSize(size, locale) })),
-    h('p', { className: 'nc-muted nc-small', style: { margin: 0 } }, t('offload.folder', { folder })),
-    state.phase === 'ask' || state.phase === 'error' || state.phase === 'paused'
-      ? h(ShareOptions, { api, client, value: share, onChange: setShare, idPrefix: 'nc-off' })
-      : null,
-    state.phase === 'upload' ? h('div', { className: 'nc-col', role: 'status' },
-      h('span', { className: 'nc-small' }, t('offload.uploading', { loaded: formatSize(state.loaded, locale), total: formatSize(state.total, locale) })),
-      h('div', { className: 'nc-bar', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': percent, 'aria-label': t('picker.progress') },
-        h('span', { style: { width: `${percent}%` } })),
-    ) : null,
-    state.phase === 'paused' ? h('p', { className: 'nc-muted', role: 'status', style: { margin: 0 } }, t('offload.paused')) : null,
-    state.phase === 'error' ? h('p', { className: 'nc-error', role: 'alert', style: { margin: 0 } }, errorText(t, state.error)) : null,
-    h('div', { className: 'nc-row nc-footer', style: { justifyContent: 'flex-end' } },
-      state.phase === 'upload'
-        ? h('button', { type: 'button', className: 'nc-btn', onClick: () => abortRef.current?.abort() }, t('common.cancel'))
-        : h('button', { type: 'button', className: 'nc-btn', onClick: () => onResult({ action: 'attach' }) }, t('offload.attachNormally')),
-      state.phase !== 'upload'
-        ? h('button', { type: 'button', className: 'nc-btn nc-primary', onClick: () => void start() },
-          state.phase === 'paused' || state.phase === 'error' ? t('offload.resume') : t('offload.upload'))
-        : null,
-    ),
+  const uploading = state.phase === 'upload';
+  const again = state.phase === 'paused' || state.phase === 'error';
+  const buttons = uploading
+    ? [
+      { id: 'stop', label: t('common.cancel'), variant: 'secondary' },
+      { id: 'upload', label: t('offload.upload'), variant: 'primary', busy: true },
+    ]
+    : [
+      { id: 'normal', label: t('offload.attachNormally'), variant: 'secondary' },
+      { id: 'upload', label: again ? t('offload.resume') : t('offload.upload'), variant: 'primary' },
+    ];
+  const click = (id) => {
+    if (id === 'stop') abortRef.current?.abort();
+    else if (id === 'normal') onResult({ action: 'attach' });
+    else if (id === 'upload' && !uploading) void start();
+  };
+
+  return h(Stack, { gap: 4 },
+    h(Stack, { gap: 1 },
+      h(Text, null, t('offload.intro', { name, size: formatSize(size, locale) })),
+      h(Text, { tone: 'muted', size: 'xs' }, t('offload.folder', { folder }))),
+    uploading ? null : h(Stack, { gap: 3 }, h(Heading, { level: 4 }, t('share.options')), h(ShareOptions, { api, client, value: share, onChange: setShare })),
+    uploading ? h(Stack, { gap: 2 },
+      h(Text, { size: 'xs' }, t('offload.uploading', { loaded: formatSize(state.loaded, locale), total: formatSize(state.total, locale) })),
+      h(ProgressBar, { value: state.total ? state.loaded / state.total : null, label: t('picker.progress') })) : null,
+    state.phase === 'paused' ? h(Alert, { tone: 'info', icon: 'player-pause' }, t('offload.paused')) : null,
+    state.phase === 'error' ? h(Alert, { tone: 'danger', icon: 'alert-triangle' }, errorText(t, state.error)) : null,
+    h(DialogButtons, { buttons, onClick: click }),
   );
 }

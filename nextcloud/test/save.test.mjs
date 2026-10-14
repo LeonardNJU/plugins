@@ -63,7 +63,8 @@ describe('the save actions', () => {
   it('adds "Save to Nextcloud" to attachments and to the open message', async () => {
     const api = apiFor();
     await registerActions(api);
-    const calls = api.calls('ui.setActions').map((c) => [c.args[0], c.args[1].map((a) => [a.id, a.label])]);
+    const calls = api.calls('ui.setActions').map((c) => [c.args[0], c.args[1].map((a) => [a.id, a.label])])
+      .filter(([surface]) => surface !== 'composer-attach-menu');
     expect(calls).toEqual([
       ['attachment-menu', [['save-attachment', 'Save to Nextcloud']]],
       ['reader-actions', [['save-message', 'Save message to Nextcloud']]],

@@ -44,16 +44,16 @@ test.describe.serial('large attachments', () => {
     await page.locator('input[type="file"]').first().setInputFiles(file);
     const dialog = page.getByRole('dialog').filter({ hasText: 'Large attachment' });
     await expect(dialog).toBeVisible({ timeout: 30_000 });
-    const offer = await pluginFrame(page, 'text=Upload and add link');
+    const offer = await pluginFrame(page, 'text=It goes to the folder');
     await expect(offer.getByText(new RegExp(`${name} is 45 MB`))).toBeVisible();
     await shoot(page, PLUGIN, 'large-offer', 'light');
 
-    await offer.getByRole('button', { name: 'Upload and add link' }).click();
+    await dialog.getByRole('button', { name: 'Upload and add link' }).click();
     await expect(offer.getByRole('progressbar')).toBeVisible();
-    await offer.getByRole('button', { name: 'Cancel' }).click();
+    await dialog.getByRole('button', { name: 'Cancel' }).click();
     await expect(offer.getByText('Upload paused.')).toBeVisible();
     // Chunks that made it are kept on the server for the resume.
-    await offer.getByRole('button', { name: 'Resume upload' }).click();
+    await dialog.getByRole('button', { name: 'Resume upload' }).click();
     await expect(dialog).toBeHidden({ timeout: 5 * 60_000 });
 
     // The file is in Nextcloud with the full size, and the composer has the link instead of the attachment.

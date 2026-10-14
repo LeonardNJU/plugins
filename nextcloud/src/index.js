@@ -9,8 +9,8 @@ import { setApi } from './lib/host.js';
 import { storedAccount } from './lib/connection.js';
 import { emlName } from './lib/save.js';
 import { appendLinks, clearPending, getPending, linkBlock } from './lib/links.js';
+import { applyPickerResult } from './lib/picker-result.js';
 import { SettingsSection } from './ui/settings-section.js';
-import { ComposerSource } from './ui/composer-source.js';
 import { PluginDialog } from './ui/dialog.js';
 import { FilesPage } from './ui/files-page.js';
 
@@ -37,6 +37,7 @@ export async function registerActions(api) {
   const t = api.i18n.t;
   await api.ui.setActions('attachment-menu', [{ id: 'save-attachment', label: t('save.attachmentAction'), icon: 'cloud-upload' }]);
   await api.ui.setActions('reader-actions', [{ id: 'save-message', label: t('save.messageAction'), icon: 'cloud-upload', order: 200 }]);
+  await api.ui.setActions('composer-attach-menu', [{ id: 'from-nextcloud', label: t('composer.attachMenu'), icon: 'cloud' }]);
   await api.ui.setPages([{ id: 'files', title: t('page.title'), icon: 'cloud' }]);
 }
 
@@ -48,9 +49,32 @@ export async function activate(api) {
   await offerFirstRun(api).catch(() => {});
 }
 
-/** "Save to Nextcloud" on an attachment or a message: ask for a folder, save, say where. */
+/**
+ * "From Nextcloud" in the composer's Attach menu: the picker attaches the
+ * chosen files to that composer (its composerId goes to the dialog) or
+ * hands back share links for the send.
+ */
+export async function attachFromNextcloud(api, composerId) {
+  if (typeof composerId !== 'string' || !composerId) return { attached: 0, links: 0 };
+  const result = await api.ui.openDialog({
+    title: api.i18n.t('picker.title'),
+    slot: 'plugin-dialog',
+    extraProps: { view: 'picker', composerId },
+    width: 760,
+  });
+  return applyPickerResult(api, result);
+}
+
+/**
+ * Host-drawn entries: "From Nextcloud" in the Attach menu, and "Save to
+ * Nextcloud" on an attachment or a message (ask for a folder, save, say where).
+ */
 export async function onAction(api, { surface, actionId, context } = {}) {
   const t = api.i18n.t;
+  if (surface === 'composer-attach-menu' && actionId === 'from-nextcloud') {
+    await attachFromNextcloud(api, context?.composerId);
+    return;
+  }
   let props;
   if (surface === 'attachment-menu' && actionId === 'save-attachment') {
     if (!context?.emailId || !context?.blobId) return;
@@ -117,7 +141,6 @@ export const hooks = {
 
 export const slots = {
   'settings-section': { component: SettingsSection },
-  'composer-attachment-source': { component: ComposerSource, order: 50 },
   'plugin-dialog': { component: PluginDialog },
   'app-page': { component: FilesPage },
 };

@@ -1,65 +1,20 @@
-// "Attach from Nextcloud": pick files, then attach copies or share links.
+// "From Nextcloud" in the composer's Attach menu: pick files, then attach
+// copies to that composer (api.composer.attach with the click's
+// composerId) or share them as links.
 
 import { createElement as h, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Alert, DialogButtons, Heading, ProgressBar, Row, Spinner, Stack, Text,
+} from '@plugin-host/ui';
 import { attachEntries, shareEntries } from '../lib/attach.js';
 import { NcError, errorText } from '../lib/errors.js';
-import { dateInDays, formatSize } from '../lib/format.js';
-import { FileBrowser } from './browser.js';
+import { formatSize } from '../lib/format.js';
+import { BrowserList, browserBar, useBrowser } from './browser.js';
+import { ShareOptions, defaultShareOptions } from './share-options.js';
 
 const LAST_PATH_KEY = 'pickerPath';
 
-/** The share options form (password and expiry), shared with the large-file offer. */
-export function ShareOptions({ api, client, value, onChange, idPrefix = 'nc' }) {
-  const t = api.i18n.t;
-  const set = (patch) => onChange({ ...value, ...patch });
-  const latest = useRef(value);
-  latest.current = value;
-  // A password that fits the server's rules, made when the box is ticked.
-  useEffect(() => {
-    if (!value.usePassword || value.password) return;
-    let live = true;
-    client.generatePassword().then((password) => {
-      if (live && latest.current.usePassword && !latest.current.password) onChange({ ...latest.current, password });
-    });
-    return () => { live = false; };
-  }, [value.usePassword]);
-  const togglePassword = (on) => set({ usePassword: on });
-  return h('fieldset', { className: 'nc-col nc-card', style: { margin: 0 } },
-    h('legend', { className: 'nc-small', style: { padding: '0 4px' } }, t('share.options')),
-    h('label', { className: 'nc-row' },
-      h('input', { type: 'checkbox', className: 'nc-check', checked: value.usePassword, onChange: (e) => togglePassword(e.target.checked) }),
-      t('share.usePassword')),
-    value.usePassword ? h('div', { className: 'nc-col', style: { paddingInlineStart: 24 } },
-      h('label', { className: 'nc-label', htmlFor: `${idPrefix}-password` }, t('share.password'),
-        h('input', {
-          id: `${idPrefix}-password`, className: 'nc-input', type: 'text', autoComplete: 'off', spellCheck: false,
-          value: value.password, onChange: (e) => set({ password: e.target.value }),
-        })),
-      h('label', { className: 'nc-row nc-small' },
-        h('input', { type: 'checkbox', className: 'nc-check', checked: value.includePassword, onChange: (e) => set({ includePassword: e.target.checked }) }),
-        t('share.includePassword')),
-      !value.includePassword ? h('p', { className: 'nc-muted nc-small', style: { margin: 0 } }, t('share.sendSeparately')) : null,
-    ) : null,
-    h('label', { className: 'nc-label', htmlFor: `${idPrefix}-expiry` }, t('share.expiry'),
-      h('input', {
-        id: `${idPrefix}-expiry`, className: 'nc-input', type: 'date', value: value.expireDate, min: dateInDays(1),
-        onChange: (e) => set({ expireDate: e.target.value }), style: { maxWidth: 200 },
-      })),
-    h('p', { className: 'nc-muted nc-small', style: { margin: 0 } }, value.expireDate ? t('share.expiryHint') : t('share.noExpiry')),
-  );
-}
-
-/** Starting share options from the user's settings. */
-export function defaultShareOptions(settings) {
-  return {
-    usePassword: settings?.passwordProtect === true,
-    password: '',
-    includePassword: false,
-    expireDate: dateInDays(Number(settings?.expiryDays ?? 14)),
-  };
-}
-
-export function PickerDialog({ api, client, onResult, report }) {
+export function PickerDialog({ api, client, onResult, report, composerId }) {
   const t = api.i18n.t;
   const locale = api.i18n.getLocale();
   const [path, setPath] = useState('/');
@@ -69,6 +24,7 @@ export function PickerDialog({ api, client, onResult, report }) {
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState(null);
   const abortRef = useRef(null);
+  const browser = useBrowser({ api, client, path, onError: report });
 
   useEffect(() => {
     api.storage.get(LAST_PATH_KEY).then((p) => { if (typeof p === 'string' && p) setPath(p); }).catch(() => {});
@@ -85,26 +41,38 @@ export function PickerDialog({ api, client, onResult, report }) {
   const total = entries.reduce((n, e) => n + (e.size || 0), 0);
 
   const fail = (err) => {
-    if (err instanceof NcError && err.code === 'cancelled') { setBusy(null); return; }
+    setBusy(null);
+    if (err instanceof NcError && err.code === 'cancelled') return;
     report?.(err);
     setError(err);
-    setBusy(null);
   };
 
   const attach = async () => {
     setError(null);
     const controller = new AbortController();
     abortRef.current = controller;
-    const blobs = [];
+    let attached = 0;
     setBusy({ kind: 'attach', index: 0, count: entries.length, loaded: 0, total: entries[0]?.size || 0, name: entries[0]?.name });
     try {
+      if (!composerId) throw new NcError('attach_refused');
       await attachEntries(api, client, entries, {
         signal: controller.signal,
         onProgress: (p) => setBusy({ kind: 'attach', ...p }),
-        onAttach: async (blob) => { blobs.push(blob); return true; },
+        onAttach: async (blob) => {
+          const ok = await api.composer.attach(composerId, blob);
+          if (ok !== false) attached++;
+          return ok;
+        },
       });
-      onResult({ action: 'attach', blobs });
+      onResult({ action: 'attach', attached });
     } catch (err) {
+      // Files already in the message stay there; take them out of the
+      // selection so trying again doesn't attach them twice.
+      if (attached) {
+        const done = new Set(entries.slice(0, attached).map((e) => e.path));
+        setSelected((prev) => new Map([...prev].filter(([p]) => !done.has(p))));
+        api.toast.success(t('composer.attached', { count: attached }));
+      }
       fail(err);
     }
   };
@@ -125,27 +93,35 @@ export function PickerDialog({ api, client, onResult, report }) {
     }
   };
 
-  const percent = busy?.kind === 'attach' && busy.total ? Math.round((busy.loaded / busy.total) * 100) : 0;
-  return h('div', { className: 'nc nc-col' },
-    h(FileBrowser, { api, client, mode: 'files', path, onNavigate: navigate, selected, onToggle: toggle, onError: report, listHeight: 340 }),
-    showShare ? h(ShareOptions, { api, client, value: share, onChange: setShare, idPrefix: 'nc-pick' }) : null,
-    error ? h('p', { className: 'nc-error', role: 'alert', style: { margin: 0 } }, errorText(t, error)) : null,
-    busy?.kind === 'attach' ? h('div', { className: 'nc-col', role: 'status' },
-      h('span', { className: 'nc-small' }, t('picker.downloading', { name: busy.name ?? '', index: (busy.index ?? 0) + 1, count: busy.count ?? 1 })),
-      h('div', { className: 'nc-bar', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': percent, 'aria-label': t('picker.progress') },
-        h('span', { style: { width: `${percent}%` } })),
-    ) : null,
-    busy?.kind === 'share' ? h('p', { className: 'nc-muted', role: 'status', style: { margin: 0 } }, t('picker.sharing')) : null,
-    h('div', { className: 'nc-row nc-footer' },
-      h('span', { className: 'nc-grow nc-muted nc-small', 'aria-live': 'polite' },
-        entries.length ? t('picker.selected', { count: entries.length, size: formatSize(total, locale) }) : t('picker.hint')),
-      busy?.kind === 'attach'
-        ? h('button', { type: 'button', className: 'nc-btn', onClick: () => abortRef.current?.abort() }, t('common.cancel'))
-        : null,
-      h('button', { type: 'button', className: 'nc-btn', disabled: !entries.length || !!busy, onClick: () => void shareLinks() },
-        showShare ? t('picker.createLinks') : t('picker.shareLinks')),
-      h('button', { type: 'button', className: 'nc-btn nc-primary', disabled: !entries.length || !!busy, onClick: () => void attach() },
-        t('picker.attach')),
-    ),
+  const none = !entries.length;
+  const attachButton = { id: 'attach', label: t('picker.attach'), variant: showShare ? 'secondary' : 'primary', disabled: none || !!busy, busy: busy?.kind === 'attach' };
+  const linksButton = { id: 'links', label: showShare ? t('picker.createLinks') : t('picker.shareLinks'), variant: showShare ? 'primary' : 'secondary', disabled: none || !!busy, busy: busy?.kind === 'share' };
+  const buttons = [
+    { id: 'cancel', label: t('common.cancel'), variant: 'secondary' },
+    ...(showShare ? [attachButton, linksButton] : [linksButton, attachButton]),
+  ];
+  const click = (id) => {
+    if (id === 'cancel') {
+      if (busy?.kind === 'attach') abortRef.current?.abort();
+      else onResult(null);
+    } else if (id === 'attach') void attach();
+    else if (id === 'links') void shareLinks();
+  };
+
+  const fraction = busy?.kind === 'attach' && busy.total ? busy.loaded / busy.total : null;
+  return h(Stack, { gap: 3 },
+    h(Row, { gap: 2, wrap: false }, ...browserBar({ api, browser, path, onNavigate: navigate, compact: true })),
+    h(BrowserList, { api, browser, mode: 'files', selected, onNavigate: navigate, onToggle: toggle }),
+    h(Text, { tone: 'muted', size: 'xs' },
+      entries.length ? t('picker.selected', { count: entries.length, size: formatSize(total, locale) }) : t('picker.hint')),
+    showShare ? h(Stack, { gap: 3 }, h(Heading, { level: 4 }, t('share.options')), h(ShareOptions, { api, client, value: share, onChange: setShare })) : null,
+    busy?.kind === 'attach' ? h(Stack, { gap: 2 },
+      h(Text, { size: 'xs' }, t('picker.downloading', { name: busy.name ?? '', index: (busy.index ?? 0) + 1, count: busy.count ?? 1 })),
+      h(ProgressBar, { value: fraction, label: t('picker.progress') })) : null,
+    busy?.kind === 'share' ? h(Spinner, { label: t('picker.sharing') }) : null,
+    error ? h(Alert, { tone: 'danger', icon: 'alert-triangle' }, error.code === 'attach_refused' && error.detail
+      ? t('error.attach_refused_name', { name: error.detail })
+      : errorText(t, error)) : null,
+    h(DialogButtons, { buttons, onClick: click }),
   );
 }

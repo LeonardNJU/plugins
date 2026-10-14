@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { installPlugin, uninstallPlugin, setPluginConfig, preparePage, signIn, waitForPlugin, shoot } from '../../e2e/helpers.mjs';
-import { NC_URL, PLUGIN, admin, davPath, ensureConnected, ncFetch, pluginFrame } from './nc-helpers.mjs';
+import { NC_URL, PLUGIN, admin, davPath, ensureConnected, nameNewFolder, ncFetch, pluginFrame } from './nc-helpers.mjs';
 
 // "Save to Nextcloud" on a seeded attachment and on the whole message.
 test.describe.serial('save to Nextcloud', () => {
@@ -33,21 +33,21 @@ test.describe.serial('save to Nextcloud', () => {
       await page.getByRole('combobox', { name: /Search mail/ }).fill('Invoice 2026-10 attached');
       await page.getByRole('combobox', { name: /Search mail/ }).press('Enter');
       await page.getByText('Invoice 2026-10 attached').first().click({ position: { x: 5, y: 5 } });
-      await page.locator('[data-attachment-plugin-menu]').first().click();
+      // The attachment chip's size label overlaps its menu button in the current host build, so the click is dispatched.
+      await page.locator('[data-attachment-plugin-menu]').first().dispatchEvent('click');
       await page.getByRole('menuitem', { name: 'Save to Nextcloud' }).click();
       const dialog = page.getByRole('dialog').filter({ hasText: /Save .* to Nextcloud/ });
       await expect(dialog).toBeVisible();
-      const frame = await pluginFrame(page, 'button:has-text("Save here")');
+      const frame = await pluginFrame(page, 'text=/Choose a folder for invoice/');
       if (theme === 'light') {
         await frame.getByRole('button', { name: 'New folder' }).click();
-        await frame.getByPlaceholder('Folder name').fill(folder);
-        await frame.getByRole('button', { name: 'Create' }).click();
+        await nameNewFolder(page, folder);
       } else {
-        await frame.locator('button.nc-item', { hasText: folder }).click();
+        await frame.getByRole('listitem').filter({ hasText: folder }).click();
       }
       await expect(frame.getByRole('button', { name: folder, exact: true })).toHaveAttribute('aria-current', 'page');
       await shoot(page, PLUGIN, 'save-folder', theme);
-      await frame.getByRole('button', { name: 'Save here' }).click();
+      await dialog.getByRole('button', { name: 'Save here' }).click();
       await expect(dialog).toBeHidden({ timeout: 60_000 });
       await expect(page.getByText(`Saved to Nextcloud: /${folder}/invoice-2026-10`)).toBeVisible();
       expect(await listFolder()).toMatch(/invoice-2026-10[^<]*\.pdf/);
@@ -59,11 +59,11 @@ test.describe.serial('save to Nextcloud', () => {
         await page.getByRole('button', { name: /more/i }).first().click();
         await page.getByRole('menuitem', { name: 'Save message to Nextcloud' }).click();
       }
-      const frame2 = await pluginFrame(page, 'button:has-text("Save here")');
+      const frame2 = await pluginFrame(page, 'text=/Choose a folder for .*\.eml/');
       await expect(frame2.getByText(/Choose a folder for .*\.eml/)).toBeVisible();
       // The last folder is remembered.
       await expect(frame2.getByRole('button', { name: folder, exact: true })).toHaveAttribute('aria-current', 'page');
-      await frame2.getByRole('button', { name: 'Save here' }).click();
+      await page.getByRole('dialog').filter({ hasText: 'Save the message to Nextcloud' }).getByRole('button', { name: 'Save here' }).click();
       await expect(page.getByText(/Saved to Nextcloud: .*\.eml/)).toBeVisible({ timeout: 60_000 });
       const listing = await listFolder();
       expect(listing).toMatch(/Invoice 2026-10 attached[^<]*\.eml/);

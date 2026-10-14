@@ -1,10 +1,13 @@
-// The connection state and the panel that shows it, shared by every slot.
+// The connection state and what the user sees about it, shared by every slot.
 
 import { createElement as h, useCallback, useEffect, useRef, useState } from 'react';
-
+import {
+  Button, EmptyState, Loading, Row, Section, SettingRow, Spinner, Stack, Text,
+} from '@plugin-host/ui';
 import { adminServer, approveServer, disconnect, getConnection, pollLoginFlow, startLoginFlow } from '../lib/connection.js';
 import { NcError, errorText, needsSignIn } from '../lib/errors.js';
 import { hostOf } from '../lib/format.js';
+import { connectedText } from '../lib/account.js';
 
 /**
  * status: loading | disconnected | approving | waiting | connected | expired | error
@@ -40,14 +43,14 @@ export function useConnection(api) {
     };
   }, [refresh]);
 
-  const connect = useCallback(async () => {
+  const connect = useCallback(async ({ suggestedServer } = {}) => {
     const fixed = await adminServer(api);
     set({ status: 'approving', fixed });
     const controller = new AbortController();
     flowRef.current?.abort();
     flowRef.current = controller;
     try {
-      const origin = await approveServer(api, { fixedServer: fixed, suggestedServer: state.conn?.origin });
+      const origin = await approveServer(api, { fixedServer: fixed, suggestedServer: suggestedServer ?? state.conn?.origin });
       if (!origin) { await refresh(); return null; }
       const flow = await startLoginFlow(api, origin);
       set({ status: 'waiting', fixed, origin, loginUrl: flow.loginUrl });
@@ -76,55 +79,91 @@ export function useConnection(api) {
     await refresh();
   }, [api, refresh]);
 
+  /** Disconnect this account and sign in again, so another Nextcloud account can be chosen. */
+  const switchAccount = useCallback(async () => {
+    const origin = state.conn?.origin;
+    try {
+      await disconnect(api);
+    } catch (err) {
+      api.toast.error(errorText(api.i18n.t, err));
+      return null;
+    }
+    return connect({ suggestedServer: origin });
+  }, [api, connect, state.conn]);
+
   /** Call with any error from a Nextcloud request: switches to "expired" when the password stopped working. */
   const report = useCallback((err) => {
     if (needsSignIn(err)) set({ status: 'expired', fixed: state.fixed, error: err });
   }, [state.fixed]);
 
-  return { ...state, refresh, connect, cancel, signOut, report };
+  return { ...state, refresh, connect, cancel, signOut, switchAccount, report };
 }
 
-/** What the user sees about the connection, with the buttons that fit. */
-export function ConnectionPanel({ api, connection, compact = false, intro }) {
+/** Title and text for a connection that isn't usable (yet). */
+export function connectionMessage(t, c) {
+  const fixedHost = c.fixed ? hostOf(c.fixed) : '';
+  if (c.status === 'loading') return { icon: 'cloud', title: t('connect.checking') };
+  if (c.status === 'approving') return { icon: 'cloud', title: t('connect.approving') };
+  if (c.status === 'waiting') return { icon: 'external-link', title: t('composer.waiting'), text: t('connect.waiting', { host: hostOf(c.origin) }) };
+  if (c.status === 'expired') return { icon: 'lock', title: t('connect.expiredTitle'), text: t('connect.expired') };
+  if (c.status === 'error') return { icon: 'alert-triangle', title: t('error.unknown'), text: errorText(t, c.error) };
+  const intro = c.error?.code === 'wrong_server' ? t('error.wrong_server_host', { host: fixedHost }) : t('connect.intro');
+  return { icon: 'cloud', title: t('connect.title'), text: fixedHost ? `${intro} ${t('connect.server', { host: fixedHost })}` : intro };
+}
+
+/** The main button for a connection that isn't usable, or null. */
+export function connectLabel(t, c) {
+  if (c.status === 'disconnected' || c.status === 'error') return t('connect.button');
+  if (c.status === 'expired') return t('connect.again');
+  return null;
+}
+
+/**
+ * The not-connected states as the Files app's empty state, for the page
+ * and dialog bodies. With `actions: false` the buttons go elsewhere (a
+ * dialog's footer).
+ */
+export function ConnectionEmpty({ api, connection, actions = true, compact = false }) {
   const t = api.i18n.t;
   const c = connection;
-  const fixedHost = c.fixed ? hostOf(c.fixed) : '';
+  if (c.status === 'loading') return h(Loading, { label: t('connect.checking') });
+  const m = connectionMessage(t, c);
+  let buttons = null;
+  if (actions && c.status === 'waiting') {
+    buttons = [
+      h(Button, { key: 'reopen', variant: 'secondary', icon: 'external-link', onClick: () => void api.ui.openExternalUrl(c.loginUrl) }, t('connect.reopen')),
+      h(Button, { key: 'cancel', variant: 'ghost', onClick: c.cancel }, t('common.cancel')),
+    ];
+  } else if (actions && connectLabel(t, c)) {
+    buttons = h(Button, { icon: 'cloud', onClick: () => void c.connect() }, connectLabel(t, c));
+  }
+  return h(EmptyState, { icon: m.icon, title: m.title, description: m.text, actions: buttons, compact });
+}
 
-  if (c.status === 'loading') {
-    return h('p', { className: 'nc-muted', role: 'status' }, t('connect.checking'));
-  }
+/** The account as Settings shows it: Section and SettingRows, like the app's settings. */
+export function ConnectionSettings({ api, connection }) {
+  const t = api.i18n.t;
+  const c = connection;
+  let row;
   if (c.status === 'connected') {
-    const who = c.conn.displayName || c.conn.userId;
-    return h('div', { className: 'nc-row' },
-      h('span', { className: 'nc-grow', role: 'status' }, t('connect.connected', { host: hostOf(c.conn.origin), user: who })),
-      compact ? null : h('button', { type: 'button', className: 'nc-btn', onClick: () => void c.signOut() }, t('connect.disconnect')),
-    );
+    row = h(SettingRow, { label: connectedText(t, c.conn), description: t('connect.accountHint') },
+      h(Row, { gap: 2 },
+        h(Button, { variant: 'secondary', onClick: () => void c.switchAccount() }, t('connect.switch')),
+        h(Button, { variant: 'secondary', onClick: () => void c.signOut() }, t('connect.disconnect'))));
+  } else if (c.status === 'loading' || c.status === 'approving') {
+    row = h(SettingRow, { label: connectionMessage(t, c).title }, h(Spinner, {}));
+  } else if (c.status === 'waiting') {
+    const m = connectionMessage(t, c);
+    row = h(SettingRow, { label: m.title, description: m.text },
+      h(Row, { gap: 2 },
+        h(Button, { variant: 'secondary', onClick: () => void api.ui.openExternalUrl(c.loginUrl) }, t('connect.reopen')),
+        h(Button, { variant: 'ghost', onClick: c.cancel }, t('common.cancel'))));
+  } else {
+    const m = connectionMessage(t, c);
+    row = h(SettingRow, { label: m.title, description: m.text },
+      h(Button, { onClick: () => void c.connect() }, connectLabel(t, c)));
   }
-  if (c.status === 'approving') {
-    return h('p', { className: 'nc-muted', role: 'status' }, t('connect.approving'));
-  }
-  if (c.status === 'waiting') {
-    return h('div', { className: 'nc-col', role: 'status' },
-      h('p', { style: { margin: 0 } }, t('connect.waiting', { host: hostOf(c.origin) })),
-      h('div', { className: 'nc-row' },
-        h('button', { type: 'button', className: 'nc-btn', onClick: () => void api.ui.openExternalUrl(c.loginUrl) }, t('connect.reopen')),
-        h('button', { type: 'button', className: 'nc-btn', onClick: c.cancel }, t('common.cancel')),
-      ),
-    );
-  }
-  const message = c.status === 'expired'
-    ? t('connect.expired')
-    : c.status === 'error'
-      ? errorText(t, c.error)
-      : c.error?.code === 'wrong_server'
-        ? t('error.wrong_server_host', { host: fixedHost })
-        : intro ?? t('connect.intro');
-  return h('div', { className: 'nc-col' },
-    h('p', { style: { margin: 0 }, className: c.status === 'error' ? 'nc-error' : undefined, role: c.status === 'error' ? 'alert' : undefined }, message),
-    fixedHost && c.status === 'disconnected' ? h('p', { className: 'nc-muted nc-small', style: { margin: 0 } }, t('connect.server', { host: fixedHost })) : null,
-    h('div', { className: 'nc-row' },
-      h('button', { type: 'button', className: 'nc-btn nc-primary', onClick: () => void c.connect() },
-        c.status === 'expired' ? t('connect.again') : t('connect.button')),
-    ),
-  );
+  return h(Stack, { gap: 4 },
+    h(Section, { title: t('settings.title'), description: t('settings.privacy') }, row),
+    h(Text, { tone: 'muted', size: 'xs' }, t('settings.migration')));
 }

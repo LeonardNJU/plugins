@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { installPlugin, uninstallPlugin, setPluginConfig, preparePage, signIn, waitForPlugin, shoot } from '../../e2e/helpers.mjs';
-import { NC_URL, PLUGIN, admin, approveInNextcloud, ensureConnected, openComposer, pluginFrame } from './nc-helpers.mjs';
+import { NC_URL, PLUGIN, admin, approveInNextcloud, ensureConnected, openComposer, openPicker, pluginFrame } from './nc-helpers.mjs';
 
 // A revoked or expired app password: Nextcloud answers 401, and the plugin
 // says so in plain words and offers to sign in again.
@@ -31,9 +31,9 @@ test.describe.serial('errors', () => {
     })).status, NC_URL);
     expect(status).toBeLessThan(300);
 
-    const button = await openComposer(page);
-    await button.getByRole('button', { name: 'Nextcloud' }).click();
-    const dialog = await pluginFrame(page, 'text=Your Nextcloud sign-in has expired or was revoked. Sign in again.');
+    await openComposer(page);
+    const { dialog } = await openPicker(page);
+    const frame = await pluginFrame(page, 'text=Your Nextcloud sign-in has expired or was revoked. Sign in again.');
     await expect(dialog.getByRole('button', { name: 'Sign in again' })).toBeVisible();
     await shoot(page, PLUGIN, 'expired', 'light');
 
@@ -44,7 +44,7 @@ test.describe.serial('errors', () => {
     await host.getByRole('button', { name: /continue/i }).click();
     const popup = await popupPromise;
     await approveInNextcloud(popup);
-    await expect(dialog.getByText('All files')).toBeVisible({ timeout: 30_000 });
-    await expect(dialog.locator('button.nc-item', { hasText: 'Documents' })).toBeVisible();
+    await expect(frame.getByText('Choose one or more files.')).toBeVisible({ timeout: 30_000 });
+    await expect(frame.getByRole('listitem').filter({ hasText: 'Documents' })).toBeVisible();
   });
 });

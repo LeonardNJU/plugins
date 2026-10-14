@@ -139,7 +139,7 @@ export async function ensureConnected(page, theme) {
   const frame = await openSettings(page, theme);
   const connect = frame.getByRole('button', { name: 'Connect Nextcloud' });
   const again = frame.getByRole('button', { name: 'Sign in again' });
-  const connected = frame.getByText(/Connected to localhost:18080/);
+  const connected = frame.getByText(/Connected to Nextcloud at localhost:18080/);
   await expect(connect.or(again).or(connected)).toBeVisible({ timeout: 30_000 });
   if (!(await connected.isVisible())) {
     await connectThroughLoginFlow(page, frame, (await again.isVisible()) ? 'Sign in again' : 'Connect Nextcloud');
@@ -189,8 +189,29 @@ export async function deleteShares(filePath) {
   return shares;
 }
 
-/** Open a new message and return the Nextcloud button's frame. */
+/** Open a new message. */
 export async function openComposer(page) {
   await page.getByRole('button', { name: 'Compose' }).first().click();
-  return pluginFrame(page, 'button[title="Attach files from Nextcloud or share them as links"]');
+  await expect(page.getByTestId('composer-attach-menu')).toBeVisible();
+}
+
+/** Attach > From Nextcloud in the open composer: the host dialog and the picker's frame. */
+export async function openPicker(page, { shot } = {}) {
+  await page.getByTestId('composer-attach-menu').click();
+  const entry = page.getByRole('menuitem', { name: 'From Nextcloud' });
+  await expect(entry).toBeVisible();
+  if (shot) await shot();
+  await entry.click();
+  const dialog = page.getByRole('dialog').filter({ hasText: 'Attach from Nextcloud' });
+  await expect(dialog).toBeVisible();
+  return { dialog, picker: () => pluginFrame(page, 'text=Choose one or more files.') };
+}
+
+/** The host's prompt for a new folder's name. */
+export async function nameNewFolder(page, name) {
+  const prompt = page.getByRole('dialog').filter({ hasText: 'Folder name' });
+  await expect(prompt).toBeVisible();
+  await prompt.getByLabel('Folder name').fill(name);
+  await prompt.getByRole('button', { name: 'Create' }).click();
+  await expect(prompt).toBeHidden();
 }
