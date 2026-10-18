@@ -54,6 +54,11 @@ async function bundle(dir) {
     write: false,
     logLevel: 'warning',
     minify: extra.minify === true,
+    // The bundle names each module's path in a comment. Resolve paths from
+    // the repository root and keep linked node_modules as they are, so the
+    // zip is the same from any working directory or checkout layout.
+    absWorkingDir: ROOT,
+    preserveSymlinks: true,
   });
   return result.outputFiles[0].contents;
 }
