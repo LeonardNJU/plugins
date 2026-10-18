@@ -45,8 +45,8 @@ What each permission allows is listed in
 
 ## Build
 
-Install the development tools once with `npm install` (esbuild, JSZip,
-Vitest, Playwright). Plugins are written as ES modules in `<plugin>/src/`
+Install the development tools once with `npm ci` (esbuild, JSZip, Vitest,
+React Testing Library, jsdom, Playwright). Plugins are written as ES modules in `<plugin>/src/`
 and bundled into one CommonJS file with React and the host API left
 external. From the repository root:
 
@@ -57,8 +57,17 @@ node scripts/build.mjs --check          # fail if a committed ZIP is out of date
 ```
 
 Each build writes `<plugin>/<plugin>.zip` with `manifest.json` and `index.js`
-at its root. That ZIP is what the admin upload, the user upload and the
-extension directory take.
+at its root. That ZIP is what the admin upload and the user upload take.
+
+The extension directory doesn't take the ZIP. It builds each plugin from its
+folder alone with `npm ci --ignore-scripts` and `npm run build`, so a
+plugin's own package.json needs a build script that works without the rest
+of the repository and writes `dist/index.js`. CI checks both:
+
+```
+npm run check                           # manifests, versions, lockfiles and publish.json
+npm run build:isolated                  # each plugin on its own, as the directory builds it
+```
 
 ## Test
 
@@ -87,6 +96,47 @@ and the `PLUGIN_PROXY_PRIVATE_ORIGINS` value the webmail needs to reach them.
 - **Development:** start the webmail with `PLUGIN_DEV_DIR` set to this
   repository. It loads every plugin folder from source and rebuilds it on
   each page load.
+
+## Releasing
+
+Plugins reach the [extension directory](https://extensions.bulwarkmail.org)
+through a tag `<plugin>@<version>`. The directory builds the plugin from the
+tagged commit, and a reviewer approves each version before it is published.
+
+1. Merge the changes into main.
+2. On main, raise the version, commit and tag:
+
+   ```
+   npm run release -- smime 1.4.0                # or smime minor, smime patch
+   npm run release -- smime minor gravatar patch # several at once
+   ```
+
+   This sets the version in manifest.json, package.json and
+   package-lock.json, rebuilds the ZIP, runs the checks, commits
+   `chore: release smime 1.4.0` and tags it `smime@1.4.0`. It pushes nothing.
+3. Push main, then each tag it printed on its own. GitHub starts no workflow
+   when a push brings more than three tags.
+
+   ```
+   git push origin main
+   git push origin smime@1.4.0
+   ```
+
+The Publish workflow then checks that the plugin is in publish.json, that the
+manifest has the tag's version and that the commit is on main, runs the
+plugin's tests and build, and submits it. The job fails when the directory's
+build or checks fail. When a submission fails, fix it and release the next
+patch version rather than moving the tag.
+
+publish.json lists the folders that are published and the ones that are not,
+with the reason. A new plugin goes into one of the two, or CI fails. Before
+its first release, a directory admin adds a trusted publisher for it:
+repository bulwarkmail/plugins, workflow `.github/workflows/publish.yml`,
+environment `extensions`, the folder name as subpath, tags only.
+
+A plugin that uses the UI kit (`@plugin-host/ui`), the composer API or the
+other plugin features of webmail 1.15.0 needs `"minAppVersion": "1.15.0"`
+or later; the check fails otherwise.
 
 ## Writing a plugin
 

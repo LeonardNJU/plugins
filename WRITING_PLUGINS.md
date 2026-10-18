@@ -221,7 +221,7 @@ below. Anything else is dropped without an error.
 | `permissions` | string[] | no | names from [Permissions](#permissions); an unknown name refuses the install, duplicates are removed |
 | `entrypoint` | string | no | the `.js` or `.mjs` file in the ZIP, default `index.js`, no `..` or leading `/` |
 | `tier` | string | no | `untrusted` (default) or `privileged`, see [Security notes](#security-notes) |
-| `minAppVersion` | string | no | `1.2.3`; older webmails refuse the install |
+| `minAppVersion` | string | no | `1.2.3`; older webmails refuse the install. `1.15.0` or later when the plugin uses `@plugin-host/ui` or the composer API |
 | `settingsSchema` | object | no | settings each user sets in Settings > Plugins |
 | `configSchema` | object | no | settings the admin sets on the plugin's admin page |
 | `locales` | object | no | translations, see below |
