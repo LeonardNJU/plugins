@@ -1,0 +1,68 @@
+name: Publish
+
+# Pushing a tag <plugin>@<version>, for example smime@1.3.1, submits that
+# plugin to extensions.bulwarkmail.org. The directory builds it from the
+# tagged commit and a reviewer approves it before it is published.
+# `npm run release -- <plugin> <version>` makes the commit and the tag.
+on:
+  push:
+    tags: ['*@*']
+
+permissions: {}
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish ${{ github.ref_name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # The directory's trusted publishers for this repository expect this
+    # environment; its deployment rule only lets <plugin>@<version> tags in.
+    environment: extensions
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          filter: blob:none
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Check the tag
+        id: tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: node scripts/check.mjs --tag "$TAG"
+
+      - name: Check the tagged commit is on main
+        run: |
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_REF_NAME points at a commit that is not on main. Merge it first, then tag the commit on main."
+            exit 1
+          fi
+
+      - run: npm ci
+
+      - name: Unit tests
+        env:
+          PLUGIN: ${{ steps.tag.outputs.plugin }}
+        run: npm test -- --passWithNoTests "$PLUGIN/"
+
+      - name: Build on its own
+        env:
+          PLUGIN: ${{ steps.tag.outputs.plugin }}
+        run: node scripts/build-isolated.mjs "$PLUGIN"
+
+      - name: Submit to the extension directory
+        uses: bulwarkmail/publish-extension@v1
+        with:
+          subpath: ${{ steps.tag.outputs.plugin }}
+          ref: ${{ github.ref_name }}
