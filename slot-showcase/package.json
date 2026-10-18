@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node ../scripts/build.mjs slot-showcase"
+    "build": "esbuild src/index.js --bundle --format=cjs --platform=browser --target=es2020 --charset=utf8 --jsx=automatic --outfile=dist/index.js --external:react --external:react-dom --external:react-dom/client --external:react/jsx-runtime --external:@plugin-host --external:@plugin-host/ui"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1"
   }
 }
