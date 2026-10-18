@@ -11,5 +11,8 @@ export default defineConfig({
     include: ['*/test/**/*.test.{js,mjs}', 'test-utils/**/*.test.{js,mjs}'],
     exclude: ['node_modules/**', 'e2e/**', 'test-env/**'],
     environment: 'node',
+    // Some suites bundle their plugin with esbuild in beforeAll; with every
+    // file running at once that can take longer than the default 10 s.
+    hookTimeout: 60_000,
   },
 });
