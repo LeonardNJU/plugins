@@ -17,6 +17,9 @@
   "devDependencies": {
     "esbuild": "^0.24.0"
   },
+  "overrides": {
+    "elliptic": "6.6.1"
+  },
   "bulwarkBuild": {
     "alias": {
       "crypto": "./src/node-crypto-shim.js"
