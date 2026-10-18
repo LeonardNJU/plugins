@@ -1,7 +1,7 @@
 {
   "id": "external-mail-warning",
   "name": "External Mail Warning",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "author": "Bulwark Mail Community",
   "description": "Warns before sending email to recipients outside your safe-domain list, and flags incoming messages from external senders with a banner. Admins can pre-populate organisation-wide safe domains.",
   "type": "hook",
