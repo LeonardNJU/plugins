@@ -2,6 +2,7 @@
   "id": "slot-showcase",
   "name": "Slot showcase",
   "version": "1.1.0",
+  "minAppVersion": "1.15.0",
   "author": "Bulwark Mail Community",
   "description": "For plugin authors and tests, not for everyday use. Draws every plugin slot with the app's UI kit component meant for it, and a button on every action surface, so you can see where each one sits and what it receives.",
   "type": "ui-extension",

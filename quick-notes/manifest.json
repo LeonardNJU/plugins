@@ -11,7 +11,7 @@
     "ui:email-details"
   ],
   "entrypoint": "index.js",
-  "minAppVersion": "1.7.0",
+  "minAppVersion": "1.15.0",
   "settingsSchema": {
     "showBanner": {
       "type": "boolean",

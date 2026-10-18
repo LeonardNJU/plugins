@@ -17,7 +17,7 @@
     "compose:open"
   ],
   "entrypoint": "index.js",
-  "minAppVersion": "1.9.0",
+  "minAppVersion": "1.15.0",
   "configSchema": {
     "defaultProvider": {
       "type": "select",

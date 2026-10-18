@@ -13,7 +13,7 @@
     "http:proxy"
   ],
   "entrypoint": "index.js",
-  "minAppVersion": "1.14.0",
+  "minAppVersion": "1.15.0",
   "configSchema": {
     "track17Url": {
       "type": "string",

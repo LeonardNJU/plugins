@@ -19,7 +19,7 @@
     "admin:config"
   ],
   "entrypoint": "index.js",
-  "minAppVersion": "1.14.2",
+  "minAppVersion": "1.15.0",
   "configSchema": {
     "vikunjaUrl": {
       "type": "string",
