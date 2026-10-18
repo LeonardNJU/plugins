@@ -12,6 +12,8 @@
   ],
   "entrypoint": "index.js",
   "minAppVersion": "1.7.0",
+  "icon": "media/icon.svg",
+  "banner": "media/banner.svg",
   "configSchema": {
     "forceThreshold": {
       "type": "number",

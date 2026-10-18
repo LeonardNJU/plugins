@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <filter id="grain-task-b" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="37" stitchTiles="stitch"/>
+      <feColorMatrix values="0 0 0 0 1   0 0 0 0 1   0 0 0 0 1   0 0 0 0.16 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/>
+    </filter>
+    <linearGradient id="bg-task-b" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4ADE80"/>
+      <stop offset="1" stop-color="#14532D"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg-task-b)"/>
+  <rect width="1200" height="675" fill="white" filter="url(#grain-task-b)"/>
+  <g transform="translate(120,200) scale(11.25)" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="5" width="6" height="6" rx="1"/>
+    <path d="m3 17 2 2 4-4"/>
+    <path d="M13 6h8"/>
+    <path d="M13 12h8"/>
+    <path d="M13 18h8"/>
+  </g>
+  <text x="460" y="325" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="60" font-weight="700" fill="white" dominant-baseline="middle">Email to task</text>
+  <text x="460" y="395" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="26" font-weight="400" fill="white" fill-opacity="0.82" dominant-baseline="middle">Turn a message into a task, with a link back to it</text>
+</svg>

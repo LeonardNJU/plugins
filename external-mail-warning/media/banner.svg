@@ -18,6 +18,6 @@
     <path d="M20 14v4"/>
     <path d="M20 22v.01"/>
   </g>
-  <text x="460" y="325" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="58" font-weight="700" fill="white" dominant-baseline="middle">External Recipient Warning</text>
+  <text x="460" y="325" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="46" font-weight="700" fill="white" dominant-baseline="middle">External Recipient Warning</text>
   <text x="460" y="395" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="26" font-weight="400" fill="white" fill-opacity="0.85" dominant-baseline="middle">Catch sends to the wrong address before they leave</text>
 </svg>

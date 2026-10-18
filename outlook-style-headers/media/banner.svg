@@ -16,6 +16,6 @@
     <path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/>
     <path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/>
   </g>
-  <text x="460" y="325" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="60" font-weight="700" fill="white" dominant-baseline="middle">Outlook-style Quote Headers</text>
+  <text x="460" y="325" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="44" font-weight="700" fill="white" dominant-baseline="middle">Outlook-style Quote Headers</text>
   <text x="460" y="395" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="26" font-weight="400" fill="white" fill-opacity="0.85" dominant-baseline="middle">From / Sent / To / Cc / Subject block on reply and forward</text>
 </svg>
