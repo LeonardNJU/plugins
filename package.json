@@ -11,9 +11,9 @@
     "docs:check": "node scripts/gen-docs.mjs --check"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "esbuild": "^0.28.1",
     "jszip": "^3.10.1",
-    "vitest": "^4.1.11",
-    "@playwright/test": "^1.59.1"
+    "vitest": "^4.1.11"
   }
 }
