@@ -1,0 +1,31 @@
+{
+  "publish": [
+    "ai-assistant",
+    "auto-tag",
+    "birthdays",
+    "calendar-agenda",
+    "email-stats",
+    "email-to-task",
+    "external-link-warning",
+    "external-mail-warning",
+    "gravatar",
+    "impersonation-notice",
+    "jitsi-meet",
+    "nextcloud",
+    "outlook-style-headers",
+    "paperless",
+    "parcels",
+    "quick-notes",
+    "reply-all-guardrail",
+    "smime",
+    "spam-score",
+    "timezones",
+    "translate"
+  ],
+  "skip": {
+    "hello-world": "an example for plugin authors",
+    "plugin-template": "the starting point for a new plugin",
+    "slot-showcase": "a test aid for plugin authors",
+    "libravatar": "listed in the directory by its original author from their fork"
+  }
+}
