@@ -141,6 +141,12 @@ export function checkPlugin(dir) {
       if (root && pkg.version !== undefined && (lock.version !== pkg.version || root.version !== pkg.version)) {
         add('package-lock.json', `package-lock.json says version ${lock.version}, package.json ${pkg.version}; run npm install`);
       }
+      // The directory's build VM reaches only the npm registry: no git, no GitHub.
+      for (const [name, entry] of Object.entries(lock?.packages ?? {})) {
+        if (name && entry.resolved && !entry.resolved.startsWith('https://registry.npmjs.org/')) {
+          add('package-lock.json', `${name.replace(/^.*node_modules\//, '')} comes from ${entry.resolved}; the directory only installs from registry.npmjs.org (pin it with "overrides")`);
+        }
+      }
     }
   }
 
