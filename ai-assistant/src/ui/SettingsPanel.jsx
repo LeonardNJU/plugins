@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, Button, Field, Input, Loading, Row, Section, Select, SettingRow, Stack, Switch, Text, Textarea } from '@plugin-host/ui';
 import { useApi } from './common.jsx';
 import { loadSetup, savePrefs, PROVIDER_LABELS } from '../lib/assistant.js';
+import { ACTION_MODES, effectiveActionMode } from '../lib/actions.js';
 import { MAX_INSTRUCTIONS_CHARS } from '../lib/prompts.js';
 import {
   DEFAULT_MODELS, OFFICIAL_BASE_URLS, OWN_CREDENTIALS, PROVIDERS,
@@ -43,6 +44,8 @@ export function SettingsPanel(props) {
   const allowOwn = userKeysAllowed(config);
   const ownAccount = accounts.find((a) => a.credentialId === OWN_CREDENTIALS[ownProvider] && a.connected);
   const usingOwn = !!endpoint?.own;
+  // What the administrator allows at most.
+  const actionLimit = ACTION_MODES.includes(config.actions) ? config.actions : 'auto';
 
   const save = async (patch, { quiet = false } = {}) => {
     await savePrefs(api, patch);
@@ -129,6 +132,17 @@ export function SettingsPanel(props) {
               onChange={(on) => void save({ lookups: on })}
             />
           </SettingRow>
+          {actionLimit !== 'off' && (
+            <SettingRow label={t('settings.actions')} description={t('settings.actions_hint')} htmlFor="ai-actions">
+              <Select
+                id="ai-actions"
+                aria-label={t('settings.actions')}
+                value={effectiveActionMode(config, prefs)}
+                options={ACTION_MODES.slice(0, ACTION_MODES.indexOf(actionLimit) + 1).map((m) => ({ value: m, label: t(`settings.actions_${m}`) }))}
+                onChange={(value) => void save({ actions: value })}
+              />
+            </SettingRow>
+          )}
         </Stack>
       </Section>
 

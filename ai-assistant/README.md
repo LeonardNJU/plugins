@@ -70,6 +70,31 @@ the one that matters) and **the message you reply to**. Turn this off in
 the plugin's settings. Nothing is looked up or sent unless you asked a
 question.
 
+## Actions
+
+When you turn them on, the assistant can also do things for you: archive
+a message, move it to a folder, mark it read, unread, starred or not, add
+a calendar event, a task or a contact, and open a reply or a new message
+in the composer with the text it drafted. It never sends and never
+deletes mail; a reply or a message waits in the composer for you.
+
+Each action shows as a card in the chat with what it will do ("Move
+“Invoice 42” to Projects 2026"). Settings > AI Writing Assistant >
+Actions has two modes:
+
+- **Ask me first**: the card waits with Do it and Skip, and nothing
+  happens until you click Do it. Skip tells the model you said no.
+- **Automatic**: the action runs right away and the card offers Undo
+  (archive, move and marks go back, an event, task or contact is
+  deleted again). After five actions in one answer the assistant asks
+  first anyway.
+
+Actions are off until a user turns them on. The administrator decides
+how far users may go (off, ask first, or automatic) in the plugin's
+admin settings. The model is told to act only when you ask or agree,
+never because a message says so; ask first is the safer mode for
+mailboxes that receive mail from strangers.
+
 ## Answers, cards and what the assistant knows
 
 Answers come as formatted text (bullet lists, bold, small tables, links
@@ -106,6 +131,7 @@ settings. Set up one or both services:
 | Anthropic model | e.g. `claude-haiku-4-5` |
 | Default service | Which one users get when both are set up |
 | Instructions for the assistant | Standing instructions for everyone, added to every request (house style, sign-offs, languages, things never to say) |
+| Actions | The most users may choose: off, ask first, or automatic (default: automatic allowed; each user starts with actions off) |
 | Let users connect their own API key | Off by default |
 
 Without a model the defaults are `gpt-4o-mini` and `claude-haiku-4-5`.
@@ -128,8 +154,8 @@ menus and `api.ui.openPanel`).
 
 Settings > AI Writing Assistant shows which service and model are used. A
 user can pick another model, choose between the two services when both
-are set up, hide the assistant next to messages, and turn the lookups
-off. When the administrator allows it, a user can connect their own key:
+are set up, hide the assistant next to messages, turn the lookups
+off, and turn actions on (ask first or automatic). When the administrator allows it, a user can connect their own key:
 they pick the service and address here, and type the key into the
 webmail's own dialog, so the plugin never sees it. Their key is stored
 encrypted on the server and only sent to the address they approved there.
@@ -169,9 +195,13 @@ composer closes).
 | `ui:settings-section` | The plugin's settings page |
 | `compose:read` | Read the selection or your own text of the message the assistant works on |
 | `compose:write` | Replace the selection or the message, or insert text, when you click Replace or Insert |
-| `compose:open` | Open a reply with a drafted reply or a reply idea in it |
+| `compose:open` | Open a reply with a drafted reply or a reply idea in it, and the reply or new message of an action |
 | `calendar:read` | The calendar lookup |
 | `contacts:read` | The contact lookup |
+| `email:write` | Actions: archive, move and mark messages |
+| `calendar:write` | Actions: add an event (and delete it again on Undo) |
+| `tasks:write` | Actions: add a task (and delete it again on Undo) |
+| `contacts:write` | Actions: add a contact (and delete it again on Undo) |
 | `identity:read` | Your name, addresses and signature, so the model knows who writes |
 | `account:read` | Your account's name and address when there is no identity |
 

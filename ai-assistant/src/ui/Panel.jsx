@@ -20,6 +20,7 @@ import { composerChatSystem, readerChatSystem, buildPrompt, contextSuffix, REWRI
 import { loadPerson, localNow } from '../lib/person.js';
 import { historyMessages, parseAnswer, runChat } from '../lib/chat.js';
 import { runTool, toolsFor } from '../lib/tools.js';
+import { MAX_AUTO_ACTIONS, actionToolsFor, describeAction, effectiveActionMode, isActionTool, performAction, undoAction } from '../lib/actions.js';
 import { streamCompletion } from '../lib/client.js';
 import { AiError } from '../lib/errors.js';
 import { defaultTarget, languageOptions } from '../lib/languages.js';
@@ -87,8 +88,13 @@ async function loadTurns(api, key) {
   try {
     const saved = await api.storage.get(key);
     const turns = Array.isArray(saved?.turns) ? saved.turns : [];
-    // A turn that was still running when the panel went away is shown as stopped.
-    return turns.map((t) => (t.status === 'running' ? { ...t, status: t.content ? 'stopped' : 'error', error: t.content ? undefined : { code: 'cancelled' } } : t));
+    // A turn that was still running when the panel went away is shown as
+    // stopped, and an action that waited for the user's OK did not happen.
+    return turns.map((t) => {
+      const turn = t.status === 'running' ? { ...t, status: t.content ? 'stopped' : 'error', error: t.content ? undefined : { code: 'cancelled' } } : t;
+      if (!Array.isArray(turn.steps) || !turn.steps.some((s) => s.action && (s.action.state === 'waiting' || s.action.state === 'running'))) return turn;
+      return { ...turn, steps: turn.steps.map((s) => (s.action && (s.action.state === 'waiting' || s.action.state === 'running') ? { ...s, action: { ...s.action, state: 'skipped' } } : s)) };
+    });
   } catch {
     return [];
   }
@@ -128,6 +134,9 @@ export function AssistantPanel(props) {
   const source = useMemo(() => sourceFor(mode, { selection, body, email }), [mode, selection, body, email]);
   const running = turns.some((turn) => turn.status === 'running');
   const lookups = prefs.lookups !== false;
+  const actionMode = effectiveActionMode(setup?.config ?? {}, prefs);
+  // Actions waiting for the user's OK: step id → answer(ok).
+  const approvals = useRef(new Map());
 
   // ─── Loading: the service, the user's choices, the saved transcript ───
   const refreshBody = useCallback(async () => {
@@ -196,6 +205,28 @@ export function AssistantPanel(props) {
     consent?.answer(false);
   }, [consent]);
 
+  const patchStep = useCallback((turnId, stepId, patch) => {
+    patchTurn(turnId, (cur) => ({ steps: (cur.steps ?? []).map((s) => (s.id === stepId ? { ...s, ...(typeof patch === 'function' ? patch(s) : patch) } : s)) }));
+  }, [patchTurn]);
+
+  /** The user's answer to an action waiting for it. */
+  const answerAction = useCallback((stepId, ok) => {
+    const answer = approvals.current.get(stepId);
+    if (!answer) return;
+    approvals.current.delete(stepId);
+    answer(ok);
+  }, []);
+
+  const undoStep = useCallback(async (turnId, step) => {
+    try {
+      await undoAction(api, step.action?.undo);
+      patchStep(turnId, step.id, (s) => ({ action: { ...s.action, state: 'undone', undo: null } }));
+    } catch (err) {
+      api.toast.error(t('action.undo_failed'));
+      api.log?.warn?.('undo failed', err?.message ?? err);
+    }
+  }, [api, patchStep, t]);
+
   const askConsent = useCallback((endpoint) => new Promise((resolve) => {
     setConsent({ endpoint, answer: (ok) => { setConsent(null); resolve(ok); } });
   }), []);
@@ -238,17 +269,43 @@ export function AssistantPanel(props) {
         const prompt = buildPrompt(task, { language: locale, extra, ...taskInput });
         text = await streamCompletion(api, endpoint, prompt, { onText, signal: abort.signal });
       } else {
-        const ctx = { inReplyToId: mode === 'composer' ? context?.inReplyToId : undefined, lookups };
-        const tools = toolsFor(ctx);
+        const ctx = { inReplyToId: mode === 'composer' ? context?.inReplyToId : undefined, lookups, actions: actionMode, mode, openEmailId: mode === 'reader' ? email?.id : undefined };
+        const tools = [...toolsFor(ctx), ...actionToolsFor(ctx)];
+        let autoActions = 0;
+        // Lookups run straight away; an action is shown first, then waits for
+        // the user's OK (ask-first mode, or past the automatic limit) or runs.
+        const callTool = async (name, args, call) => {
+          if (!isActionTool(name)) return runTool(api, name, args, ctx);
+          const { summary, plan } = await describeAction(api, name, args, ctx);
+          const ask = actionMode === 'manual' || autoActions >= MAX_AUTO_ACTIONS;
+          patchStep(turn.id, call.id, { action: { summary, state: ask ? 'waiting' : 'running' } });
+          if (ask) {
+            const ok = await new Promise((resolve) => {
+              approvals.current.set(call.id, resolve);
+              abort.signal.addEventListener('abort', () => { approvals.current.delete(call.id); resolve(false); }, { once: true });
+            });
+            if (!ok) return { text: 'The user did not allow this action; it was not done.', action: { summary, state: 'skipped' } };
+            patchStep(turn.id, call.id, (st) => ({ action: { ...st.action, state: 'running' } }));
+          } else {
+            autoActions++;
+          }
+          try {
+            const done = await performAction(api, plan);
+            return { text: done.text, action: { summary, state: 'done', undo: done.undo ?? null } };
+          } catch (err) {
+            patchStep(turn.id, call.id, (st) => ({ action: { ...st.action, state: 'failed' } }));
+            throw err;
+          }
+        };
         const system = mode === 'composer'
-          ? composerChatSystem({ language: locale, today: today(), subject, mode: context?.mode, originalSubject: context?.originalSubject, scope, text: src, hasTools: tools.length > 0, extra })
-          : readerChatSystem({ language: locale, today: today(), email: email ? emailForPrompt(email) : null, selection: scope === 'passage' ? src : '', hasTools: tools.length > 0, extra });
+          ? composerChatSystem({ language: locale, today: today(), subject, mode: context?.mode, originalSubject: context?.originalSubject, scope, text: src, hasTools: tools.length > 0, actions: actionMode, extra })
+          : readerChatSystem({ language: locale, today: today(), email: email ? emailForPrompt(email) : null, emailId: email?.id, selection: scope === 'passage' ? src : '', hasTools: tools.length > 0, actions: actionMode, extra });
         const messages = [...historyMessages(previous), { role: 'user', content: userTurn.content }];
         const out = await runChat(api, endpoint, {
-          system, messages, tools, runTool: (name, args) => runTool(api, name, args, ctx),
+          system, messages, tools, runTool: callTool,
         }, {
           onText,
-          onStep: (step) => patchTurn(turn.id, (cur) => ({ steps: cur.steps.some((s) => s.id === step.id) ? cur.steps.map((s) => (s.id === step.id ? step : s)) : [...cur.steps, step] })),
+          onStep: (step) => patchTurn(turn.id, (cur) => ({ steps: cur.steps.some((s) => s.id === step.id) ? cur.steps.map((s) => (s.id === step.id ? { ...s, ...step } : s)) : [...cur.steps, step] })),
           signal: abort.signal,
         });
         text = out.text;
@@ -489,6 +546,8 @@ export function AssistantPanel(props) {
                   onReview={(review) => patchTurn(turn.id, { review })}
                   onSend={sendText}
                   onInsert={insertText}
+                  onAnswerAction={answerAction}
+                  onUndo={undoStep}
                 />
               )
           ))}
@@ -638,14 +697,19 @@ function UserTurn({ turn }) {
 }
 
 /** The model's answer: what it says, what it proposes, what it looked up. */
-function AssistantTurn({ api, mode, turn, email, onApply, onRetry, onReview, onSend, onInsert }) {
+function AssistantTurn({ api, mode, turn, email, onApply, onRetry, onReview, onSend, onInsert, onAnswerAction, onUndo }) {
   const t = api.i18n.t;
   const running = turn.status === 'running';
   const parts = useMemo(() => partsOf(turn), [turn]);
+  const lookupSteps = (turn.steps ?? []).filter((s) => !isActionTool(s.name));
+  const actionSteps = (turn.steps ?? []).filter((s) => isActionTool(s.name) && (s.action || s.status === 'failed'));
   return (
     <div data-turn="assistant" data-status={turn.status}>
     <Stack gap={2}>
-      {turn.steps?.length > 0 && <StepsGroup api={api} mode={mode} steps={turn.steps} running={running} onSend={onSend} onInsert={onInsert} />}
+      {lookupSteps.length > 0 && <StepsGroup api={api} mode={mode} steps={lookupSteps} running={running} onSend={onSend} onInsert={onInsert} />}
+      {actionSteps.map((step) => (
+        <ActionCard key={step.id} api={api} step={step} onAnswer={(ok) => onAnswerAction(step.id, ok)} onUndo={() => onUndo(turn.id, step)} />
+      ))}
       {running && !turn.content && (!turn.steps || turn.steps.every((s) => s.status !== 'running')) && <Spinner label={t('common.thinking')} />}
       {turn.show === 'grammar' && turn.review
         ? <GrammarCard api={api} turn={turn} onApply={onApply} onReview={onReview} />
@@ -819,6 +883,57 @@ function stepLabel(t, step) {
     case 'read_message': return t('panel.step.read_message');
     default: return step.name;
   }
+}
+
+const TOOL_ACTION_ICONS = {
+  archive_message: 'archive', move_message: 'folder-symlink', mark_message: 'mail-check', create_event: 'calendar-plus',
+  create_task: 'checkbox', create_contact: 'user-plus', draft_reply: 'arrow-back-up', draft_email: 'mail-forward',
+};
+
+/**
+ * Something the assistant does for the user, as a card in the chat: what it
+ * is, and its state. Waiting for the user's OK it offers Do it and Skip;
+ * done, Undo where the action can be taken back.
+ */
+function ActionCard({ api, step, onAnswer, onUndo }) {
+  const t = api.i18n.t;
+  const action = step.action ?? { summary: step.result, state: 'failed' };
+  const state = step.status === 'failed' && action.state !== 'skipped' ? 'failed' : action.state;
+  const [busy, setBusy] = useState(false);
+  return (
+    <div data-action={step.name} data-action-state={state} style={{ border: '1px solid var(--color-border)', borderRadius: 8, padding: '8px 10px' }}>
+      <Stack gap={2}>
+        <Row gap={2} wrap={false} align="start">
+          <Icon name={TOOL_ACTION_ICONS[step.name] ?? 'bolt'} size="sm" className="text-primary" />
+          <Text size="sm">{action.summary}</Text>
+        </Row>
+        {state === 'waiting' && (
+          <Row gap={1} justify="end">
+            <Text size="xs" tone="muted">{t('action.waiting')}</Text>
+            <span style={{ flex: 1 }} />
+            <Button variant="ghost" size="sm" onClick={() => onAnswer(false)}>{t('action.skip')}</Button>
+            <Button size="sm" onClick={() => onAnswer(true)}>{t('action.approve')}</Button>
+          </Row>
+        )}
+        {state === 'running' && <Spinner size="sm" />}
+        {state === 'done' && (
+          <Row gap={1} wrap={false}>
+            <Icon name="check" size="sm" className="text-success" />
+            <Text size="xs" tone="muted">{t('action.done')}</Text>
+            {action.undo && (
+              <>
+                <span style={{ flex: 1 }} />
+                <LinkButton icon="arrow-back-up" disabled={busy} onClick={async () => { setBusy(true); await onUndo(); setBusy(false); }}>{t('action.undo')}</LinkButton>
+              </>
+            )}
+          </Row>
+        )}
+        {state === 'skipped' && <Text size="xs" tone="muted">{t('action.skipped')}</Text>}
+        {state === 'undone' && <Text size="xs" tone="muted">{t('action.undone')}</Text>}
+        {state === 'failed' && <Text size="xs" tone="danger">{t('action.failed')}{step.result ? `: ${step.result.replace(/^The tool failed: /, '')}` : ''}</Text>}
+      </Stack>
+    </div>
+  );
 }
 
 /**

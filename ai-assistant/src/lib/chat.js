@@ -103,7 +103,8 @@ export function historyMessages(turns, { limit = HISTORY_TURNS, chars = HISTORY_
  * dropped once the tools ran; the answer is the final round's text.
  * onStep({ id, name, args, status, result, widget }): a tool call starting
  * ('running') and finishing ('done' | 'failed'). `runTool` resolves to the
- * text for the model, or { text, widget } with a card for the panel.
+ * text for the model, or { text, widget, action } with a card for the panel
+ * or the state of an action; it gets the call's { id } as third argument.
  * Resolves to { text, steps }. Rejects with AiError like streamTurn.
  */
 export async function runChat(api, endpoint, { system, messages, tools = [], runTool, maxTokens = 2500 }, {
@@ -145,10 +146,11 @@ export async function runChat(api, endpoint, { system, messages, tools = [], run
       onStep({ ...step });
       let result;
       try {
-        const out = await runTool(call.name, call.args ?? {});
+        const out = await runTool(call.name, call.args ?? {}, { id: call.id });
         if (out && typeof out === 'object') {
           result = String(out.text ?? '');
           step.widget = out.widget ?? null;
+          if (out.action) step.action = out.action;
         } else {
           result = String(out);
         }

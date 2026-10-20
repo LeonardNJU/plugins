@@ -201,6 +201,127 @@ describe('the composer panel', () => {
   });
 });
 
+describe('actions in the reader panel', () => {
+  const ev = (event, data) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+  /** A model turn that calls the given tools. */
+  const toolTurn = (...calls) => ev('message_start', { type: 'message_start' })
+    + calls.map(({ id, name, input }, i) => ev('content_block_start', { type: 'content_block_start', index: i, content_block: { type: 'tool_use', id, name } })
+      + ev('content_block_delta', { type: 'content_block_delta', index: i, delta: { type: 'input_json_delta', partial_json: JSON.stringify(input) } })
+      + ev('content_block_stop', { type: 'content_block_stop', index: i })).join('')
+    + ev('message_stop', { type: 'message_stop' });
+  const MESSAGE = { ...EMAIL, mailboxIds: ['inbox-id'], isRead: true, isFlagged: false };
+
+  /** A model that archives the open message, then says so. */
+  function actingApi(actions, extra = {}) {
+    let n = 0;
+    const api = makeApi({ handlers: {
+      'proxy.fetch': async () => streamResponse(n++ === 0
+        ? toolTurn({ id: 'tu1', name: 'archive_message', input: { id: 'M1' } })
+        : anthropicSse(['Archived.'])),
+      'email.get': async () => MESSAGE,
+      ...extra,
+    } });
+    void api.storage.set('prefs', { actions });
+    return api;
+  }
+  const ask = async () => {
+    await type('archive this');
+    await pressEnter();
+  };
+
+  it('asks first: the card waits for Do it, then the message is archived', async () => {
+    const api = actingApi('manual');
+    await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
+    await ask();
+    const card = await waitFor(() => {
+      const el = document.querySelector('[data-action="archive_message"][data-action-state="waiting"]');
+      expect(el).toBeTruthy();
+      return el;
+    });
+    expect(card.textContent).toContain('Archive “Thursday”');
+    expect(api.calls('email.archive')).toHaveLength(0);
+    // The prompt told the model about actions and the open message's id.
+    const first = sentPrompt(api, 0);
+    expect(first.tools.map((t) => t.name)).toContain('archive_message');
+    expect(first.system).toContain('confirms each action');
+    expect(first.system).toContain('The open email has the id M1');
+    await click(button('Do it'));
+    await settled();
+    expect(api.calls('email.archive').map((c) => c.args)).toEqual([[['M1']]]);
+    expect(document.querySelector('[data-action="archive_message"]').dataset.actionState).toBe('done');
+    expect(screen.getByText('Archived.')).toBeTruthy();
+  });
+
+  it('asks first: Skip leaves the message alone and tells the model', async () => {
+    const api = actingApi('manual');
+    await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
+    await ask();
+    await waitFor(() => expect(document.querySelector('[data-action-state="waiting"]')).toBeTruthy());
+    await click(button('Skip'));
+    await settled();
+    expect(api.calls('email.archive')).toHaveLength(0);
+    expect(document.querySelector('[data-action="archive_message"]').dataset.actionState).toBe('skipped');
+    expect(JSON.stringify(sentPrompt(api).messages.at(-1))).toContain('did not allow');
+  });
+
+  it('acts at once in automatic mode, with Undo', async () => {
+    const api = actingApi('auto');
+    await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
+    await ask();
+    await settled();
+    expect(api.calls('email.archive')).toHaveLength(1);
+    const card = document.querySelector('[data-action="archive_message"]');
+    expect(card.dataset.actionState).toBe('done');
+    expect(sentPrompt(api, 0).system).toContain('Actions run at once');
+    await click(button('Undo'));
+    await waitFor(() => expect(document.querySelector('[data-action="archive_message"]').dataset.actionState).toBe('undone'));
+    expect(api.calls('email.move').map((c) => c.args)).toEqual([[['M1'], 'inbox-id']]);
+  });
+
+  it('stops for the OK after a few automatic actions in one answer', async () => {
+    let n = 0;
+    const many = Array.from({ length: 6 }, (_, i) => ({ id: `tu${i}`, name: 'mark_message', input: { id: 'M1', read: true } }));
+    const api = makeApi({ handlers: {
+      'proxy.fetch': async () => streamResponse(n++ === 0 ? toolTurn(...many) : anthropicSse(['Done.'])),
+      'email.get': async () => MESSAGE,
+    } });
+    void api.storage.set('prefs', { actions: 'auto' });
+    await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
+    await ask();
+    await waitFor(() => expect(document.querySelector('[data-action-state="waiting"]')).toBeTruthy());
+    expect(api.calls('email.setKeyword')).toHaveLength(5);
+    await click(button('Skip'));
+    await settled();
+    expect(api.calls('email.setKeyword')).toHaveLength(5);
+  });
+
+  it('offers no actions while they are off, or when the administrator does not allow them', async () => {
+    for (const [prefs, config] of [[{}, CONFIG], [{ actions: 'auto' }, { ...CONFIG, actions: 'off' }]]) {
+      const api = makeApi({ answers: ['Fine.'], handlers: { 'admin.getAllConfig': async () => config } });
+      void api.storage.set('prefs', prefs);
+      await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
+      await type('archive this');
+      await pressEnter();
+      await settled();
+      const prompt = sentPrompt(api);
+      expect((prompt.tools ?? []).map((t) => t.name)).not.toContain('archive_message');
+      expect(prompt.system).not.toContain('action tools');
+      cleanup();
+    }
+  });
+
+  it('shows an action that waited when the panel closed as not done', async () => {
+    const api = makeApi();
+    await api.storage.set('chat:reader', { turns: [
+      { id: 'u1', role: 'user', content: 'archive', label: 'archive', emailId: 'M1' },
+      { id: 'a1', role: 'assistant', content: '', status: 'running', show: 'chat', steps: [{ id: 'tu1', name: 'archive_message', status: 'running', action: { summary: 'Archive “Thursday”', state: 'waiting' } }] },
+    ] });
+    await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
+    await waitFor(() => expect(document.querySelector('[data-action="archive_message"]').dataset.actionState).toBe('skipped'));
+    expect(screen.queryByRole('button', { name: 'Do it' })).toBeNull();
+  });
+});
+
 describe('the reader panel across messages', () => {
   const OTHER = { id: 'M2', subject: 'Invoice 42', receivedAt: '2026-10-13T09:00:00Z', from: [{ name: 'Dan', email: 'dan@example.org' }], text: 'Please pay invoice 42.' };
 
