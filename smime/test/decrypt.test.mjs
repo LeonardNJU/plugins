@@ -4,6 +4,7 @@
 // back out. Fixtures: test/fixtures/README.md.
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { createCipheriv } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { fakeIndexedDB } from './helpers/fake-indexeddb.mjs';
 import { importPkcs12, unlockPrivateKey } from '../src/pkcs12.js';
@@ -11,7 +12,9 @@ import { saveKeyRecord, saveSessionKeys, deleteSessionKeys } from '../src/key-st
 import { unlockedDecryptMaps } from '../src/session-keys.js';
 import { smimeDecrypt, normalizeCmsBytes, SmimeKeyLockedError } from '../src/smime-decrypt.js';
 import { detectSmime } from '../src/smime-detect.js';
-import { buildAuthEnveloped, stalwartMessage, flipMacByte, parseCertificatePem } from './helpers/auth-enveloped.mjs';
+import {
+  buildAuthEnveloped, stalwartMessage, flipMacByte, parseCertificatePem, addSealer, OID_CHACHA20_POLY1305,
+} from './helpers/auth-enveloped.mjs';
 
 const fixture = (name) => {
   const buf = readFileSync(fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url)));
@@ -104,6 +107,37 @@ describe('AES-256-GCM AuthEnvelopedData', () => {
   it('authenticates the authAttrs along with the content', async () => {
     expect(await decrypt(await buildAuthEnveloped(cert, { plaintext: MESSAGE, authAttrs: 'match' }))).toContain(PLAINTEXT);
     await expect(decrypt(await buildAuthEnveloped(cert, { plaintext: MESSAGE, authAttrs: 'altered' }))).rejects.toThrow(FAILED);
+  }, 30_000);
+});
+
+// Sealed with Node's ChaCha20-Poly1305, not the @noble/ciphers the plugin uses.
+addSealer(OID_CHACHA20_POLY1305, (key, nonce, plaintext, aad) => {
+  const cipher = createCipheriv('chacha20-poly1305', key, nonce, { authTagLength: 16 });
+  if (aad) cipher.setAAD(aad, { plaintextLength: plaintext.byteLength });
+  const ciphertext = new Uint8Array(Buffer.concat([cipher.update(plaintext), cipher.final()]));
+  return { ciphertext, mac: new Uint8Array(cipher.getAuthTag()) };
+});
+
+describe('ChaCha20-Poly1305 AuthEnvelopedData', () => {
+  beforeEach(unlock);
+
+  it('reads it as Stalwart stores it', async () => {
+    const der = await buildAuthEnveloped(cert, { contentOid: OID_CHACHA20_POLY1305, plaintext: MESSAGE });
+    const text = await decrypt(stalwartMessage(der));
+    expect(text).toMatch(/^Content-Type: text\/plain; charset=utf-8\r\n\r\n/);
+    expect(text).toContain(PLAINTEXT);
+  }, 30_000);
+
+  it('refuses the message once a mac byte is changed', async () => {
+    const der = await buildAuthEnveloped(cert, { contentOid: OID_CHACHA20_POLY1305, plaintext: MESSAGE });
+    expect(await decrypt(der)).toContain(PLAINTEXT);
+    await expect(decrypt(flipMacByte(der))).rejects.toThrow(FAILED);
+  }, 30_000);
+
+  it('authenticates the authAttrs along with the content', async () => {
+    const build = (authAttrs) => buildAuthEnveloped(cert, { contentOid: OID_CHACHA20_POLY1305, plaintext: MESSAGE, authAttrs });
+    expect(await decrypt(await build('match'))).toContain(PLAINTEXT);
+    await expect(decrypt(await build('altered'))).rejects.toThrow(FAILED);
   }, 30_000);
 });
 

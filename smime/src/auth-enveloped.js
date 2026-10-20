@@ -1,6 +1,7 @@
 /**
  * CMS AuthEnvelopedData (RFC 5083): what Stalwart writes when it encrypts
- * mail at rest with AES-256-GCM. pkijs has no class for it, so this parses
+ * mail at rest with AES-256-GCM or ChaCha20-Poly1305 (RFC 8103; not in
+ * WebCrypto, so @noble/ciphers). pkijs has no class for it, so this parses
  * the structure itself and reuses pkijs only for the parts it shares with
  * EnvelopedData (RecipientInfo, EncryptedContentInfo).
  *
@@ -16,6 +17,7 @@
 
 import * as pkijs from 'pkijs';
 import * as asn1js from 'asn1js';
+import { chacha20poly1305 } from '@noble/ciphers/chacha.js';
 import { getLinerCrypto } from './crypto-engine.js';
 
 export const OID_AUTH_ENVELOPED_DATA = '1.2.840.113549.1.9.16.1.23';
@@ -38,7 +40,6 @@ const ALGORITHM_NAMES = {
   '2.16.840.1.101.3.4.1.7': 'AES-128-CCM',
   '2.16.840.1.101.3.4.1.27': 'AES-192-CCM',
   '2.16.840.1.101.3.4.1.47': 'AES-256-CCM',
-  '1.2.840.113549.1.9.16.3.18': 'ChaCha20-Poly1305',
 };
 
 export class UnsupportedAlgorithmError extends Error {
@@ -99,9 +100,19 @@ async function aesGcmDecrypt(cek, params, ciphertext, mac, aad) {
   );
 }
 
+// AEAD_CHACHA20_POLY1305 parameters: the 12-byte nonce as an OCTET STRING.
+async function chacha20Poly1305Decrypt(cek, params, ciphertext, mac, aad) {
+  if (!(params instanceof asn1js.OctetString)) throw new Error('Invalid ChaCha20-Poly1305 parameters');
+  const nonce = new Uint8Array(params.getValue());
+  if (nonce.byteLength !== 12) throw new Error('ChaCha20-Poly1305 nonce must be 12 bytes');
+  if (mac.byteLength !== 16) throw new Error('ChaCha20-Poly1305 tag must be 16 bytes');
+  return chacha20poly1305(new Uint8Array(cek), nonce, aad).decrypt(concat(ciphertext, mac));
+}
+
 const CIPHERS = {
   '2.16.840.1.101.3.4.1.6': { keyLength: 16, decrypt: aesGcmDecrypt },
   '2.16.840.1.101.3.4.1.46': { keyLength: 32, decrypt: aesGcmDecrypt },
+  '1.2.840.113549.1.9.16.3.18': { keyLength: 32, decrypt: chacha20Poly1305Decrypt },
 };
 
 /** The content cipher of a message, or UnsupportedAlgorithmError. */

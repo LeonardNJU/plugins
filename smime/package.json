@@ -9,6 +9,7 @@
     "package": "npm run build && cp manifest.json dist/ && cd dist && zip -X ../smime.zip manifest.json index.js"
   },
   "dependencies": {
+    "@noble/ciphers": "^2.4.0",
     "asn1js": "^3.0.10",
     "pkijs": "^3.4.0",
     "pvtsutils": "^1.3.6",
