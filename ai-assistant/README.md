@@ -13,8 +13,9 @@ server the text goes to and which model answers, and have to confirm.
 ## Writing
 
 Click **Assistant** in the composer's bottom bar or press **Alt+A**: the
-assistant opens as a panel next to the message (fold it with the arrow
-at its top, drag its edge to make it wider). It shows what it works on:
+assistant opens as a panel next to the message (Alt+A or the arrow at its
+top folds it again, and it stays the way you left it; drag its edge to
+make it wider). It shows what it works on:
 
 - **Selected text**: highlight part of the message and the panel follows.
 - **Your message**: nothing selected, the text you wrote so far (the
@@ -41,7 +42,8 @@ gets to work on that text.
 
 ## Reading
 
-Next to an open message the panel offers **Summarize**, **To-dos and
+Click **Assistant** in the toolbar of an open message to open its panel
+(or right-click selected text). It offers **Summarize**, **To-dos and
 dates** (with due dates, as a copyable checklist), **Reply ideas** (three
 short replies; **Reply** opens one in the composer) and **Translate**. Ask
 anything about the message below: "what do they want from me?", "when is
@@ -139,6 +141,7 @@ composer closes).
 | `ui:email-details` | The panel next to the open message (`email-detail-sidebar`) |
 | `ui:composer-toolbar` | The Assistant button in the composer's bottom bar and the right-click entries on selected text in the message |
 | `ui:context-menu` | The right-click entries on selected text in an open message |
+| `ui:toolbar` | The Assistant button in the open message's toolbar (`reader-actions`) |
 | `ui:email-banner` | The bar above a message on phones and the conversation summary |
 | `ui:settings-section` | The plugin's settings page |
 | `compose:read` | Read the selection or your own text of the message the assistant works on |
@@ -179,3 +182,15 @@ Ollama (`up.ps1 -WithAI`). They use the Anthropic and OpenAI mocks
 through both its OpenAI-compatible and its Anthropic API.
 `e2e/seed_thread.py` adds a three-message conversation to alice's inbox
 for the conversation summary.
+
+## Screenshots
+
+| | |
+| --- | --- |
+| ![The panel next to a new message, light](screenshots/composer-panel-the-anthropic-mock-light.png) | ![A proposal, marked against the message](screenshots/composer-proposal-the-anthropic-mock-light.png) |
+| ![The panel, dark](screenshots/composer-proposal-the-openai-mock-dark.png) | ![Writing an empty message](screenshots/composer-write-light.png) |
+| ![The right-click menu on selected text in the composer](screenshots/composer-context-menu-light.png) | ![Spelling fixes, dark](screenshots/composer-grammar-dark.png) |
+| ![The panel next to an open message](screenshots/reader-panel-light.png) | ![A summary, dark](screenshots/reader-summary-dark.png) |
+| ![Reply ideas](screenshots/reader-replies-light.png) | ![The right-click menu on a passage of a message](screenshots/reader-context-menu-light.png) |
+| ![The bar on a phone](screenshots/reader-bar-phone-light.png) | ![The dialog in a phone's composer](screenshots/composer-dialog-phone-light.png) |
+| ![A rate limit](screenshots/composer-rate-limit-light.png) | ![Settings, dark](screenshots/settings-own-key-dark.png) |
