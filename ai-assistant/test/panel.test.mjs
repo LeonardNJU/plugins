@@ -322,6 +322,62 @@ describe('actions in the reader panel', () => {
   });
 });
 
+describe('taking context out', () => {
+  const OTHER = { id: 'M2', subject: 'Invoice 42', receivedAt: '2026-10-13T09:00:00Z', from: [{ name: 'Dan', email: 'dan@example.org' }], text: 'Please pay invoice 42.' };
+  const removeButton = () => screen.getByRole('button', { name: 'Remove from context' });
+
+  it('shows the x while the pointer is over the chip', async () => {
+    const api = makeApi();
+    await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
+    const chip = document.querySelector('[data-context-chip=""]');
+    expect(removeButton().style.opacity).toBe('0');
+    await act(async () => { fireEvent.mouseEnter(chip); });
+    expect(removeButton().style.opacity).toBe('1');
+    await act(async () => { fireEvent.mouseLeave(chip); });
+    expect(removeButton().style.opacity).toBe('0');
+  });
+
+  it('leaves the message out of the next question until the user adds it back', async () => {
+    const api = makeApi({ answers: ['Sure.'] });
+    const view = await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
+    await click(removeButton());
+    expect(screen.queryByText('This message')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Actions' })).toBeNull();
+    await type('write a haiku about autumn');
+    await pressEnter();
+    await settled();
+    const system = sentPrompt(api).system;
+    expect(system).not.toContain('Can we meet on Thursday');
+    expect(system).toContain('(not available)');
+    // Brought back by hand...
+    await click(screen.getByRole('button', { name: 'Add this message' }));
+    expect(screen.getByText('This message')).toBeTruthy();
+    // ...or by opening another message.
+    await click(removeButton());
+    await act(async () => { view.rerender(React.createElement(AssistantPanel, { api, email: OTHER, selection: { text: '' }, focusRequest: 0 })); });
+    expect(screen.getByText('This message')).toBeTruthy();
+    expect(screen.getByText('Invoice 42')).toBeTruthy();
+  });
+
+  it('falls back from a highlighted passage to the whole message', async () => {
+    const api = makeApi();
+    await mount(api, { email: EMAIL, selection: { text: 'Thursday at 3' }, focusRequest: 0 });
+    expect(screen.getByText('Highlighted passage')).toBeTruthy();
+    await click(removeButton());
+    expect(screen.queryByText('Highlighted passage')).toBeNull();
+    expect(screen.getByText('This message')).toBeTruthy();
+  });
+
+  it('in the composer, falls back from the selection to the draft, which stays', async () => {
+    const api = makeApi();
+    await mount(api, { composerId: 'c1', selection: { text: 'tuesday', empty: false } });
+    expect(screen.getByText('Selected text')).toBeTruthy();
+    await click(removeButton());
+    await waitFor(() => expect(screen.getByText('Your message')).toBeTruthy());
+    expect(screen.queryByRole('button', { name: 'Remove from context' })).toBeNull();
+  });
+});
+
 describe('the reader panel across messages', () => {
   const OTHER = { id: 'M2', subject: 'Invoice 42', receivedAt: '2026-10-13T09:00:00Z', from: [{ name: 'Dan', email: 'dan@example.org' }], text: 'Please pay invoice 42.' };
 

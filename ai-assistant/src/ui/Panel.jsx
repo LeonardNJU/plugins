@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert, Badge, Button, Chip, DiffView, Icon, LinkButton, List, ListRow, Row, RowAction, Select, Spinner, Stack, Text, Textarea,
+  Alert, Badge, Button, DiffView, Icon, LinkButton, List, ListRow, Row, RowAction, Select, Spinner, Stack, Text, Textarea,
 } from '@plugin-host/ui';
 import { ConsentNotice, ErrorMessage, copyWithToast, useApi } from './common.jsx';
 import { Markdown, stripMarkdown } from './Markdown.jsx';
@@ -55,6 +55,30 @@ export function sourceFor(mode, { selection, body, email }) {
   if (selected) return { scope: 'passage', text: selected };
   if (!email) return { scope: 'none', text: '' };
   return { scope: 'message', text: email.text ?? '' };
+}
+
+/** A context the user can take out: the same text of the same message or draft. */
+export function contextKey(mode, source, owner) {
+  const text = source.scope === 'selection' || source.scope === 'passage' ? source.text.slice(0, 500) : '';
+  return `${mode}:${owner ?? ''}:${source.scope}:${text}`;
+}
+
+/**
+ * The context in effect: the first one, from the narrowest, that the user
+ * did not take out. A highlighted passage falls back to the message, the
+ * message to none; in the composer a selection falls back to the draft,
+ * which stays (rewrites need it).
+ */
+export function effectiveSource(mode, { selection, body, email }, removed, owner) {
+  const first = sourceFor(mode, { selection, body, email });
+  const out = (src) => removed.has(contextKey(mode, src, owner));
+  if (!out(first)) return first;
+  if (mode === 'composer') return sourceFor(mode, { selection: null, body, email });
+  if (first.scope === 'passage') {
+    const whole = sourceFor(mode, { selection: null, body, email });
+    if (!out(whole)) return whole;
+  }
+  return { scope: 'none', text: '', removed: true };
 }
 
 /** The message the conversation was last about (user turns and markers carry it). */
@@ -131,7 +155,17 @@ export function AssistantPanel(props) {
   const turnsRef = useRef(turns);
   turnsRef.current = turns;
 
-  const source = useMemo(() => sourceFor(mode, { selection, body, email }), [mode, selection, body, email]);
+  // Contexts the user took out with the chip's x, until another message or
+  // another selection brings a new one.
+  const [removed, setRemoved] = useState(() => new Set());
+  const owner = mode === 'composer' ? props.composerId : email?.id;
+  const source = useMemo(() => effectiveSource(mode, { selection, body, email }, removed, owner), [mode, selection, body, email, removed, owner]);
+  // The message as far as the model may see it.
+  const contextEmail = source.scope === 'none' ? null : email;
+  const removeContext = useCallback(() => {
+    setRemoved((prev) => new Set(prev).add(contextKey(mode, source, owner)));
+  }, [mode, source, owner]);
+  const restoreContext = useCallback(() => setRemoved(new Set()), []);
   const running = turns.some((turn) => turn.status === 'running');
   const lookups = prefs.lookups !== false;
   const actionMode = effectiveActionMode(setup?.config ?? {}, prefs);
@@ -252,10 +286,10 @@ export function AssistantPanel(props) {
     // In the reader the conversation runs on while the user opens other
     // messages: a line in the transcript names the message a question is
     // about when it is not the one before, and the model hears of it.
-    const emailId = mode === 'reader' ? (email?.id ?? null) : undefined;
-    const switched = mode === 'reader' && email && previous.length > 0 && lastTopic(previous) !== email.id;
-    const marker = switched ? [{ id: uid(), role: 'context', emailId: email.id, subject: email.subject ?? '' }] : [];
-    const note = switched ? `(Now about another message: "${email.subject ?? ''}" from ${email.from?.[0]?.name || email.from?.[0]?.email || 'unknown'}.)\n` : '';
+    const emailId = mode === 'reader' ? (contextEmail?.id ?? null) : undefined;
+    const switched = mode === 'reader' && contextEmail && previous.length > 0 && lastTopic(previous) !== contextEmail.id;
+    const marker = switched ? [{ id: uid(), role: 'context', emailId: contextEmail.id, subject: contextEmail.subject ?? '' }] : [];
+    const note = switched ? `(Now about another message: "${contextEmail.subject ?? ''}" from ${contextEmail.from?.[0]?.name || contextEmail.from?.[0]?.email || 'unknown'}.)\n` : '';
     const userTurn = { id: uid(), role: 'user', content: note + (sent ?? label), label, ...(emailId !== undefined ? { emailId } : {}) };
     const turn = { id: uid(), role: 'assistant', content: '', status: 'running', task: task ?? 'chat', show: show ?? 'chat', scope, source: src ?? '', steps: [], ...(task ? { input: taskInput ?? {} } : {}) };
     setTurns([...previous, ...marker, userTurn, turn]);
@@ -269,7 +303,7 @@ export function AssistantPanel(props) {
         const prompt = buildPrompt(task, { language: locale, extra, ...taskInput });
         text = await streamCompletion(api, endpoint, prompt, { onText, signal: abort.signal });
       } else {
-        const ctx = { inReplyToId: mode === 'composer' ? context?.inReplyToId : undefined, lookups, actions: actionMode, mode, openEmailId: mode === 'reader' ? email?.id : undefined };
+        const ctx = { inReplyToId: mode === 'composer' ? context?.inReplyToId : undefined, lookups, actions: actionMode, mode, openEmailId: mode === 'reader' ? contextEmail?.id : undefined };
         const tools = [...toolsFor(ctx), ...actionToolsFor(ctx)];
         let autoActions = 0;
         // Lookups run straight away; an action is shown first, then waits for
@@ -299,7 +333,7 @@ export function AssistantPanel(props) {
         };
         const system = mode === 'composer'
           ? composerChatSystem({ language: locale, today: today(), subject, mode: context?.mode, originalSubject: context?.originalSubject, scope, text: src, hasTools: tools.length > 0, actions: actionMode, extra })
-          : readerChatSystem({ language: locale, today: today(), email: email ? emailForPrompt(email) : null, emailId: email?.id, selection: scope === 'passage' ? src : '', hasTools: tools.length > 0, actions: actionMode, extra });
+          : readerChatSystem({ language: locale, today: today(), email: contextEmail ? emailForPrompt(contextEmail) : null, emailId: contextEmail?.id, selection: scope === 'passage' ? src : '', hasTools: tools.length > 0, actions: actionMode, extra });
         const messages = [...historyMessages(previous), { role: 'user', content: userTurn.content }];
         const out = await runChat(api, endpoint, {
           system, messages, tools, runTool: callTool,
@@ -329,7 +363,7 @@ export function AssistantPanel(props) {
     } finally {
       if (controller.current === abort) controller.current = null;
     }
-  }, [api, setup, askConsent, patchTurn, locale, mode, context, lookups, subject, email, extraContext]);
+  }, [api, setup, askConsent, patchTurn, locale, mode, context, lookups, subject, contextEmail, extraContext]);
 
   /** A quick action on the current source (or on `text` from a right-click). */
   const quick = useCallback((action, { text, targetTag } = {}) => {
@@ -568,7 +602,18 @@ export function AssistantPanel(props) {
         <div data-assistant-input style={{ border: '1px solid var(--color-border)', borderRadius: 10, padding: '8px 8px 6px', background: 'var(--color-background)' }}>
         <Stack gap={1}>
           <Row gap={1} wrap={false} className="min-w-0">
-            <Chip icon={contextIcon} label={contextLabel} detail={contextDetail || undefined} title={contextTitle} />
+            {source.removed && email ? (
+              <ContextChip icon="plus" label={t('panel.context.add_message')} title={email.subject || contextLabel} dashed onClick={restoreContext} />
+            ) : (
+              <ContextChip
+                icon={contextIcon}
+                label={contextLabel}
+                detail={contextDetail || undefined}
+                title={contextTitle}
+                removeLabel={t('panel.context.remove')}
+                onRemove={source.scope === 'message' || source.scope === 'passage' || source.scope === 'selection' ? removeContext : undefined}
+              />
+            )}
           </Row>
           <Textarea
             ref={inputRef}
@@ -670,6 +715,64 @@ function ActionsMenu({ api, actions, actionLabel, disabled, onPick }) {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * What the assistant works on, as a chip above the input. With onRemove an
+ * x shows while the pointer is over the chip (or the keyboard is in it) and
+ * takes the context out; `dashed` with onClick is the chip that brings it back.
+ */
+function ContextChip({ icon, label, detail, title, onRemove, removeLabel, onClick, dashed = false }) {
+  const [hover, setHover] = useState(false);
+  const [focus, setFocus] = useState(false);
+  const box = {
+    position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 6, maxWidth: '100%', minWidth: 0,
+    padding: '4px 10px', borderRadius: 6, border: `1px ${dashed ? 'dashed' : 'solid'} var(--color-border)`,
+    background: dashed ? 'transparent' : 'var(--color-muted)', color: 'var(--color-foreground)', font: 'inherit', fontSize: '0.875rem',
+  };
+  const content = (
+    <>
+      <Icon name={icon} size="sm" className="text-muted-foreground" />
+      <span style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>{label}</span>
+      {detail && <span style={{ fontSize: '0.75rem', color: 'var(--color-muted-foreground)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{detail}</span>}
+    </>
+  );
+  if (onClick) {
+    return <button type="button" data-context-chip="add" title={title} onClick={onClick} className="bk hover:bg-muted" style={{ ...box, cursor: 'pointer' }}>{content}</button>;
+  }
+  const shown = hover || focus;
+  return (
+    <span
+      data-context-chip=""
+      title={title}
+      style={box}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onFocus={() => setFocus(true)}
+      onBlur={() => setFocus(false)}
+    >
+      {content}
+      {onRemove && (
+        <button
+          type="button"
+          aria-label={removeLabel}
+          title={removeLabel}
+          onClick={onRemove}
+          className="bk hover:bg-accent"
+          style={{
+            position: 'absolute', insetInlineEnd: 4, top: '50%', transform: 'translateY(-50%)',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 20, height: 20,
+            border: 0, borderRadius: 4, padding: 0, cursor: 'pointer',
+            background: 'var(--color-muted)', color: 'var(--color-foreground)',
+            boxShadow: '-8px 0 8px var(--color-muted)',
+            opacity: shown ? 1 : 0, pointerEvents: shown ? 'auto' : 'none', transition: 'opacity 120ms',
+          }}
+        >
+          <Icon name="x" size="sm" />
+        </button>
+      )}
+    </span>
   );
 }
 

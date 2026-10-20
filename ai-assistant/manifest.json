@@ -373,7 +373,9 @@
       "action.failed": "Failed",
       "action.undone": "Undone",
       "action.waiting": "Waiting for your OK",
-      "action.undo_failed": "Couldn't undo that"
+      "action.undo_failed": "Couldn't undo that",
+      "panel.context.remove": "Remove from context",
+      "panel.context.add_message": "Add this message"
     },
     "ar": {
       "common.cancel": "إلغاء",
@@ -595,7 +597,9 @@
       "action.failed": "فشل",
       "action.undone": "تم التراجع",
       "action.waiting": "بانتظار موافقتك",
-      "action.undo_failed": "تعذّر التراجع"
+      "action.undo_failed": "تعذّر التراجع",
+      "panel.context.remove": "إزالة من السياق",
+      "panel.context.add_message": "إضافة هذه الرسالة"
     },
     "ca": {
       "common.cancel": "Cancel·la",
@@ -817,7 +821,9 @@
       "action.failed": "Ha fallat",
       "action.undone": "Desfet",
       "action.waiting": "Esperant la teva aprovació",
-      "action.undo_failed": "No s'ha pogut desfer"
+      "action.undo_failed": "No s'ha pogut desfer",
+      "panel.context.remove": "Treu del context",
+      "panel.context.add_message": "Afegeix aquest missatge"
     },
     "cs": {
       "common.cancel": "Zrušit",
@@ -1039,7 +1045,9 @@
       "action.failed": "Nezdařilo se",
       "action.undone": "Vráceno zpět",
       "action.waiting": "Čeká na vaše schválení",
-      "action.undo_failed": "Nepodařilo se vrátit zpět"
+      "action.undo_failed": "Nepodařilo se vrátit zpět",
+      "panel.context.remove": "Odebrat z kontextu",
+      "panel.context.add_message": "Přidat tuto zprávu"
     },
     "da": {
       "common.cancel": "Annuller",
@@ -1261,7 +1269,9 @@
       "action.failed": "Mislykkedes",
       "action.undone": "Fortrudt",
       "action.waiting": "Venter på din godkendelse",
-      "action.undo_failed": "Kunne ikke fortrydes"
+      "action.undo_failed": "Kunne ikke fortrydes",
+      "panel.context.remove": "Fjern fra konteksten",
+      "panel.context.add_message": "Tilføj denne besked"
     },
     "de": {
       "common.cancel": "Abbrechen",
@@ -1483,7 +1493,9 @@
       "action.failed": "Fehlgeschlagen",
       "action.undone": "Rückgängig gemacht",
       "action.waiting": "Wartet auf Ihr OK",
-      "action.undo_failed": "Konnte nicht rückgängig gemacht werden"
+      "action.undo_failed": "Konnte nicht rückgängig gemacht werden",
+      "panel.context.remove": "Aus dem Kontext entfernen",
+      "panel.context.add_message": "Diese Nachricht hinzufügen"
     },
     "es": {
       "common.cancel": "Cancelar",
@@ -1705,7 +1717,9 @@
       "action.failed": "Error",
       "action.undone": "Deshecho",
       "action.waiting": "Esperando tu aprobación",
-      "action.undo_failed": "No se pudo deshacer"
+      "action.undo_failed": "No se pudo deshacer",
+      "panel.context.remove": "Quitar del contexto",
+      "panel.context.add_message": "Añadir este mensaje"
     },
     "fa": {
       "common.cancel": "انصراف",
@@ -1927,7 +1941,9 @@
       "action.failed": "ناموفق",
       "action.undone": "واگرد شد",
       "action.waiting": "در انتظار تأیید شما",
-      "action.undo_failed": "واگرد ممکن نشد"
+      "action.undo_failed": "واگرد ممکن نشد",
+      "panel.context.remove": "حذف از زمینه",
+      "panel.context.add_message": "افزودن این پیام"
     },
     "fr": {
       "common.cancel": "Annuler",
@@ -2149,7 +2165,9 @@
       "action.failed": "Échec",
       "action.undone": "Annulé",
       "action.waiting": "En attente de votre accord",
-      "action.undo_failed": "Impossible d'annuler"
+      "action.undo_failed": "Impossible d'annuler",
+      "panel.context.remove": "Retirer du contexte",
+      "panel.context.add_message": "Ajouter ce message"
     },
     "he": {
       "common.cancel": "ביטול",
@@ -2371,7 +2389,9 @@
       "action.failed": "נכשל",
       "action.undone": "בוטל",
       "action.waiting": "ממתין לאישורך",
-      "action.undo_failed": "לא ניתן היה לבטל"
+      "action.undo_failed": "לא ניתן היה לבטל",
+      "panel.context.remove": "הסרה מההקשר",
+      "panel.context.add_message": "הוספת ההודעה הזו"
     },
     "hu": {
       "common.cancel": "Mégse",
@@ -2593,7 +2613,9 @@
       "action.failed": "Sikertelen",
       "action.undone": "Visszavonva",
       "action.waiting": "Jóváhagyásodra vár",
-      "action.undo_failed": "Nem sikerült visszavonni"
+      "action.undo_failed": "Nem sikerült visszavonni",
+      "panel.context.remove": "Eltávolítás a kontextusból",
+      "panel.context.add_message": "Az üzenet hozzáadása"
     },
     "it": {
       "common.cancel": "Annulla",
@@ -2815,7 +2837,9 @@
       "action.failed": "Non riuscito",
       "action.undone": "Annullato",
       "action.waiting": "In attesa della tua conferma",
-      "action.undo_failed": "Impossibile annullare"
+      "action.undo_failed": "Impossibile annullare",
+      "panel.context.remove": "Rimuovi dal contesto",
+      "panel.context.add_message": "Aggiungi questo messaggio"
     },
     "ja": {
       "common.cancel": "キャンセル",
@@ -3037,7 +3061,9 @@
       "action.failed": "失敗",
       "action.undone": "元に戻しました",
       "action.waiting": "承認待ち",
-      "action.undo_failed": "元に戻せませんでした"
+      "action.undo_failed": "元に戻せませんでした",
+      "panel.context.remove": "コンテキストから外す",
+      "panel.context.add_message": "このメッセージを追加"
     },
     "ko": {
       "common.cancel": "취소",
@@ -3259,7 +3285,9 @@
       "action.failed": "실패",
       "action.undone": "취소됨",
       "action.waiting": "승인 대기 중",
-      "action.undo_failed": "실행 취소하지 못했습니다"
+      "action.undo_failed": "실행 취소하지 못했습니다",
+      "panel.context.remove": "컨텍스트에서 제거",
+      "panel.context.add_message": "이 메시지 추가"
     },
     "lv": {
       "common.cancel": "Atcelt",
@@ -3481,7 +3509,9 @@
       "action.failed": "Neizdevās",
       "action.undone": "Atsaukts",
       "action.waiting": "Gaida jūsu apstiprinājumu",
-      "action.undo_failed": "Neizdevās atsaukt"
+      "action.undo_failed": "Neizdevās atsaukt",
+      "panel.context.remove": "Noņemt no konteksta",
+      "panel.context.add_message": "Pievienot šo ziņu"
     },
     "mn": {
       "common.cancel": "Болих",
@@ -3703,7 +3733,9 @@
       "action.failed": "Амжилтгүй",
       "action.undone": "Буцаасан",
       "action.waiting": "Таны зөвшөөрлийг хүлээж байна",
-      "action.undo_failed": "Буцааж чадсангүй"
+      "action.undo_failed": "Буцааж чадсангүй",
+      "panel.context.remove": "Агуулгаас хасах",
+      "panel.context.add_message": "Энэ мессежийг нэмэх"
     },
     "nb": {
       "common.cancel": "Avbryt",
@@ -3925,7 +3957,9 @@
       "action.failed": "Mislyktes",
       "action.undone": "Angret",
       "action.waiting": "Venter på godkjenningen din",
-      "action.undo_failed": "Kunne ikke angres"
+      "action.undo_failed": "Kunne ikke angres",
+      "panel.context.remove": "Fjern fra konteksten",
+      "panel.context.add_message": "Legg til denne meldingen"
     },
     "nl": {
       "common.cancel": "Annuleren",
@@ -4147,7 +4181,9 @@
       "action.failed": "Mislukt",
       "action.undone": "Ongedaan gemaakt",
       "action.waiting": "Wacht op uw akkoord",
-      "action.undo_failed": "Kon dit niet ongedaan maken"
+      "action.undo_failed": "Kon dit niet ongedaan maken",
+      "panel.context.remove": "Uit de context halen",
+      "panel.context.add_message": "Dit bericht toevoegen"
     },
     "pl": {
       "common.cancel": "Anuluj",
@@ -4369,7 +4405,9 @@
       "action.failed": "Nie udało się",
       "action.undone": "Cofnięto",
       "action.waiting": "Czeka na Twoją zgodę",
-      "action.undo_failed": "Nie udało się cofnąć"
+      "action.undo_failed": "Nie udało się cofnąć",
+      "panel.context.remove": "Usuń z kontekstu",
+      "panel.context.add_message": "Dodaj tę wiadomość"
     },
     "pt": {
       "common.cancel": "Cancelar",
@@ -4591,7 +4629,9 @@
       "action.failed": "Falhou",
       "action.undone": "Anulado",
       "action.waiting": "À espera da sua aprovação",
-      "action.undo_failed": "Não foi possível anular"
+      "action.undo_failed": "Não foi possível anular",
+      "panel.context.remove": "Remover do contexto",
+      "panel.context.add_message": "Adicionar esta mensagem"
     },
     "ro": {
       "common.cancel": "Anulează",
@@ -4813,7 +4853,9 @@
       "action.failed": "Eșuat",
       "action.undone": "Anulat",
       "action.waiting": "Așteaptă aprobarea ta",
-      "action.undo_failed": "Nu s-a putut anula"
+      "action.undo_failed": "Nu s-a putut anula",
+      "panel.context.remove": "Elimină din context",
+      "panel.context.add_message": "Adaugă acest mesaj"
     },
     "ru": {
       "common.cancel": "Отмена",
@@ -5035,7 +5077,9 @@
       "action.failed": "Не удалось",
       "action.undone": "Отменено",
       "action.waiting": "Ждёт вашего подтверждения",
-      "action.undo_failed": "Не удалось отменить"
+      "action.undo_failed": "Не удалось отменить",
+      "panel.context.remove": "Убрать из контекста",
+      "panel.context.add_message": "Добавить это письмо"
     },
     "sk": {
       "common.cancel": "Zrušiť",
@@ -5257,7 +5301,9 @@
       "action.failed": "Nepodarilo sa",
       "action.undone": "Vrátené späť",
       "action.waiting": "Čaká na vaše schválenie",
-      "action.undo_failed": "Nepodarilo sa vrátiť späť"
+      "action.undo_failed": "Nepodarilo sa vrátiť späť",
+      "panel.context.remove": "Odstrániť z kontextu",
+      "panel.context.add_message": "Pridať túto správu"
     },
     "tr": {
       "common.cancel": "İptal",
@@ -5479,7 +5525,9 @@
       "action.failed": "Başarısız",
       "action.undone": "Geri alındı",
       "action.waiting": "Onayınızı bekliyor",
-      "action.undo_failed": "Geri alınamadı"
+      "action.undo_failed": "Geri alınamadı",
+      "panel.context.remove": "Bağlamdan çıkar",
+      "panel.context.add_message": "Bu iletiyi ekle"
     },
     "uk": {
       "common.cancel": "Скасувати",
@@ -5701,7 +5749,9 @@
       "action.failed": "Не вдалося",
       "action.undone": "Скасовано",
       "action.waiting": "Чекає на ваше схвалення",
-      "action.undo_failed": "Не вдалося скасувати"
+      "action.undo_failed": "Не вдалося скасувати",
+      "panel.context.remove": "Прибрати з контексту",
+      "panel.context.add_message": "Додати цей лист"
     },
     "zh": {
       "common.cancel": "取消",
@@ -5923,7 +5973,9 @@
       "action.failed": "失败",
       "action.undone": "已撤销",
       "action.waiting": "等待你确认",
-      "action.undo_failed": "无法撤销"
+      "action.undo_failed": "无法撤销",
+      "panel.context.remove": "从上下文中移除",
+      "panel.context.add_message": "添加这封邮件"
     },
     "zh-TW": {
       "common.cancel": "取消",
@@ -6145,7 +6197,9 @@
       "action.failed": "失敗",
       "action.undone": "已復原",
       "action.waiting": "等待你確認",
-      "action.undo_failed": "無法復原"
+      "action.undo_failed": "無法復原",
+      "panel.context.remove": "從上下文中移除",
+      "panel.context.add_message": "加入這封郵件"
     }
   }
 }
