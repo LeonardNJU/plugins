@@ -398,6 +398,10 @@ export function AssistantPanel(props) {
     passage: t('panel.context.passage'),
   }[source.scope];
   const contextIcon = source.scope === 'selection' || source.scope === 'passage' ? 'highlight' : source.scope === 'empty' ? 'pencil' : 'mail';
+  // A whole message goes by its subject; highlighted text and the draft by their first words.
+  const mailSubject = (email?.subject ?? '').trim();
+  const contextDetail = source.scope === 'message' && mailSubject ? excerpt(mailSubject, 60) : source.text ? excerpt(source.text, 40) : '';
+  const contextTitle = source.scope === 'message' && mailSubject ? mailSubject : source.text ? excerpt(source.text, 400) : contextLabel;
   const actions = mode === 'composer'
     ? (source.scope === 'empty' ? [] : COMPOSER_ACTIONS)
     : (source.scope === 'passage' ? PASSAGE_ACTIONS : READER_ACTIONS);
@@ -474,7 +478,7 @@ export function AssistantPanel(props) {
         <div data-assistant-input style={{ border: '1px solid var(--color-border)', borderRadius: 10, padding: '8px 8px 6px', background: 'var(--color-background)' }}>
         <Stack gap={1}>
           <Row gap={1} wrap={false} className="min-w-0">
-            <Chip icon={contextIcon} label={contextLabel} detail={source.text ? excerpt(source.text, 40) : undefined} title={source.text ? excerpt(source.text, 400) : contextLabel} />
+            <Chip icon={contextIcon} label={contextLabel} detail={contextDetail || undefined} title={contextTitle} />
           </Row>
           <Textarea
             ref={inputRef}

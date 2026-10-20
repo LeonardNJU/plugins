@@ -206,6 +206,9 @@ describe('the reader panel', () => {
     const api = makeApi({ answers: ['- Carol asks for a meeting on Thursday at 3', 'Yes, at 3 pm.'] });
     await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
     expect(screen.getByText('This message')).toBeTruthy();
+    // The chip names the message by its subject, not by the start of its body.
+    expect(screen.getByText('Thursday')).toBeTruthy();
+    expect(screen.queryByText(/Can we meet on Thursday/)).toBeNull();
     await quickAction('Summarize');
     await settled();
     expect(sentPrompt(api).messages[0].content).toContain('Subject: Thursday');
