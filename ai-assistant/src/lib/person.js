@@ -21,7 +21,7 @@ export async function loadPerson(api, language) {
     safe(() => api.user.getIdentities(), []),
     safe(() => api.user.getAccounts(), []),
     safe(() => api.user.getTimeZone(), ''),
-    // Webmail 1.17.1 and later; older ones answer "unknown method".
+    // Webmail 1.17.0 and later; older ones answer "unknown method".
     safe(() => api.app.getInfo(), null),
   ]);
   const list = Array.isArray(identities) ? identities : [];

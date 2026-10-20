@@ -1564,7 +1564,7 @@ await api.app.getSettings()       // { mailLayout: 'focus', sendDelaySeconds: 10
 
 `api.app.getInfo` needs no permission: `name` is what the administrator
 called this installation (`APP_NAME`), `version` the app's version. It is
-new in Bulwark 1.17.1; on older versions the call fails with an unknown
+new in Bulwark 1.17.0; on older versions the call fails with an unknown
 method, so catch it when the plugin supports those.
 
 `api.app.searchSettings` searches the same index as the search box in
