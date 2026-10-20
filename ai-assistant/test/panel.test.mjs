@@ -378,6 +378,24 @@ describe('taking context out', () => {
   });
 });
 
+describe('what the assistant knows about the app', () => {
+  it('tells the model the app, its version, the account and server, and where things are', async () => {
+    const api = makeApi({ answers: ['This is Rath Mail.'], handlers: {
+      'app.getInfo': async () => ({ product: 'Bulwark Mail', name: 'Rath Mail', version: '1.17.1', edition: 'full', stalwartFeatures: true, demoMode: false }),
+      'user.getAccounts': async () => [{ email: 'linus@rath.li', serverUrl: 'https://mail.rath.li', isActive: true }],
+    } });
+    await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
+    await type('What webmail is this?');
+    await pressEnter();
+    await settled();
+    const system = sentPrompt(api).system;
+    expect(system).toContain('a plugin inside Rath Mail, which runs Bulwark Mail 1.17.1');
+    expect(system).toContain('signed in as linus@rath.li on the mail server mail.rath.li');
+    expect(system).toContain('Out of Office (automatic replies)');
+    expect(system).toContain('to the right of the open message');
+  });
+});
+
 describe('the reader panel across messages', () => {
   const OTHER = { id: 'M2', subject: 'Invoice 42', receivedAt: '2026-10-13T09:00:00Z', from: [{ name: 'Dan', email: 'dan@example.org' }], text: 'Please pay invoice 42.' };
 

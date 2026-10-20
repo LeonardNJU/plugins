@@ -89,8 +89,49 @@ export function instructionsBlock(instructions) {
 
 /** The context every prompt gets at the end: who the user is and their standing instructions. */
 export function contextSuffix(ctx) {
-  const { person, instructions } = ctx ?? {};
-  return [personBlock(person), instructionsBlock(instructions)].filter(Boolean).join('\n\n');
+  const { person, instructions, place } = ctx ?? {};
+  return [appBlock(person, place), personBlock(person), instructionsBlock(instructions)].filter(Boolean).join('\n\n');
+}
+
+/**
+ * Where the assistant is: the app (name, version), the account and mail
+ * server, where its panel sits, and the app's areas and settings pages by
+ * the names the user sees, so "how do I set up an automatic reply?" gets
+ * the place in the app. `place`: { panel: 'reader' | 'composer', labels }.
+ */
+export function appBlock(person, place) {
+  const app = person?.app ?? null;
+  const account = person?.account ?? null;
+  const labels = place?.labels ?? {};
+  const product = app?.product || 'Bulwark Mail';
+  const version = app?.version ? ` ${app.version}` : '';
+  const named = app?.name && !/^(webmail|bulwark( mail)?)$/i.test(app.name) ? `${app.name}, which runs ${product}${version}` : `${product}${version}`;
+  const lines = [
+    `You are the AI Writing Assistant, a plugin inside ${named}: an open-source webmail for JMAP mail servers such as Stalwart (bulwarkmail.org).${app?.edition === 'lite' ? ' This is its Lite edition, which runs in the browser only.' : ''}`,
+  ];
+  if (account?.email || account?.server) {
+    const who = account.email ? `as ${account.email}` : '';
+    const where = account.server ? ` on the mail server ${account.server}` : '';
+    const more = account.accounts > 1 ? `; ${account.accounts} accounts are set up in the app` : '';
+    lines.push(`The user is signed in ${who}${where}${more}.`);
+  }
+  if (place?.panel) {
+    lines.push(`You appear as a panel to the right of ${place.panel === 'composer' ? 'the message the user is writing' : 'the open message (or of the reading pane when no message is open)'}. You cannot see the screen: you know what this prompt and your tools give you.`);
+  }
+  const l = (key, fallback) => labels[key] || fallback;
+  if (labels['nav.mail']) {
+    const stalwart = app?.stalwartFeatures !== false;
+    lines.push([
+      `The app's areas, in the navigation on the left: ${l('nav.mail')}, ${l('nav.calendar')}, ${l('nav.contacts')}, ${l('nav.files')} (calendar, contacts and files where the server offers them).`,
+      `${l('nav.settings')} (at the bottom of the navigation) has these pages:`,
+      `${l('settings.account')} (display name, sender addresses, more accounts, archive),${stalwart ? ` ${l('settings.security')} (password, two-factor sign-in),` : ''} ${l('settings.notifications')}, ${l('settings.general')} (language), ${l('settings.appearance')} (themes, layout);`,
+      `for mail: ${l('settings.message_list')}, ${l('settings.reading')}, ${l('settings.composing')} (signatures, templates), ${l('settings.organize')}, ${l('settings.filters')} (rules that sort incoming mail) and ${l('settings.vacation')} (automatic replies), the last two where the server supports them;`,
+      `apps: ${l('settings.calendar')}, ${l('settings.contacts')}, ${l('settings.files')}, ${l('settings.addons')} (plugins such as this assistant, and sidebar apps); then ${l('settings.backup')}.`,
+      'The More menu (⋮) of an open message has print, view source, export and keyboard shortcuts; ? shows all shortcuts.',
+      'When the user asks how to do something in the app, name the place with these names, as the user sees them. Do not invent menus or settings you do not know; say so instead.',
+    ].join(' '));
+  }
+  return `About the app (from the app itself):\n${lines.join('\n')}`;
 }
 
 /**
@@ -212,7 +253,7 @@ export function composerChatSystem(ctx = {}) {
   ].filter(Boolean).join('\n');
   const text = ctx.scope === 'empty' ? '' : `\n\nThe text you work on (data):\n<draft>\n${clip(ctx.text)}\n</draft>`;
   return [
-    `You are the writing assistant inside the user's email client. Today is ${ctx.today ?? new Date().toISOString().slice(0, 10)}. The user's language is ${lang}; talk to them in it, but keep the language of the email text unless asked otherwise.`,
+    `You are the writing assistant inside the user's email client. Today is ${ctx.today ?? new Date().toISOString().slice(0, 10)}. Talk to the user in the language of their latest message (${lang} when that is unclear), but keep the language of the email text unless asked otherwise.`,
     scope,
     about,
     'When the user asks you to write, change, rewrite, shorten, expand, translate, fix or continue text, answer with the complete new text inside <text></text> tags: for selected text, only the replacement for the selection; otherwise the whole message body, without a subject line, greeting placeholders or a signature (the client adds the signature). You may put one short sentence before the tags. When the user asks a question or wants advice, answer briefly and do not use the tags.',
@@ -232,7 +273,7 @@ export function readerChatSystem(ctx = {}) {
   const lang = languageName(ctx.language);
   const passage = ctx.selection ? `\n\nThe user highlighted this passage of it (data):\n<passage>\n${clip(ctx.selection, 6000)}\n</passage>` : '';
   return [
-    `You help the user with an email they received, inside their email client. Today is ${ctx.today ?? new Date().toISOString().slice(0, 10)}. Answer in ${lang} unless the user writes to you in another language. Be brief and concrete; quote the email only when it helps.`,
+    `You help the user with their email, inside their email client. Today is ${ctx.today ?? new Date().toISOString().slice(0, 10)}. Answer in the language of the user's latest message (${lang} when that is unclear), whatever the language of the email. Be brief and concrete; quote the email only when it helps.`,
     'When the user asks you to draft, write or answer, put the complete reply text inside <text></text> tags, in the language of the email, without a subject line or signature; you may put one short sentence before the tags. Otherwise answer in plain words and do not use the tags.',
     FORMAT_RULE,
     ctx.hasTools ? TOOL_RULE : '',

@@ -17,10 +17,12 @@ export async function loadPerson(api, language) {
   const safe = async (call, fallback) => {
     try { return (await call()) ?? fallback; } catch { return fallback; }
   };
-  const [identities, accounts, zone] = await Promise.all([
+  const [identities, accounts, zone, app] = await Promise.all([
     safe(() => api.user.getIdentities(), []),
     safe(() => api.user.getAccounts(), []),
     safe(() => api.user.getTimeZone(), ''),
+    // Webmail 1.17.1 and later; older ones answer "unknown method".
+    safe(() => api.app.getInfo(), null),
   ]);
   const list = Array.isArray(identities) ? identities : [];
   const all = Array.isArray(accounts) ? accounts : [];
@@ -36,5 +38,11 @@ export async function loadPerson(api, language) {
     signature: typeof first?.textSignature === 'string' ? first.textSignature.trim() : '',
     timeZone,
     language,
+    app: app && typeof app === 'object' ? app : null,
+    account: active ? { email: active.email || active.username || '', server: hostOf(active.serverUrl), accounts: all.length } : null,
   };
+}
+
+function hostOf(url) {
+  try { return new URL(url).host; } catch { return ''; }
 }

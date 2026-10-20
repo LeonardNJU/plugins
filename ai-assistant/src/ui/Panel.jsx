@@ -57,6 +57,15 @@ export function sourceFor(mode, { selection, body, email }) {
   return { scope: 'message', text: email.text ?? '' };
 }
 
+/** The app's areas and settings pages as the user sees them (the webmail's own names, copied per language). */
+export function appLabels(t) {
+  const keys = ['nav.mail', 'nav.calendar', 'nav.contacts', 'nav.files', 'nav.settings',
+    'settings.account', 'settings.security', 'settings.notifications', 'settings.general', 'settings.appearance',
+    'settings.message_list', 'settings.reading', 'settings.composing', 'settings.organize', 'settings.filters',
+    'settings.vacation', 'settings.calendar', 'settings.contacts', 'settings.files', 'settings.addons', 'settings.backup'];
+  return Object.fromEntries(keys.map((key) => [key, t(`app.${key}`)]));
+}
+
 /** A context the user can take out: the same text of the same message or draft. */
 export function contextKey(mode, source, owner) {
   const text = source.scope === 'selection' || source.scope === 'passage' ? source.text.slice(0, 500) : '';
@@ -274,7 +283,8 @@ export function AssistantPanel(props) {
   const extraContext = useCallback(() => contextSuffix({
     person: person ? { ...person, now: localNow(person.timeZone) } : null,
     instructions: { admin: setup?.config?.instructions, user: prefs.instructions },
-  }), [person, setup, prefs]);
+    place: { panel: mode, labels: appLabels(t) },
+  }), [person, setup, prefs, mode, t]);
 
   const send = useCallback(async ({ label, sent, task, input: taskInput, show, scope, src }) => {
     const endpoint = setup?.endpoint;

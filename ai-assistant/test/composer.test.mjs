@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { fakeApi } from '../../test-utils/fake-api.mjs';
 import { createBackground, DRAFT_KEY, COMPOSER_SURFACE, COMPOSER_MENU_SURFACE, READER_MENU_SURFACE, READER_SURFACE, COMPOSER_CONTEXT_KEY, chatKey, pendingKey } from '../src/lib/background.js';
 import { ownText } from '../src/lib/draft.js';
-import { buildPrompt, clip, contextSuffix, composerChatSystem, REWRITE_STYLES } from '../src/lib/prompts.js';
+import { appBlock, buildPrompt, clip, contextSuffix, composerChatSystem, readerChatSystem, REWRITE_STYLES } from '../src/lib/prompts.js';
 import { defaultTarget, languageOptions } from '../src/lib/languages.js';
 import plugin from '../src/index.js';
 import manifest from '../manifest.json' with { type: 'json' };
@@ -56,16 +56,44 @@ describe('the context every request carries', () => {
       person: { name: 'Anna', emails: ['a@e.org'], signature: 'Kind regards', timeZone: 'Europe/Zurich', language: 'de', now: 'Tuesday 20 October 2026 at 18:00' },
       instructions: { admin: ' House style: short. ', user: 'Sign with Anna' },
     });
-    expect(extra).toBe([
+    // The app comes first, then the user, then the instructions.
+    expect(extra.startsWith('About the app (from the app itself):\nYou are the AI Writing Assistant, a plugin inside Bulwark Mail: ')).toBe(true);
+    expect(extra.slice(extra.indexOf('About the user'))).toBe([
       'About the user (data, from their account):',
       'Name: Anna', 'Email addresses: a@e.org', 'Signs emails with:\nKind regards', 'Time zone: Europe/Zurich',
       'Local date and time now: Tuesday 20 October 2026 at 18:00', 'Language of the mail client: German',
       '', 'Standing instructions from the administrator:\nHouse style: short.', '',
       'Standing instructions from the user (these win over the administrator\'s):\nSign with Anna',
     ].join('\n'));
-    expect(contextSuffix({})).toBe('');
-    expect(contextSuffix(null)).toBe('');
-    expect(contextSuffix({ instructions: { user: 'x'.repeat(5000) } }).length).toBeLessThan(2200);
+    expect(contextSuffix({})).not.toContain('About the user');
+    expect(contextSuffix(null)).not.toContain('Standing instructions');
+    expect(contextSuffix({ instructions: { user: 'x'.repeat(5000) } }).length).toBeLessThan(2500);
+  });
+
+  it('says which app, version, account and server it runs in, and the app\'s places by the names the user sees', () => {
+    const de = Object.fromEntries(Object.entries(manifest.locales.de).filter(([k]) => k.startsWith('app.')).map(([k, v]) => [k.slice(4), v]));
+    const block = appBlock({
+      app: { product: 'Bulwark Mail', name: 'Rath Mail', version: '1.17.1', edition: 'full', stalwartFeatures: false },
+      account: { email: 'linus@rath.li', server: 'mail.rath.li', accounts: 2 },
+    }, { panel: 'reader', labels: de });
+    expect(block).toContain('a plugin inside Rath Mail, which runs Bulwark Mail 1.17.1: an open-source webmail for JMAP mail servers');
+    expect(block).toContain('The user is signed in as linus@rath.li on the mail server mail.rath.li; 2 accounts are set up in the app.');
+    expect(block).toContain('to the right of the open message');
+    expect(block).toContain('Einstellungen (at the bottom of the navigation)');
+    expect(block).toContain('Abwesenheit (automatic replies)');
+    expect(block).toContain('Verfassen (signatures, templates)');
+    // Without Stalwart's features there is no Security page.
+    expect(block).not.toContain(manifest.locales.de['app.settings.security']);
+    // An older webmail without api.app: still the product, no version.
+    const old = appBlock({}, { panel: 'composer', labels: {} });
+    expect(old).toContain('a plugin inside Bulwark Mail: ');
+    expect(old).toContain('the message the user is writing');
+    expect(old).not.toContain('navigation');
+  });
+
+  it('answers in the language of the user\'s message, not the email\'s', () => {
+    expect(readerChatSystem({ language: 'de' })).toContain('Answer in the language of the user\'s latest message (German when that is unclear)');
+    expect(composerChatSystem({ language: 'de', scope: 'body', text: 'x' })).toContain('in the language of their latest message (German when that is unclear)');
   });
 
   it('goes to the end of the task prompts and the chat prompts', () => {
