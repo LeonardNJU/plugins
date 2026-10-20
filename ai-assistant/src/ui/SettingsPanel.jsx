@@ -110,12 +110,20 @@ export function SettingsPanel(props) {
               </Row>
             </SettingRow>
           )}
-          <SettingRow label={t('settings.show_in_reader')} htmlFor="ai-reader">
+          <SettingRow label={t('settings.show_in_reader')} description={t('settings.show_in_reader_hint')} htmlFor="ai-reader">
             <Switch
               id="ai-reader"
               label={t('settings.show_in_reader')}
               checked={prefs.showInReader !== false}
               onChange={(on) => void save({ showInReader: on })}
+            />
+          </SettingRow>
+          <SettingRow label={t('settings.lookups')} description={t('settings.lookups_hint')} htmlFor="ai-lookups">
+            <Switch
+              id="ai-lookups"
+              label={t('settings.lookups')}
+              checked={prefs.lookups !== false}
+              onChange={(on) => void save({ lookups: on })}
             />
           </SettingRow>
         </Stack>

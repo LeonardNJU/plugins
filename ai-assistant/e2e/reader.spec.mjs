@@ -4,14 +4,14 @@ import { fileURLToPath } from 'node:url';
 import { test, expect } from '@playwright/test';
 import { adminApi, install } from './admin.mjs';
 import { installPlugin, uninstallPlugin, preparePage, signIn, waitForPlugin, shoot } from '../../e2e/helpers.mjs';
-import { ID, configure, acceptPrivacy, editor, OLLAMA_CONFIG, ollamaUp, mockReadsChunked } from './common.mjs';
+import { ID, ask, configure, acceptPrivacy, editor, readerPanel, waitDone, OLLAMA_CONFIG, ollamaUp, mockReadsChunked } from './common.mjs';
 
-// The reader: an info bar above the message with Summarize, To-dos and
-// dates, and Reply ideas, the results inside the bar; a reply idea opens a
-// reply that already says it; and a summary of a whole conversation.
-// Answers come from the mock when it reads the proxy's request bodies, else
-// from Ollama (Anthropic Messages API). The privacy notice is the host's
-// confirm dialog.
+// The reader: a panel next to the open message with Summarize, To-dos and
+// dates, Reply ideas and Translate, a chat about the message, and the
+// highlighted passage as the thing to explain or answer; the right-click
+// menu on selected text in the message; on phones the bar above the
+// message and the summary of a whole conversation. Answers come from the
+// mock when it reads the proxy's request bodies, else from Ollama.
 
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
@@ -23,7 +23,7 @@ async function service() {
   return null;
 }
 
-/** The frame of the plugin's slot that has this button. */
+/** The frame of the plugin's slot that has this button (the phone bar, the conversation summary). */
 async function slotWith(page, name) {
   const frames = page.locator(`iframe[title="plugin-${ID}-slot"]`);
   await expect(async () => {
@@ -62,7 +62,7 @@ async function readClipboard(page) {
   return page.evaluate(() => navigator.clipboard.readText());
 }
 
-async function setUp(page, api, { theme = 'light', viewport } = {}) {
+async function setUp(page, api, { theme = 'light', viewport = { width: 1600, height: 900 } } = {}) {
   const svc = await service();
   test.skip(!svc, 'neither the mock (with chunked bodies) nor Ollama is available');
   await configure(api, svc.config);
@@ -73,24 +73,61 @@ async function setUp(page, api, { theme = 'light', viewport } = {}) {
   return svc;
 }
 
+/** The open message's body: the iframe of an HTML mail, else the page's own plain-text block. */
+function messageBody(page) {
+  const iframe = page.locator('iframe[title="Email content"]').first();
+  const plain = page.locator('[data-plugin-source="email-body"]').first();
+  return { iframe, plain };
+}
+
+/** Select text inside the open message's body, in the iframe of an HTML mail or the page's plain-text block. */
+async function selectInBody(page, text) {
+  const { iframe, plain } = messageBody(page);
+  const inFrame = await iframe.count();
+  const target = inFrame ? page.frameLocator('iframe[title="Email content"]').first().locator('body') : plain;
+  const ok = await target.evaluate((body, needle) => {
+    const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const i = node.textContent.indexOf(needle);
+      if (i === -1) continue;
+      const range = document.createRange();
+      range.setStart(node, i);
+      range.setEnd(node, i + needle.length);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      return true;
+    }
+    return false;
+  }, text);
+  expect(ok, `"${text}" is in the message body`).toBe(true);
+  return target;
+}
+
 for (const theme of ['light', 'dark']) {
-  test(`summarise a message in the reader (${theme})`, async ({ page }) => {
+  test(`summarise a message in the panel and ask about it (${theme})`, async ({ page }) => {
     const api = await install(await adminApi(), ID, installPlugin);
     try {
       const svc = await setUp(page, api, { theme });
       await openMessage(page, 'Can we meet on Thursday?', page.getByText('send me the slides').first());
-      const bar = await slotWith(page, 'Summarize');
-      await expect(bar.getByText('AI assistant')).toBeVisible();
-      if (theme === 'light') await shoot(page, ID, 'reader-bar', theme);
-      await bar.getByRole('button', { name: 'Summarize' }).click();
-      await acceptPrivacy(page);
-      await expect(bar.getByRole('button', { name: 'Copy' })).toBeVisible({ timeout: 90_000 });
-      await expect(bar.getByText('Summary', { exact: true })).toBeVisible();
-      await expect(bar.locator('body')).toContainText(svc.answer);
+      const { frame } = await readerPanel(page);
+      await expect(frame.getByText('This message', { exact: true })).toBeVisible();
+      // On a desktop the panel is the assistant; the phone bar above the message stays away.
+      await expect(page.frameLocator('[data-plugin-slot="email-banner"] iframe').getByText('AI assistant')).toHaveCount(0);
+      if (theme === 'light') await shoot(page, ID, 'reader-panel', theme);
+      await frame.getByRole('button', { name: 'Summarize' }).click();
+      await acceptPrivacy(page, { frame });
+      await expect(frame.getByText('Summarize · this message')).toBeVisible();
+      await waitDone(frame);
+      await expect(frame.locator('[data-turn="assistant"]').last()).toContainText(svc.answer);
+      await frame.getByRole('button', { name: 'Copy', exact: true }).last().click();
+      expect(await readClipboard(page)).toMatch(svc.answer);
       await shoot(page, ID, 'reader-summary', theme);
-      await bar.getByRole('button', { name: 'Close' }).click();
-      await expect(bar.getByText('Summary', { exact: true })).toHaveCount(0);
-      await expect(bar.getByRole('button', { name: 'Summarize' })).toBeVisible();
+
+      await ask(frame, 'what does Carol want?');
+      await waitDone(frame);
+      await expect(frame.locator('[data-turn="user"]')).toHaveCount(2);
+      await expect(frame.locator('[data-turn="assistant"][data-status="done"]')).toHaveCount(2);
     } finally {
       await uninstallPlugin(api, ID);
     }
@@ -102,21 +139,22 @@ test('to-dos and dates, and a reply idea that opens a reply', async ({ page }) =
   try {
     await setUp(page, api);
     await openMessage(page, 'Can we meet on Thursday?', page.getByText('send me the slides').first());
-    const bar = await slotWith(page, 'To-dos and dates');
-    await bar.getByRole('button', { name: 'To-dos and dates' }).click();
-    await acceptPrivacy(page);
-    await expect(bar.getByRole('button', { name: 'Copy list' }).or(bar.getByText(/Nothing to do/))).toBeVisible({ timeout: 90_000 });
-    if (await bar.getByRole('button', { name: 'Copy list' }).count()) {
+    const { frame } = await readerPanel(page);
+    await frame.getByRole('button', { name: 'To-dos and dates' }).click();
+    await acceptPrivacy(page, { frame });
+    await waitDone(frame);
+    await expect(frame.getByRole('button', { name: 'Copy list' }).or(frame.getByText(/Nothing to do/))).toBeVisible();
+    if (await frame.getByRole('button', { name: 'Copy list' }).count()) {
       await shoot(page, ID, 'reader-todos', 'light');
-      await bar.getByRole('button', { name: 'Copy list' }).click();
+      await frame.getByRole('button', { name: 'Copy list' }).click();
       expect((await readClipboard(page)).replace(/\r/g, '')).toMatch(/^(To-dos|Dates):\s*\n- /);
     }
 
-    // Close brings the actions back. The notice was answered once; reply ideas go straight through.
-    await bar.getByRole('button', { name: 'Close' }).click();
-    await bar.getByRole('button', { name: 'Reply ideas' }).click();
-    const replyButtons = bar.getByRole('button', { name: 'Reply', exact: true });
-    await expect(replyButtons.first()).toBeVisible({ timeout: 90_000 });
+    // The notice was answered once; reply ideas go straight through.
+    await frame.getByRole('button', { name: 'Reply ideas' }).click();
+    await waitDone(frame);
+    const replyButtons = frame.getByRole('button', { name: 'Reply', exact: true });
+    await expect(replyButtons.first()).toBeVisible();
     expect(await replyButtons.count()).toBeLessThanOrEqual(3);
     // The idea is the text next to its button.
     const idea = (await replyButtons.first().locator('xpath=following-sibling::*[1]').innerText()).replace(/\r/g, '').trim();
@@ -131,7 +169,55 @@ test('to-dos and dates, and a reply idea that opens a reply', async ({ page }) =
   }
 });
 
-test('summarise a conversation on a phone', async ({ page }) => {
+test('a highlighted passage: explain it from the right-click menu, then draft a reply to it', async ({ page }) => {
+  const api = await install(await adminApi(), ID, installPlugin);
+  try {
+    const svc = await setUp(page, api);
+    await openMessage(page, 'Can we meet on Thursday?', page.getByText('send me the slides').first());
+    // The plugin declares its reader entries while it starts; its toolbar button shows when it has.
+    await expect(page.locator('[data-plugin-actions="reader-actions"] [aria-label="Assistant"]')).toBeAttached({ timeout: 60_000 });
+    const body = await selectInBody(page, 'Thursday at 15:00');
+    // A right-click on the selection (a synthetic click would collapse it first, so the event is dispatched as the browser would).
+    const menu = page.getByRole('menu');
+    await expect(async () => {
+      await body.evaluate((el) => el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 30, clientY: 20 })));
+      await expect(menu).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 20_000 });
+    await expect(menu.getByRole('menuitem', { name: 'Copy' })).toBeVisible();
+    await shoot(page, ID, 'reader-context-menu', 'light');
+    await menu.getByRole('menuitem', { name: 'Explain this' }).click();
+
+    const { frame } = await readerPanel(page);
+    await acceptPrivacy(page, { frame });
+    await expect(frame.getByText('Explain · highlighted passage')).toBeVisible();
+    await waitDone(frame);
+    await expect(frame.locator('[data-turn="assistant"]').last()).toContainText(svc.answer);
+    // The panel follows the selection while it is there.
+    await expect(frame.getByText('Highlighted passage', { exact: true })).toBeVisible();
+    await frame.getByRole('button', { name: 'Draft a reply' }).click();
+    await waitDone(frame);
+    await expect(frame.getByText('Draft a reply · highlighted passage')).toBeVisible();
+    await expect(frame.locator('[data-turn="assistant"][data-status="done"]')).toHaveCount(2);
+  } finally {
+    await uninstallPlugin(api, ID);
+  }
+});
+
+test('on a phone the bar above the message has the actions', async ({ page }) => {
+  const api = await install(await adminApi(), ID, installPlugin);
+  try {
+    await setUp(page, api, { viewport: { width: 390, height: 844 } });
+    await openMessage(page, 'Can we meet on Thursday?', page.getByText('send me the slides').first());
+    const bar = await slotWith(page, 'Summarize');
+    await expect(bar.getByText('AI assistant')).toBeVisible();
+    await expect(bar.getByRole('button', { name: 'Reply ideas' })).toBeVisible();
+    await shoot(page, ID, 'reader-bar-phone', 'light');
+  } finally {
+    await uninstallPlugin(api, ID);
+  }
+});
+
+test('on a phone a conversation gets a summary', async ({ page }) => {
   execFileSync('python', [path.join(HERE, 'seed_thread.py')], { stdio: 'inherit' });
   const api = await install(await adminApi(), ID, installPlugin);
   try {

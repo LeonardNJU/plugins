@@ -29,7 +29,7 @@ async function makeApi(answer, { consent = true, confirm = true, reply } = {}) {
 const click = async (el) => { await act(async () => { fireEvent.click(el); }); };
 
 async function open(api) {
-  await act(async () => { render(React.createElement(ReaderBar, { api, email: EMAIL })); });
+  await act(async () => { render(React.createElement(ReaderBar, { api, email: EMAIL, deviceType: 'mobile' })); });
 }
 
 describe('ReaderBar', () => {

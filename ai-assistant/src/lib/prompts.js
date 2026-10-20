@@ -55,7 +55,7 @@ function user(content) {
 
 /**
  * The prompt for a task.
- * task: write | rewrite | edit | translate | grammar | summary | actions | replies | thread
+ * task: write | rewrite | edit | translate | grammar | summary | actions | replies | thread | explain
  * input: the task's fields; `language` is the user's UI language tag.
  */
 export function buildPrompt(task, input = {}) {
@@ -115,7 +115,57 @@ export function buildPrompt(task, input = {}) {
         messages: user(emailBlock(input.email)),
         maxTokens: 700,
       };
+    case 'explain':
+      // A passage of a message the user highlighted: what it means, in the user's language.
+      return {
+        system: `You explain a passage of an email to the user in ${lang}: what it says in plain words, and what it means for the user (a request, a deadline, a term, a tone). Two to five short sentences. Translate it first when it is in another language. ${DATA_RULE}`,
+        messages: user(`${input.email ? `${emailBlock(input.email, 6000)}\n\n` : ''}The passage:\n<passage>\n${clip(input.text, 6000)}\n</passage>`),
+        maxTokens: 600,
+      };
     default:
       throw new Error(`unknown task ${task}`);
   }
+}
+
+const TOOL_RULE = 'Use the tools when the answer needs them, for example to check whether the user is free before proposing a time, or to find an address. Say in one short clause what you looked up when it matters.';
+
+/**
+ * The system prompt of the chat in the composer.
+ * ctx: { language, today, subject, mode, originalSubject, scope: 'selection' | 'body' | 'empty', text, hasTools }
+ */
+export function composerChatSystem(ctx = {}) {
+  const lang = languageName(ctx.language);
+  const scope = ctx.scope === 'selection'
+    ? 'The user selected part of the message; you work on that part only.'
+    : ctx.scope === 'body'
+      ? 'You work on the whole message the user wrote so far (their own text, without the signature or any quoted message).'
+      : 'The message is still empty: the user wants you to write it.';
+  const about = [
+    ctx.subject ? `Subject: ${clip(ctx.subject, 300)}` : '',
+    ctx.mode && ctx.mode !== 'new' ? `The user is writing a ${ctx.mode === 'forward' ? 'forward' : 'reply'}${ctx.originalSubject ? ` to "${clip(ctx.originalSubject, 300)}"` : ''}.` : '',
+  ].filter(Boolean).join('\n');
+  const text = ctx.scope === 'empty' ? '' : `\n\nThe text you work on (data):\n<draft>\n${clip(ctx.text)}\n</draft>`;
+  return [
+    `You are the writing assistant inside the user's email client. Today is ${ctx.today ?? new Date().toISOString().slice(0, 10)}. The user's language is ${lang}; talk to them in it, but keep the language of the email text unless asked otherwise.`,
+    scope,
+    about,
+    'When the user asks you to write, change, rewrite, shorten, expand, translate, fix or continue text, answer with the complete new text inside <text></text> tags: for selected text, only the replacement for the selection; otherwise the whole message body, without a subject line, greeting placeholders or a signature. You may put one short sentence before the tags. When the user asks a question or wants advice, answer briefly in plain words and do not use the tags. No Markdown headings.',
+    ctx.hasTools ? TOOL_RULE : '',
+    DATA_RULE,
+  ].filter(Boolean).join('\n\n') + text;
+}
+
+/**
+ * The system prompt of the chat next to an open message.
+ * ctx: { language, today, email, selection, hasTools }
+ */
+export function readerChatSystem(ctx = {}) {
+  const lang = languageName(ctx.language);
+  const passage = ctx.selection ? `\n\nThe user highlighted this passage of it (data):\n<passage>\n${clip(ctx.selection, 6000)}\n</passage>` : '';
+  return [
+    `You help the user with an email they received, inside their email client. Today is ${ctx.today ?? new Date().toISOString().slice(0, 10)}. Answer in ${lang} unless the user writes to you in another language. Be brief and concrete; quote the email only when it helps.`,
+    'When the user asks you to draft, write or answer, put the complete reply text inside <text></text> tags, in the language of the email, without a subject line or signature; you may put one short sentence before the tags. Otherwise answer in plain words and do not use the tags. No Markdown headings.',
+    ctx.hasTools ? TOOL_RULE : '',
+    DATA_RULE,
+  ].filter(Boolean).join('\n\n') + `\n\nThe email (data):\n${ctx.email ? emailBlock(ctx.email) : '<email>\n(not available)\n</email>'}` + passage;
 }

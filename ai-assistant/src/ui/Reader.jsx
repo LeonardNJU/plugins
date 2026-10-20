@@ -27,16 +27,35 @@ async function loadText(api, email) {
 
 export const READER_TASKS = ['summary', 'actions', 'replies'];
 const TASK_ICONS = { summary: 'file-text', actions: 'checklist', replies: 'message' };
+/**
+ * The bar is for phones, where there is no side panel. The host says which
+ * layout the frame is in (`deviceType`); without that, the frame's own
+ * width stands in (it is as wide as the reader).
+ */
+export const BAR_MAX_WIDTH = 480;
+
+function usePhone(deviceType, max = BAR_MAX_WIDTH) {
+  const [narrow, setNarrow] = useState(() => typeof window === 'undefined' || window.innerWidth < max);
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const on = () => setNarrow(window.innerWidth < max);
+    on();
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, [max]);
+  return deviceType ? deviceType === 'mobile' : narrow;
+}
 
 export function ReaderBar(props) {
   const { email } = props;
   const api = useApi(props);
   const t = api.i18n.t;
   const task = useTask(api);
+  const phone = usePhone(props.deviceType);
   const emailId = email?.id;
   // A new message: forget the old result.
   useEffect(() => { task.reset(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [emailId]);
-  if (!email) return null;
+  if (!email || !phone) return null;
 
   const run = async (name) => {
     const full = await loadText(api, email);
@@ -100,7 +119,7 @@ function ReaderResult({ api, task, email, onRetry }) {
   );
 }
 
-function ActionItems({ api, answer }) {
+export function ActionItems({ api, answer }) {
   const t = api.i18n.t;
   const items = parseActionItems(answer);
   if (!items.tasks.length && !items.dates.length) {
@@ -146,7 +165,7 @@ export function formatDate(locale, date, time) {
 }
 
 /** Reply ideas: each opens a reply that already says it. */
-function Replies({ api, answer, email }) {
+export function Replies({ api, answer, email }) {
   const t = api.i18n.t;
   const replies = parseReplies(answer);
   const [opening, setOpening] = useState(-1);

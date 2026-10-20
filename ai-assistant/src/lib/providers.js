@@ -1,16 +1,62 @@
 // The two API shapes the assistant speaks: OpenAI-compatible chat
 // completions (OpenAI, Ollama, LM Studio, vLLM, ...) and the Anthropic
 // Messages API. The API key is never here: the webmail's server adds it.
+//
+// Messages are kept in one neutral shape and translated per provider:
+//   { role: 'user', content }
+//   { role: 'assistant', content, toolCalls?: [{ id, name, args }] }
+//   { role: 'tool', toolCallId, name, content }
+// Tools are { name, description, parameters } with a JSON schema.
 
 export const ANTHROPIC_VERSION = '2023-06-01';
 
+function openaiMessages(system, messages) {
+  const out = system ? [{ role: 'system', content: system }] : [];
+  for (const m of messages) {
+    if (m.role === 'tool') {
+      out.push({ role: 'tool', tool_call_id: m.toolCallId, content: String(m.content ?? '') });
+    } else if (m.role === 'assistant' && m.toolCalls?.length) {
+      out.push({
+        role: 'assistant',
+        content: m.content || null,
+        tool_calls: m.toolCalls.map((c) => ({ id: c.id, type: 'function', function: { name: c.name, arguments: JSON.stringify(c.args ?? {}) } })),
+      });
+    } else {
+      out.push({ role: m.role, content: String(m.content ?? '') });
+    }
+  }
+  return out;
+}
+
+function anthropicMessages(messages) {
+  const out = [];
+  for (const m of messages) {
+    if (m.role === 'tool') {
+      // Results go in the next user message; several in a row share one.
+      const block = { type: 'tool_result', tool_use_id: m.toolCallId, content: String(m.content ?? '') };
+      const last = out[out.length - 1];
+      if (last && last.role === 'user' && Array.isArray(last.content) && last.content[0]?.type === 'tool_result') last.content.push(block);
+      else out.push({ role: 'user', content: [block] });
+    } else if (m.role === 'assistant' && m.toolCalls?.length) {
+      const content = [];
+      if (m.content) content.push({ type: 'text', text: m.content });
+      for (const c of m.toolCalls) content.push({ type: 'tool_use', id: c.id, name: c.name, input: c.args ?? {} });
+      out.push({ role: 'assistant', content });
+    } else {
+      out.push({ role: m.role, content: String(m.content ?? '') });
+    }
+  }
+  return out;
+}
+
 /**
  * The HTTP request for one completion.
- * endpoint: from resolveEndpoint; prompt: { system, messages, maxTokens }.
+ * endpoint: from resolveEndpoint; prompt: { system, messages, maxTokens, tools }.
  */
 export function buildRequest(endpoint, prompt, { stream = true } = {}) {
   const messages = prompt.messages ?? [];
   const maxTokens = prompt.maxTokens ?? 1500;
+  const tools = Array.isArray(prompt.tools) && prompt.tools.length ? prompt.tools : null;
   if (endpoint.provider === 'anthropic') {
     return {
       url: `${endpoint.baseUrl}/messages`,
@@ -23,7 +69,8 @@ export function buildRequest(endpoint, prompt, { stream = true } = {}) {
         model: endpoint.model,
         max_tokens: maxTokens,
         ...(prompt.system ? { system: prompt.system } : {}),
-        messages,
+        messages: anthropicMessages(messages),
+        ...(tools ? { tools: tools.map((t) => ({ name: t.name, description: t.description, input_schema: t.parameters })) } : {}),
         stream,
       },
     };
@@ -36,21 +83,45 @@ export function buildRequest(endpoint, prompt, { stream = true } = {}) {
     },
     body: {
       model: endpoint.model,
-      messages: prompt.system ? [{ role: 'system', content: prompt.system }, ...messages] : messages,
+      messages: openaiMessages(prompt.system, messages),
+      ...(tools ? { tools: tools.map((t) => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.parameters } })), tool_choice: 'auto' } : {}),
       stream,
     },
   };
 }
 
-/** The answer text of a non-streamed response body. */
-export function textFromResponse(provider, json) {
-  if (!json || typeof json !== 'object') return '';
+function parseArgs(value) {
+  if (value && typeof value === 'object') return value;
+  if (typeof value !== 'string' || !value.trim()) return {};
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+/** The answer of a non-streamed response body: { text, toolCalls }. */
+export function turnFromResponse(provider, json) {
+  if (!json || typeof json !== 'object') return { text: '', toolCalls: [] };
   if (provider === 'anthropic') {
     const blocks = Array.isArray(json.content) ? json.content : [];
-    return blocks.filter((b) => b && b.type === 'text').map((b) => b.text ?? '').join('');
+    return {
+      text: blocks.filter((b) => b && b.type === 'text').map((b) => b.text ?? '').join(''),
+      toolCalls: blocks.filter((b) => b && b.type === 'tool_use').map((b) => ({ id: b.id, name: b.name, args: parseArgs(b.input) })),
+    };
   }
   const choice = Array.isArray(json.choices) ? json.choices[0] : null;
-  return choice?.message?.content ?? '';
+  const calls = Array.isArray(choice?.message?.tool_calls) ? choice.message.tool_calls : [];
+  return {
+    text: choice?.message?.content ?? '',
+    toolCalls: calls.map((c) => ({ id: c.id, name: c.function?.name ?? '', args: parseArgs(c.function?.arguments) })),
+  };
+}
+
+/** The answer text of a non-streamed response body. */
+export function textFromResponse(provider, json) {
+  return turnFromResponse(provider, json).text;
 }
 
 function parse(data) {
@@ -64,13 +135,22 @@ function parse(data) {
 /**
  * What one server-sent event means: { text } for a piece of the answer,
  * { done: true } at the end, { error: { type, message } } when the service
- * failed mid-answer, or {} for events that carry nothing for us.
+ * failed mid-answer, { toolCalls: [{ index, id?, name?, argsDelta? }] } for
+ * pieces of tool calls (gathered by index), or {} for events that carry
+ * nothing for us.
  */
 export function deltaFromEvent(provider, { event, data }) {
   if (provider === 'anthropic') {
     const json = parse(data);
     const type = json?.type ?? event;
-    if (type === 'content_block_delta' && json?.delta?.type === 'text_delta') return { text: json.delta.text ?? '' };
+    if (type === 'content_block_start' && json?.content_block?.type === 'tool_use') {
+      return { toolCalls: [{ index: json.index ?? 0, id: json.content_block.id, name: json.content_block.name }] };
+    }
+    if (type === 'content_block_delta') {
+      if (json?.delta?.type === 'text_delta') return { text: json.delta.text ?? '' };
+      if (json?.delta?.type === 'input_json_delta') return { toolCalls: [{ index: json.index ?? 0, argsDelta: json.delta.partial_json ?? '' }] };
+      return {};
+    }
     if (type === 'message_stop') return { done: true };
     if (type === 'error') {
       return { error: { type: json?.error?.type ?? 'api_error', message: json?.error?.message ?? '' } };
@@ -85,6 +165,42 @@ export function deltaFromEvent(provider, { event, data }) {
     return { error: { type: err.code ?? err.type ?? 'api_error', message: err.message ?? '' } };
   }
   const choice = Array.isArray(json.choices) ? json.choices[0] : null;
+  const out = {};
   const text = choice?.delta?.content;
-  return typeof text === 'string' && text ? { text } : {};
+  if (typeof text === 'string' && text) out.text = text;
+  if (Array.isArray(choice?.delta?.tool_calls)) {
+    out.toolCalls = choice.delta.tool_calls.map((c, i) => ({
+      index: typeof c.index === 'number' ? c.index : i,
+      ...(c.id ? { id: c.id } : {}),
+      ...(c.function?.name ? { name: c.function.name } : {}),
+      ...(typeof c.function?.arguments === 'string' ? { argsDelta: c.function.arguments } : {}),
+    }));
+  }
+  return out;
+}
+
+/** Gathers tool-call pieces from a stream into complete calls. */
+export function createToolCallCollector() {
+  const byIndex = new Map();
+  return {
+    add(pieces) {
+      for (const piece of pieces) {
+        let call = byIndex.get(piece.index);
+        if (!call) {
+          call = { id: '', name: '', argsText: '' };
+          byIndex.set(piece.index, call);
+        }
+        if (piece.id) call.id = piece.id;
+        if (piece.name) call.name = piece.name;
+        if (piece.argsDelta) call.argsText += piece.argsDelta;
+      }
+    },
+    /** The calls so far, in order; a call without a name is dropped. */
+    calls() {
+      return [...byIndex.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([index, c]) => ({ id: c.id || `call_${index}`, name: c.name, args: parseArgs(c.argsText) }))
+        .filter((c) => c.name);
+    },
+  };
 }

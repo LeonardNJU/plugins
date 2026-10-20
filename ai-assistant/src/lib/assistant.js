@@ -55,11 +55,12 @@ export function consentKey(endpoint) {
 
 /** The privacy notice: which service, which server, which model. */
 export function privacyMessage(t, endpoint) {
-  return t(endpoint.own ? 'privacy.message_own' : 'privacy.message', {
+  const base = t(endpoint.own ? 'privacy.message_own' : 'privacy.message', {
     provider: PROVIDER_LABELS[endpoint.provider],
     host: hostOf(endpoint.baseUrl),
     model: endpoint.model,
   });
+  return `${base} ${t('privacy.lookups')}`;
 }
 
 /** Ask with the host's confirm dialog (not usable from inside a plugin dialog). */

@@ -42,6 +42,13 @@ for (const theme of ['light', 'dark']) {
       await openSettings(page);
       const frame = settingsFrame(page);
       await expect(frame.getByTestId('ai-status')).toHaveText('Uses Anthropic at localhost:18099, model mock-claude, set up by your administrator.');
+      // The lookups (calendar, contacts, the original message) are on by default and can be turned off.
+      const lookups = frame.getByRole('switch', { name: 'Let the assistant look things up' });
+      await expect(lookups).toBeChecked();
+      await lookups.click();
+      await expect(lookups).not.toBeChecked();
+      await lookups.click();
+      await expect(lookups).toBeChecked();
       await shoot(page, ID, 'settings', theme);
 
       // Connect the user's own OpenAI-compatible key (the mock's).

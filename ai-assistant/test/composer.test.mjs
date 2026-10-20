@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { fakeApi } from '../../test-utils/fake-api.mjs';
-import { createBackground, DRAFT_KEY, COMPOSER_SURFACE } from '../src/lib/background.js';
+import { createBackground, DRAFT_KEY, COMPOSER_SURFACE, COMPOSER_MENU_SURFACE, READER_MENU_SURFACE, READER_SURFACE, COMPOSER_CONTEXT_KEY, chatKey, pendingKey } from '../src/lib/background.js';
 import { ownText } from '../src/lib/draft.js';
 import { buildPrompt, clip, REWRITE_STYLES } from '../src/lib/prompts.js';
 import { defaultTarget, languageOptions } from '../src/lib/languages.js';
@@ -79,47 +79,117 @@ describe('background', () => {
     expect(await api.storage.get(DRAFT_KEY)).toBeNull();
   });
 
-  it('offers the composer button with Alt+A only when a service is set up', async () => {
+  const actionsBySurface = (api) => Object.fromEntries(api.calls('ui.setActions').map((c) => [c.args[0], c.args[1]]));
+
+  it('offers the composer button with Alt+A and the right-click entries only when a service is set up', async () => {
     const offApi = fakeApi({ handlers: { 'admin.getAllConfig': async () => ({}) } });
     const off = createBackground(offApi);
     await off.activate();
     expect(off.shouldShow.composer()).toBe(false);
-    expect(offApi.calls('ui.setActions').map((c) => c.args)).toEqual([[COMPOSER_SURFACE, []]]);
-    const onApi = fakeApi({ handlers: configured });
+    expect(actionsBySurface(offApi)).toEqual({ [COMPOSER_SURFACE]: [], [COMPOSER_MENU_SURFACE]: [], [READER_MENU_SURFACE]: [], [READER_SURFACE]: [] });
+    const onApi = fakeApi({ handlers: configured, translations: manifest.locales });
     const on = createBackground(onApi);
     await on.activate();
     expect(on.shouldShow.composer()).toBe(true);
-    expect(onApi.calls('ui.setActions').map((c) => c.args)).toEqual([[COMPOSER_SURFACE, [
-      { id: 'assistant', label: 'composer.open', icon: 'sparkles', shortcut: 'Alt+A' },
-    ]]]);
+    const actions = actionsBySurface(onApi);
+    expect(actions[COMPOSER_SURFACE]).toEqual([{ id: 'assistant', label: 'Assistant', icon: 'sparkles', shortcut: 'Alt+A' }]);
+    expect(actions[COMPOSER_MENU_SURFACE].map((a) => a.id)).toEqual(['improve', 'grammar', 'shorter', 'translate', 'ask']);
+    expect(actions[COMPOSER_MENU_SURFACE][0]).toMatchObject({ label: 'Improve writing', icon: 'sparkles', order: 10 });
+    expect(actions[READER_MENU_SURFACE].map((a) => a.id)).toEqual(['explain', 'translate', 'reply', 'ask']);
+    expect(actions[READER_SURFACE]).toEqual([{ id: 'assistant', label: 'Assistant', icon: 'sparkles' }]);
+    // The host allows 8 entries per surface and 60-character labels.
+    for (const list of Object.values(actions)) {
+      expect(list.length).toBeLessThanOrEqual(8);
+      for (const a of list) expect(a.label.length).toBeLessThanOrEqual(60);
+    }
   });
 
-  it('takes the button away again when the service is removed', async () => {
+  it('takes the buttons away again when the service is removed, and the reader entries when the reader is off', async () => {
     let config = { anthropicBaseUrl: 'https://api.anthropic.com/v1' };
     const api = fakeApi({ handlers: { 'admin.getAllConfig': async () => config } });
     const bg = createBackground(api);
     await bg.activate();
+    expect(api.calls('ui.setActions')).toHaveLength(4);
+    await api.storage.set('prefs', { showInReader: false });
+    await bg.refresh(true);
+    expect(actionsBySurface(api)[READER_MENU_SURFACE]).toEqual([]);
+    expect(actionsBySurface(api)[READER_SURFACE]).toEqual([]);
+    expect(actionsBySurface(api)[COMPOSER_SURFACE]).toHaveLength(1);
     config = {};
     await bg.refresh(true);
     await bg.refresh(true);
-    expect(api.calls('ui.setActions').map((c) => c.args[1].length)).toEqual([1, 0]);
+    expect(Object.values(actionsBySurface(api)).map((l) => l.length)).toEqual([0, 0, 0, 0]);
+    expect(api.calls('ui.setActions')).toHaveLength(12);
   });
 
-  it('opens the assistant dialog for the composer that was clicked, once at a time', async () => {
+  it('toggles the panel of the composer that was clicked, and falls back to the dialog where there is none', async () => {
+    let panel = true;
     let close;
-    const api = fakeApi({ handlers: { ...configured, 'ui.openDialog': () => new Promise((r) => { close = r; }) } });
+    const api = fakeApi({ handlers: { ...configured, 'ui.togglePanel': async () => panel, 'ui.openDialog': () => new Promise((r) => { close = r; }) } });
     const bg = createBackground(api);
     await bg.activate();
     bg.hooks.onAction({ surface: COMPOSER_SURFACE, actionId: 'assistant', context: { composerId: 'c7' } });
-    bg.hooks.onAction({ surface: COMPOSER_SURFACE, actionId: 'assistant', context: { composerId: 'c7' } });
-    bg.hooks.onAction({ surface: 'reader-actions', actionId: 'assistant', context: { composerId: 'c8' } });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(api.calls('ui.togglePanel').map((c) => c.args)).toEqual([['composer-sidebar-right', { composerId: 'c7' }]]);
+    expect(api.calls('ui.openDialog')).toHaveLength(0);
+    // The reader's button toggles the panel next to the message.
+    bg.hooks.onAction({ surface: READER_SURFACE, actionId: 'assistant', context: { emailId: 'M1' } });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(api.calls('ui.togglePanel')[1].args).toEqual(['email-detail-sidebar']);
+
+    // A phone: no panel answers (null). The dialog opens, once at a time.
+    panel = null;
+    bg.hooks.onAction({ surface: COMPOSER_SURFACE, actionId: 'assistant', context: { composerId: 'c8' } });
+    await new Promise((r) => setTimeout(r, 0));
+    bg.hooks.onAction({ surface: COMPOSER_SURFACE, actionId: 'assistant', context: { composerId: 'c8' } });
+    await new Promise((r) => setTimeout(r, 0));
     const calls = api.calls('ui.openDialog');
     expect(calls).toHaveLength(1);
-    expect(calls[0].args[0]).toMatchObject({ slot: 'plugin-dialog', extraProps: { composerId: 'c7' } });
+    expect(calls[0].args[0]).toMatchObject({ slot: 'plugin-dialog', extraProps: { composerId: 'c8' } });
     close(null);
     await new Promise((r) => setTimeout(r, 0));
     bg.hooks.onAction({ surface: COMPOSER_SURFACE, actionId: 'assistant', context: { composerId: 'c9' } });
+    await new Promise((r) => setTimeout(r, 0));
     expect(api.calls('ui.openDialog')[1].args[0].extraProps).toEqual({ composerId: 'c9' });
+  });
+
+  it('hands a right-click entry to the panel as a pending request and opens the panel', async () => {
+    const api = fakeApi({ handlers: { ...configured, 'ui.openPanel': async () => true } });
+    const bg = createBackground(api);
+    await bg.activate();
+    bg.hooks.onAction({ surface: COMPOSER_MENU_SURFACE, actionId: 'improve', context: { composerId: 'c1', selection: { text: 'teh cat' } } });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(await api.storage.get(pendingKey('composer', 'c1'))).toMatchObject({ action: 'improve', text: 'teh cat' });
+    expect(api.calls('ui.openPanel').map((c) => c.args)).toEqual([['composer-sidebar-right', { composerId: 'c1' }]]);
+
+    bg.hooks.onAction({ surface: READER_MENU_SURFACE, actionId: 'explain', context: { emailId: 'M1', selection: { text: 'force majeure' } } });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(await api.storage.get(pendingKey('reader', 'M1'))).toMatchObject({ action: 'explain', text: 'force majeure' });
+    expect(api.calls('ui.openPanel')[1].args).toEqual(['email-detail-sidebar']);
+  });
+
+  it('drops the pending request and opens the dialog when no panel answers a right-click', async () => {
+    const api = fakeApi({ handlers: { ...configured, 'ui.openPanel': async () => null, 'ui.openDialog': async () => null } });
+    const bg = createBackground(api);
+    await bg.activate();
+    bg.hooks.onAction({ surface: COMPOSER_MENU_SURFACE, actionId: 'grammar', context: { composerId: 'c1', selection: { text: 'teh' } } });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(await api.storage.get(pendingKey('composer', 'c1'))).toBeNull();
+    expect(api.calls('ui.openDialog')).toHaveLength(1);
+  });
+
+  it('remembers what the composer is about and forgets it, the chats and the draft when it closes', async () => {
+    const api = fakeApi({ handlers: configured });
+    const bg = createBackground(api);
+    await bg.activate();
+    await bg.hooks.onComposerOpen({ mode: 'reply', inReplyToId: 'M9', originalSubject: 'Lunch' });
+    expect(await api.storage.get(COMPOSER_CONTEXT_KEY)).toMatchObject({ mode: 'reply', inReplyToId: 'M9', originalSubject: 'Lunch' });
+    await api.storage.set(chatKey('composer', 'c1'), { turns: [{ role: 'user', content: 'x' }] });
+    await api.storage.set(chatKey('reader', 'M1'), { turns: [] });
+    await bg.hooks.onComposerClose({ sent: true });
+    expect(await api.storage.get(COMPOSER_CONTEXT_KEY)).toBeNull();
+    expect(await api.storage.get(chatKey('composer', 'c1'))).toBeNull();
+    expect(await api.storage.get(chatKey('reader', 'M1'))).toEqual({ turns: [] });
   });
 
   it('notices a newly set up service at once, and a removed one within 30 s', async () => {
@@ -145,10 +215,14 @@ describe('background', () => {
 
 describe('plugin wiring', () => {
   it('declares a slot or hook for each permission it asks for', () => {
-    expect(Object.keys(plugin.slots)).toEqual(expect.arrayContaining(['plugin-dialog', 'settings-section']));
+    expect(Object.keys(plugin.slots)).toEqual(expect.arrayContaining(['composer-sidebar-right', 'email-detail-sidebar', 'plugin-dialog', 'settings-section']));
     expect(Object.keys(plugin.slots)).not.toContain('composer-toolbar');
+    // The chat panels fill their panel, so the input stays at the bottom.
+    expect(plugin.slots['composer-sidebar-right']).toMatchObject({ fill: true, startFolded: true });
+    expect(plugin.slots['email-detail-sidebar']).toMatchObject({ fill: true, startFolded: true });
     expect(Object.keys(plugin.hooks)).toEqual(expect.arrayContaining(['onAction', 'onDraftChange', 'onComposerOpen', 'onComposerClose']));
-    expect(manifest.permissions).toEqual(expect.arrayContaining(['email:read', 'ui:composer-toolbar', 'compose:read', 'compose:write', 'compose:open']));
+    expect(manifest.permissions).toEqual(expect.arrayContaining(['email:read', 'ui:composer-toolbar', 'ui:composer-sidebar', 'ui:email-details', 'ui:context-menu', 'ui:toolbar', 'compose:read', 'compose:write', 'compose:open', 'calendar:read', 'contacts:read']));
+    expect(manifest.minAppVersion).toBe('1.17.0');
   });
 
   it('routes the hooks to the background after activate', async () => {
@@ -157,6 +231,7 @@ describe('plugin wiring', () => {
     await plugin.hooks.onDraftChange({ subject: 'S', textBody: 'T' });
     expect(await api.storage.get(DRAFT_KEY)).toMatchObject({ subject: 'S' });
     plugin.hooks.onAction({ surface: COMPOSER_SURFACE, actionId: 'assistant', context: { composerId: 'c1' } });
-    expect(api.calls('ui.openDialog')[0].args[0].extraProps).toEqual({ composerId: 'c1' });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(api.calls('ui.togglePanel')[0].args).toEqual(['composer-sidebar-right', { composerId: 'c1' }]);
   });
 });

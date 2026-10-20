@@ -5,6 +5,7 @@ import { setPluginConfig } from '../../e2e/helpers.mjs';
 
 export const ID = 'ai-assistant';
 export const MOCK = 'http://localhost:18099';
+const SLOT_FRAME = `iframe[title="plugin-${ID}-slot"]`;
 
 /** Admin config: Anthropic mock by default; pass overrides (null clears a key). */
 export async function configure(api, overrides = {}) {
@@ -23,16 +24,16 @@ export async function configure(api, overrides = {}) {
 }
 
 /**
- * Answer the privacy notice the first time a service is used: in the
- * reader it is the host's confirm dialog; in the assistant dialog it is
- * shown in the dialog body, with Continue in the dialog's footer.
+ * Answer the privacy notice the first time a service is used. In a panel
+ * or the dialog it is shown inside the plugin's frame with its own
+ * Continue button; in the phone bar it is the host's confirm dialog.
  */
-export async function acceptPrivacy(page, { expectText, inDialog = false } = {}) {
-  if (inDialog) {
-    const { box, frame } = assistantDialog(page);
-    await expect(frame.getByText('Send text to the AI service?')).toBeVisible();
-    if (expectText) await expect(frame.getByRole('status')).toContainText(expectText);
-    await box.getByRole('button', { name: 'Continue' }).click();
+export async function acceptPrivacy(page, { frame, expectText, dialog } = {}) {
+  if (frame) {
+    await expect(frame.getByText('Send text to the AI service?')).toBeVisible({ timeout: 30_000 });
+    if (expectText) await expect(frame.getByRole('status').filter({ hasText: expectText })).toBeVisible();
+    if (dialog) await dialog.getByRole('button', { name: 'Continue' }).click();
+    else await frame.getByRole('button', { name: 'Continue' }).click();
     return;
   }
   const notice = page.getByRole('alertdialog').or(page.getByRole('dialog')).filter({ hasText: 'Send text to the AI service?' });
@@ -63,10 +64,53 @@ export async function editorText(page) {
   return (await editor(page).innerText()).replace(/\r/g, '');
 }
 
-/** The assistant dialog: the host's box (title, footer buttons) and the plugin's frame inside it. */
+/** The assistant panel next to the composer: the host's panel and the plugin's frame in it. */
+export function composerPanel(page) {
+  const host = page.locator('[data-composer-sidebar="right"]');
+  return { host, frame: page.frameLocator(`[data-composer-sidebar="right"] ${SLOT_FRAME}`) };
+}
+
+/**
+ * The assistant panel next to an open message. It starts folded: the
+ * Assistant button in the message's toolbar opens it (the host's strip
+ * button when the toolbar put it behind More).
+ */
+export async function readerPanel(page) {
+  const host = page.locator('[data-plugin-detail-panel]');
+  if (!(await host.isVisible().catch(() => false))) {
+    const button = page.locator(`[data-plugin-actions="reader-actions"] [aria-label="Assistant"]`).first();
+    if (await button.isVisible().catch(() => false)) await button.click();
+    else await page.getByRole('button', { name: 'Show plugin panel' }).click();
+  }
+  const frame = page.frameLocator(`[data-plugin-detail-panel] ${SLOT_FRAME}`);
+  await expect(frame.getByRole('textbox', { name: 'Message to the assistant' })).toBeVisible({ timeout: 60_000 });
+  return { host, frame };
+}
+
+/** The assistant dialog (phones): the host's box (title, footer buttons) and the plugin's frame inside it. */
 export function assistantDialog(page) {
   const box = page.getByRole('dialog').filter({ hasText: 'Writing assistant' });
-  return { box, frame: box.frameLocator(`iframe[title="plugin-${ID}-slot"]`) };
+  return { box, frame: box.frameLocator(SLOT_FRAME) };
+}
+
+/** The chat's input in a panel frame. */
+export const chatInput = (frame) => frame.getByRole('textbox', { name: 'Message to the assistant' });
+
+/** Type a request into the chat and send it. */
+export async function ask(frame, text) {
+  await chatInput(frame).fill(text);
+  await chatInput(frame).press('Enter');
+}
+
+/** Wait until no answer is running any more. */
+export async function waitDone(frame, timeout = 90_000) {
+  await expect(frame.locator('[data-turn="assistant"][data-status="running"]')).toHaveCount(0, { timeout });
+}
+
+/** The newest proposal card and its marked preview. */
+export function lastProposal(frame) {
+  const card = frame.locator('[data-proposal]').last();
+  return { card, preview: card.getByLabel('Suggested change') };
 }
 
 export const OLLAMA = 'http://localhost:11434';
@@ -112,13 +156,25 @@ export async function ollamaUp() {
 export const assistantButton = (page) => page.locator(`[data-plugin-action="${ID}:assistant"]`).first();
 
 /**
- * Open the assistant with Alt+A, or with `click: true` from its button in
- * the composer's bottom bar (the button test checks that one on its own).
+ * Open the assistant panel with Alt+A, or with `click: true` from its
+ * button in the composer's bottom bar (the button test checks that one on
+ * its own). Resolves to the panel's frame, with the chat input visible.
  */
 export async function openAssistant(page, { click = false } = {}) {
+  // The shortcut is the button's: it exists once the plugin has declared it.
+  await expect(assistantButton(page)).toBeAttached({ timeout: 60_000 });
   if (click) await assistantButton(page).click();
   else await editor(page).press('Alt+a');
-  const dialog = assistantDialog(page);
-  await expect(dialog.box).toBeVisible();
-  return dialog;
+  const panel = composerPanel(page);
+  await expect(panel.host).toHaveAttribute('data-composer-sidebar-mode', /docked|overlay/);
+  await expect(chatInput(panel.frame)).toBeVisible({ timeout: 60_000 });
+  return panel;
+}
+
+/** Select the last line of the message (End, then Shift+Home). */
+export async function selectLastLine(page) {
+  const box = editor(page);
+  await box.click();
+  await box.press('Control+End');
+  await box.press('Shift+Home');
 }
