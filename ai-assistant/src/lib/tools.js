@@ -1,15 +1,19 @@
 // What the model may look up while it answers (tool calls): the message a
-// reply is for, the user's calendar, a contact's address. Each lookup goes
-// through the webmail's api, so the plugin's permissions apply, and every
-// one is shown in the chat as a step. Results are text for the model;
-// mail and contact data in them is untrusted like everything else.
+// reply is for, the user's calendar, a contact's address, the user's mail.
+// Each lookup goes through the webmail's api, so the plugin's permissions
+// apply, and every one is shown in the chat as a step, with a card for
+// what it found where that helps. Results are text for the model; mail and
+// contact data in them is untrusted like everything else.
 
 import { clip } from './prompts.js';
+import { calendarWidget, contactsWidget, emailsWidget } from './widgets.js';
 
 /** Longest tool result handed to the model, in characters. */
 export const MAX_TOOL_RESULT = 8000;
 /** Longest stretch of days one calendar lookup covers. */
 export const MAX_CALENDAR_DAYS = 31;
+/** Most messages one mail search returns. */
+export const MAX_SEARCH_RESULTS = 10;
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -39,16 +43,40 @@ const DEFINITIONS = {
       additionalProperties: false,
     },
   },
+  search_mail: {
+    description: 'Search the user\'s mail. Returns the newest matching messages (id, sender, date, subject, a preview); read one with read_message. Give at least one of text, from, subject, after, before.',
+    parameters: {
+      type: 'object',
+      properties: {
+        text: { type: 'string', description: 'Words to find in sender, recipients, subject or body (whole words)' },
+        from: { type: 'string', description: 'Sender name or address' },
+        subject: { type: 'string', description: 'Words of the subject' },
+        after: { type: 'string', description: 'Only messages after this date, YYYY-MM-DD' },
+        before: { type: 'string', description: 'Only messages before this date, YYYY-MM-DD' },
+        limit: { type: 'integer', description: 'How many, 1 to 10 (default 5)' },
+      },
+      additionalProperties: false,
+    },
+  },
+  read_message: {
+    description: 'Read one message of the user\'s mail by the id search_mail gave: sender, date, subject and text.',
+    parameters: {
+      type: 'object',
+      properties: { id: { type: 'string', description: 'The message id from search_mail' } },
+      required: ['id'],
+      additionalProperties: false,
+    },
+  },
 };
 
 /**
  * The tools for a chat: `ctx.inReplyToId` offers the original message,
- * `ctx.lookups` (the user's setting) the calendar and the address book.
+ * `ctx.lookups` (the user's setting) the calendar, the address book and mail.
  */
 export function toolsFor(ctx = {}) {
   const names = [];
   if (ctx.inReplyToId) names.push('read_original_message');
-  if (ctx.lookups !== false) names.push('check_calendar', 'find_contact');
+  if (ctx.lookups !== false) names.push('check_calendar', 'find_contact', 'search_mail', 'read_message');
   return names.map((name) => ({ name, ...DEFINITIONS[name] }));
 }
 
@@ -93,9 +121,23 @@ export function formatContacts(contacts, query) {
   return list.length ? `Contacts matching "${query}":\n${list.join('\n')}` : `No contact matches "${query}".`;
 }
 
+/** Search results as lines the model reads, with the ids read_message takes. */
+export function formatMessages(messages, query) {
+  const what = Object.entries(query).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(', ');
+  if (!messages.length) return `No messages match (${what}).`;
+  const lines = messages.map((m) => `- id ${m.id} | ${m.receivedAt ?? ''} | from ${m.from?.map(person).join(', ') || '?'} | ${m.subject || '(no subject)'}${m.preview ? ` | ${String(m.preview).slice(0, 120)}` : ''}`);
+  return `Messages matching (${what}), newest first:\n${lines.join('\n')}`;
+}
+
+function messageText(email) {
+  const from = Array.isArray(email.from) ? email.from.map(person).join(', ') : person(email.from);
+  return clip(`From: ${from}\nDate: ${email.receivedAt ?? ''}\nSubject: ${email.subject ?? ''}\n\n${email.text ?? email.preview ?? ''}`, MAX_TOOL_RESULT);
+}
+
 /**
- * Run one tool. Resolves to text for the model; throws when the lookup
- * failed (the chat tells the model so).
+ * Run one tool. Resolves to text for the model, or { text, widget } with a
+ * card for the panel; throws when the lookup failed (the chat tells the
+ * model so).
  */
 export async function runTool(api, name, args = {}, ctx = {}) {
   switch (name) {
@@ -103,8 +145,7 @@ export async function runTool(api, name, args = {}, ctx = {}) {
       if (!ctx.inReplyToId) throw new Error('there is no original message');
       const email = await api.email.get(ctx.inReplyToId);
       if (!email) throw new Error('the message could not be read');
-      const from = Array.isArray(email.from) ? email.from.map(person).join(', ') : person(email.from);
-      return clip(`From: ${from}\nDate: ${email.receivedAt ?? ''}\nSubject: ${email.subject ?? ''}\n\n${email.text ?? email.preview ?? ''}`, MAX_TOOL_RESULT);
+      return messageText(email);
     }
     case 'check_calendar': {
       const from = DATE_RE.test(args.from ?? '') ? args.from : null;
@@ -114,13 +155,40 @@ export async function runTool(api, name, args = {}, ctx = {}) {
       if (addDays(from, MAX_CALENDAR_DAYS) < to) to = addDays(from, MAX_CALENDAR_DAYS);
       // `to` of the api is exclusive: the day after the last day.
       const events = (await api.calendar.getEvents({ from, to: addDays(to, 1) })) ?? [];
-      return clip(formatEvents(events, { from, to, locale: api.i18n?.getLocale?.() ?? 'en' }), MAX_TOOL_RESULT);
+      return {
+        text: clip(formatEvents(events, { from, to, locale: api.i18n?.getLocale?.() ?? 'en' }), MAX_TOOL_RESULT),
+        widget: calendarWidget(events, { from, to }),
+      };
     }
     case 'find_contact': {
       const query = String(args.query ?? '').trim().slice(0, 200);
       if (!query) throw new Error('query is empty');
       const contacts = (await api.contacts.search(query)) ?? [];
-      return clip(formatContacts(contacts, query), MAX_TOOL_RESULT);
+      return { text: clip(formatContacts(contacts, query), MAX_TOOL_RESULT), widget: contactsWidget(contacts) };
+    }
+    case 'search_mail': {
+      const query = {};
+      for (const key of ['text', 'from', 'subject']) {
+        const value = String(args[key] ?? '').trim().slice(0, 200);
+        if (value) query[key] = value;
+      }
+      for (const key of ['after', 'before']) {
+        if (args[key] !== undefined && args[key] !== '') {
+          if (!DATE_RE.test(String(args[key]))) throw new Error(`${key} must be a date like 2026-05-01`);
+          query[key] = args[key];
+        }
+      }
+      if (!Object.keys(query).length) throw new Error('give at least one of text, from, subject, after or before');
+      const limit = Math.min(MAX_SEARCH_RESULTS, Math.max(1, Number(args.limit) || 5));
+      const messages = (await api.email.search({ ...query, limit })) ?? [];
+      return { text: clip(formatMessages(messages, query), MAX_TOOL_RESULT), widget: emailsWidget(messages) };
+    }
+    case 'read_message': {
+      const id = String(args.id ?? '').trim();
+      if (!id) throw new Error('id is empty');
+      const email = await api.email.get(id);
+      if (!email) throw new Error('no message with that id');
+      return messageText(email);
     }
     default:
       throw new Error(`unknown tool ${name}`);

@@ -2,9 +2,10 @@
 // note, the model, and connecting the user's own key when allowed.
 
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Button, Field, Input, Loading, Row, Section, Select, SettingRow, Stack, Switch, Text } from '@plugin-host/ui';
+import { Alert, Button, Field, Input, Loading, Row, Section, Select, SettingRow, Stack, Switch, Text, Textarea } from '@plugin-host/ui';
 import { useApi } from './common.jsx';
 import { loadSetup, savePrefs, PROVIDER_LABELS } from '../lib/assistant.js';
+import { MAX_INSTRUCTIONS_CHARS } from '../lib/prompts.js';
 import {
   DEFAULT_MODELS, OFFICIAL_BASE_URLS, OWN_CREDENTIALS, PROVIDERS,
   adminProviders, hostOf, normalizeBaseUrl, userKeysAllowed,
@@ -15,6 +16,7 @@ export function SettingsPanel(props) {
   const t = api.i18n.t;
   const [setup, setSetup] = useState(null);
   const [model, setModel] = useState('');
+  const [instructions, setInstructions] = useState('');
   const [ownProvider, setOwnProvider] = useState('openai');
   const [ownUrl, setOwnUrl] = useState(OFFICIAL_BASE_URLS.openai);
   const [ownModel, setOwnModel] = useState('');
@@ -25,6 +27,7 @@ export function SettingsPanel(props) {
     const next = await loadSetup(api);
     setSetup(next);
     setModel(next.prefs.model ?? '');
+    setInstructions(next.prefs.instructions ?? '');
     const own = next.prefs.own ?? {};
     if (PROVIDERS.includes(own.provider)) setOwnProvider(own.provider);
     if (own.baseUrl) setOwnUrl(own.baseUrl);
@@ -126,6 +129,28 @@ export function SettingsPanel(props) {
               onChange={(on) => void save({ lookups: on })}
             />
           </SettingRow>
+        </Stack>
+      </Section>
+
+      <Section title={t('settings.instructions')} description={t('settings.instructions_hint')}>
+        <Stack gap={3}>
+          {String(config.instructions ?? '').trim() && (
+            <Field label={t('settings.instructions_admin')}>
+              <Text tone="muted" className="whitespace-pre-wrap" data-testid="ai-admin-instructions">{String(config.instructions).trim()}</Text>
+            </Field>
+          )}
+          <Field label={t('settings.instructions_mine')} hint={t('settings.instructions_example')}>
+            <Textarea
+              rows={4}
+              maxLength={MAX_INSTRUCTIONS_CHARS}
+              value={instructions}
+              aria-label={t('settings.instructions_mine')}
+              onChange={(e) => setInstructions(e.target.value)}
+            />
+          </Field>
+          <Row>
+            <Button variant="secondary" disabled={instructions === (prefs.instructions ?? '')} onClick={() => void save({ instructions: instructions.trim() })}>{t('settings.save')}</Button>
+          </Row>
         </Stack>
       </Section>
 

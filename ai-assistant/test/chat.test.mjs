@@ -32,6 +32,18 @@ describe('parseAnswer', () => {
     expect(parseAnswer('')).toEqual([]);
   });
 
+  it('takes widgets out of the answer, checked, and leaves broken ones out', () => {
+    expect(parseAnswer('Options:\n<widget>{"type":"choices","items":["a","b"]}</widget>\nmore')).toEqual([
+      { kind: 'say', text: 'Options:' },
+      { kind: 'widget', widget: { type: 'choices', items: ['a', 'b'] }, open: false },
+      { kind: 'say', text: 'more' },
+    ]);
+    expect(parseAnswer('<widget>{"type":"nope"}</widget>after')).toEqual([{ kind: 'say', text: 'after' }]);
+    // Still streaming: the widget is not drawn yet.
+    expect(parseAnswer('x\n<widget>{"type":"cho')).toEqual([{ kind: 'say', text: 'x' }, { kind: 'widget', widget: null, open: true }]);
+    expect(parseAnswer('<text>a</text><widget>{"type":"choices","items":["c"]}</widget>').map((p) => p.kind)).toEqual(['proposal', 'widget']);
+  });
+
   it('ignores case and spacing of the tags', () => {
     expect(parseAnswer('<TEXT>  Hello </TEXT>')).toEqual([{ kind: 'proposal', text: 'Hello', open: false }]);
   });
@@ -116,8 +128,8 @@ describe('runChat', () => {
     });
     expect(out.text).toBe('Let me check.\n\nYou are free at 10.');
     expect(steps).toEqual([
-      { id: 'tu_1', name: 'check_calendar', args: { from: '2026-10-22', to: '2026-10-22' }, status: 'running', result: '' },
-      { id: 'tu_1', name: 'check_calendar', args: { from: '2026-10-22', to: '2026-10-22' }, status: 'done', result: 'events for check_calendar 2026-10-22: none' },
+      { id: 'tu_1', name: 'check_calendar', args: { from: '2026-10-22', to: '2026-10-22' }, status: 'running', result: '', widget: null },
+      { id: 'tu_1', name: 'check_calendar', args: { from: '2026-10-22', to: '2026-10-22' }, status: 'done', result: 'events for check_calendar 2026-10-22: none', widget: null },
     ]);
     // The first request offered the tools; the second carried the call and its result.
     expect(sent[0].tools).toEqual([{ name: 'check_calendar', description: 'd', input_schema: { type: 'object', properties: {} } }]);
@@ -127,6 +139,15 @@ describe('runChat', () => {
     ]);
     // The text streamed in the second round comes after the first round's.
     expect(texts.at(-1)).toBe('Let me check.\n\nYou are free at 10.');
+  });
+
+  it('keeps the card a tool brings for the step and hands only the text to the model', async () => {
+    const sent = [];
+    const api = modelApi([anthropicToolTurn('', { id: 'tu', name: 'find_contact', input: { query: 'anna' } }), anthropicSse(['Anna is anna@e.org.'])], { sent });
+    const steps = [];
+    await runChat(api, ANTHROPIC_EP, { system: 's', messages: [{ role: 'user', content: 'x' }], tools: TOOLS, runTool: async () => ({ text: 'Contacts: Anna', widget: { type: 'contacts', items: [{ name: 'Anna', email: 'anna@e.org' }] } }) }, { onStep: (s) => steps.push(s) });
+    expect(steps.at(-1)).toMatchObject({ status: 'done', result: 'Contacts: Anna', widget: { type: 'contacts' } });
+    expect(sent[1].messages.at(-1)).toEqual({ role: 'user', content: [{ type: 'tool_result', tool_use_id: 'tu', content: 'Contacts: Anna' }] });
   });
 
   it('speaks the OpenAI tool shape too, and tells the model when a tool failed', async () => {

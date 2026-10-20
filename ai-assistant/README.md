@@ -61,11 +61,31 @@ dialog.
 ## Lookups
 
 When an answer needs it, the assistant can look things up for you and
-show each lookup as a step in the chat: your **calendar** ("propose a
-time next week when I'm free"), your **contacts** ("send it to Anna from
-accounting" gives the address) and **the message you reply to**. Turn
-this off in the plugin's settings. Nothing is looked up or sent unless
-you asked a question.
+show each lookup as a step in the chat, with a card of what it found:
+your **calendar** ("propose a time next week when I'm free" shows the
+days busy or free), your **contacts** ("send it to Anna from accounting"
+gives the address, to copy or insert), your **mail** ("what did Carol
+write about the invoice?" searches, lists the messages found and reads
+the one that matters) and **the message you reply to**. Turn this off in
+the plugin's settings. Nothing is looked up or sent unless you asked a
+question.
+
+## Answers, cards and what the assistant knows
+
+Answers come as formatted text (bullet lists, bold, small tables, links
+that open in a new tab). The assistant can add cards to an answer: quick
+replies to click, time slots to put into the message or answer with, a
+checklist, people, a table. In the composer a card's text goes into the
+message where the cursor is.
+
+Every request tells the model who you are, from your account: your
+name, your addresses, how you sign (the plain-text signature of your
+first identity), your time zone, the local time and the language of the
+mail client. Two kinds of standing instructions go along as well:
+**the administrator's**, for everyone (the plugin's admin settings), and
+**your own** (Settings > AI Writing Assistant > Standing instructions):
+"I am a teacher, keep my emails short and warm, sign with Anna". Yours
+come last, so they win when the two disagree.
 
 Mail text is put between tags and the model is told that it is data, not
 instructions, so a message that says "ignore your instructions" is
@@ -85,11 +105,13 @@ settings. Set up one or both services:
 | Anthropic API key | The key |
 | Anthropic model | e.g. `claude-haiku-4-5` |
 | Default service | Which one users get when both are set up |
+| Instructions for the assistant | Standing instructions for everyone, added to every request (house style, sign-offs, languages, things never to say) |
 | Let users connect their own API key | Off by default |
 
 Without a model the defaults are `gpt-4o-mini` and `claude-haiku-4-5`.
 Lookups need a model that supports tool calls; small local models often
-answer without them.
+answer without them. The instructions field is one line in the admin
+dashboard; separate several instructions with semicolons.
 
 The keys stay on the webmail server. The plugin asks the webmail's server
 proxy to send each request "with the OpenAI key" or "with the Anthropic
@@ -119,10 +141,11 @@ encrypted on the server and only sent to the address they approved there.
 | Describe an empty message | Your description and the subject |
 | Use Improve, Shorten, Formal, Casual, Translate or Fix spelling | The selected text, or your own text of the message (no signature, no quote) |
 | Type a request in the composer | The same text, the subject, whether it is a reply and to what, and the earlier turns of the chat |
+| Anything | Your name, addresses, plain-text signature, time zone, local time and language, and the standing instructions (the administrator's and yours) |
 | Use Summarize, To-dos and dates, Reply ideas, Explain or Translate on a message | Sender, date, subject and text of the open message (and the highlighted passage) |
 | Type a request about a message | The same, and the earlier turns of the chat |
 | Summarize a conversation | Sender, date, subject and text (without quotes) of up to 20 messages |
-| Ask something that needs a lookup | What the lookup found: calendar events of the days asked for, matching contacts, or the message you reply to |
+| Ask something that needs a lookup | What the lookup found: calendar events of the days asked for, matching contacts, the messages a mail search found (sender, date, subject, preview) and the text of a message it reads, or the message you reply to |
 
 Nothing else leaves the webmail. In the browser the plugin keeps your
 choices, which services you confirmed, the chats of the open composer and
@@ -134,7 +157,7 @@ composer closes).
 
 | Permission | Why |
 | --- | --- |
-| `email:read` | Read the open message and conversation, the message you reply to, and the draft's subject |
+| `email:read` | Read the open message and conversation, the message you reply to, the draft's subject, and search and read your mail for a lookup |
 | `http:proxy` | Send requests to the AI service through the webmail's server, which adds the API key |
 | `admin:config` | Read the administrator's settings (addresses and models; the host never hands out the keys) |
 | `ui:composer-sidebar` | The panel next to the message you write (`composer-sidebar-right`) |
@@ -149,6 +172,8 @@ composer closes).
 | `compose:open` | Open a reply with a drafted reply or a reply idea in it |
 | `calendar:read` | The calendar lookup |
 | `contacts:read` | The contact lookup |
+| `identity:read` | Your name, addresses and signature, so the model knows who writes |
+| `account:read` | Your account's name and address when there is no identity |
 
 ## Credentials
 

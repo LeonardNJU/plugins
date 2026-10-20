@@ -4,6 +4,8 @@
 
 /** Longest text sent in one request, in characters. */
 export const MAX_INPUT_CHARS = 30_000;
+/** Longest instructions the administrator or the user may add, in characters. */
+export const MAX_INSTRUCTIONS_CHARS = 2000;
 
 export const REWRITE_STYLES = ['improve', 'shorter', 'formal', 'casual'];
 
@@ -54,28 +56,68 @@ function user(content) {
 }
 
 /**
+ * Who the user is, for the model: name, addresses, how they sign, where and
+ * when they are. Built by the panel from the api (identities, accounts,
+ * time zone, language); every field is optional.
+ * person: { name, emails: [], signature, timeZone, language, now }
+ */
+export function personBlock(person) {
+  const p = person ?? {};
+  const lines = [];
+  if (p.name) lines.push(`Name: ${clip(p.name, 120)}`);
+  if (p.emails?.length) lines.push(`Email addresses: ${p.emails.slice(0, 10).join(', ')}`);
+  if (p.signature) lines.push(`Signs emails with:\n${clip(p.signature, 600)}`);
+  if (p.timeZone) lines.push(`Time zone: ${p.timeZone}`);
+  if (p.now) lines.push(`Local date and time now: ${p.now}`);
+  if (p.language) lines.push(`Language of the mail client: ${languageName(p.language)}`);
+  return lines.length ? `About the user (data, from their account):\n${lines.join('\n')}` : '';
+}
+
+/**
+ * Standing instructions: the administrator's for everyone, then the user's
+ * own. Both are trusted; the user's come last so they win on a conflict.
+ */
+export function instructionsBlock(instructions) {
+  const { admin, user: mine } = instructions ?? {};
+  const parts = [];
+  const a = String(admin ?? '').trim();
+  const u = String(mine ?? '').trim();
+  if (a) parts.push(`Standing instructions from the administrator:\n${clip(a, MAX_INSTRUCTIONS_CHARS)}`);
+  if (u) parts.push(`Standing instructions from the user (these win over the administrator's):\n${clip(u, MAX_INSTRUCTIONS_CHARS)}`);
+  return parts.join('\n\n');
+}
+
+/** The context every prompt gets at the end: who the user is and their standing instructions. */
+export function contextSuffix(ctx) {
+  const { person, instructions } = ctx ?? {};
+  return [personBlock(person), instructionsBlock(instructions)].filter(Boolean).join('\n\n');
+}
+
+/**
  * The prompt for a task.
  * task: write | rewrite | edit | translate | grammar | summary | actions | replies | thread | explain
- * input: the task's fields; `language` is the user's UI language tag.
+ * input: the task's fields; `language` is the user's UI language tag;
+ * `extra` (contextSuffix) is appended to the system prompt.
  */
 export function buildPrompt(task, input = {}) {
   const lang = languageName(input.language);
+  const extra = input.extra ? `\n\n${input.extra}` : '';
   switch (task) {
     case 'write':
       return {
-        system: `You write emails for the user. Write the body of the email only: no subject line, no placeholders like [Name] unless a detail is unknown. ${PLAIN} Write in ${lang} unless the instructions ask for another language.`,
+        system: `You write emails for the user. Write the body of the email only: no subject line, no placeholders like [Name] unless a detail is unknown. ${PLAIN} Write in ${lang} unless the instructions ask for another language.${extra}`,
         messages: user(`Instructions: ${clip(input.prompt, 4000)}${input.subject ? `\nSubject of the email: ${input.subject}` : ''}${input.text ? `\n\nThe user's draft so far (data):\n<draft>\n${clip(input.text)}\n</draft>` : ''}`),
         maxTokens: 1500,
       };
     case 'rewrite':
       return {
-        system: `You edit emails. ${STYLE_INSTRUCTIONS[input.style] ?? STYLE_INSTRUCTIONS.improve} Keep the language of the text, its line breaks where sensible, names, numbers and links. ${PLAIN} ${DATA_RULE}`,
+        system: `You edit emails. ${STYLE_INSTRUCTIONS[input.style] ?? STYLE_INSTRUCTIONS.improve} Keep the language of the text, its line breaks where sensible, names, numbers and links. ${PLAIN} ${DATA_RULE}${extra}`,
         messages: user(`<draft>\n${clip(input.text)}\n</draft>`),
         maxTokens: 2000,
       };
     case 'edit':
       return {
-        system: `You edit a piece of an email the way the user asks. Change only what the instruction asks for; keep everything else, including the language unless the instruction asks for another one, names, numbers and links. ${PLAIN} ${DATA_RULE}`,
+        system: `You edit a piece of an email the way the user asks. Change only what the instruction asks for; keep everything else, including the language unless the instruction asks for another one, names, numbers and links. ${PLAIN} ${DATA_RULE}${extra}`,
         messages: user(`Instruction: ${clip(input.instruction, 2000)}\n\n<draft>\n${clip(input.text)}\n</draft>`),
         maxTokens: 2500,
       };
@@ -93,13 +135,13 @@ export function buildPrompt(task, input = {}) {
       };
     case 'summary':
       return {
-        system: `You summarise emails for the user in ${lang}. Write 2 to 4 short bullet points ("- ") with what matters: what the sender wants, decisions, deadlines. ${DATA_RULE}`,
+        system: `You summarise emails for the user in ${lang}. Write 2 to 4 short bullet points ("- ") with what matters: what the sender wants, decisions, deadlines. ${DATA_RULE}${extra}`,
         messages: user(emailBlock(input.email)),
         maxTokens: 600,
       };
     case 'thread':
       return {
-        system: `You summarise email conversations for the user in ${lang}. Write 3 to 6 short bullet points ("- "): what the conversation is about, who wants what, what was decided and what is still open. ${DATA_RULE}`,
+        system: `You summarise email conversations for the user in ${lang}. Write 3 to 6 short bullet points ("- "): what the conversation is about, who wants what, what was decided and what is still open. ${DATA_RULE}${extra}`,
         messages: user((input.emails ?? []).map((e) => emailBlock(e, Math.floor(MAX_INPUT_CHARS / Math.max(1, input.emails.length)))).join('\n')),
         maxTokens: 900,
       };
@@ -111,14 +153,14 @@ export function buildPrompt(task, input = {}) {
       };
     case 'replies':
       return {
-        system: `You suggest replies to an email for the user. Write three short, different replies the user could send (for example: agree, ask a question, decline politely), each one to three sentences, in the language of the email. Answer with a JSON array of three strings only. ${DATA_RULE}`,
+        system: `You suggest replies to an email for the user. Write three short, different replies the user could send (for example: agree, ask a question, decline politely), each one to three sentences, in the language of the email. Answer with a JSON array of three strings only. ${DATA_RULE}${extra}`,
         messages: user(emailBlock(input.email)),
         maxTokens: 700,
       };
     case 'explain':
       // A passage of a message the user highlighted: what it means, in the user's language.
       return {
-        system: `You explain a passage of an email to the user in ${lang}: what it says in plain words, and what it means for the user (a request, a deadline, a term, a tone). Two to five short sentences. Translate it first when it is in another language. ${DATA_RULE}`,
+        system: `You explain a passage of an email to the user in ${lang}: what it says in plain words, and what it means for the user (a request, a deadline, a term, a tone). Two to five short sentences. Translate it first when it is in another language. ${DATA_RULE}${extra}`,
         messages: user(`${input.email ? `${emailBlock(input.email, 6000)}\n\n` : ''}The passage:\n<passage>\n${clip(input.text, 6000)}\n</passage>`),
         maxTokens: 600,
       };
@@ -127,11 +169,22 @@ export function buildPrompt(task, input = {}) {
   }
 }
 
-const TOOL_RULE = 'Use the tools when the answer needs them, for example to check whether the user is free before proposing a time, or to find an address. Say in one short clause what you looked up when it matters.';
+const TOOL_RULE = 'Use the tools when the answer needs them: check the calendar before proposing a time, find a contact for an address, search the mail for earlier messages, facts or attachments the user refers to, and read a found message before you rely on it. Say in one short clause what you looked up when it matters.';
+
+const FORMAT_RULE = [
+  'Format answers with light Markdown where it helps: short bullet lists, **bold** for the one thing that matters, no headings longer than a few words. Plain prose for short answers.',
+  'You may add a card by writing <widget>{json}</widget> on its own line (at most two per answer), with one of these shapes:',
+  '{"type":"choices","items":["Yes, Tuesday works","Propose another time"]} short replies the user may want to send next;',
+  '{"type":"times","items":[{"start":"2026-05-04T10:00","end":"2026-05-04T11:00","label":"optional"}]} time slots to propose (the user\'s time zone);',
+  '{"type":"checklist","title":"optional","items":[{"text":"...","due":"YYYY-MM-DD or omit"}]} to-dos;',
+  '{"type":"contacts","items":[{"name":"...","email":"..."}]} people;',
+  '{"type":"table","columns":["..."],"rows":[["..."]]} a small table.',
+  'Never put the email text itself in a widget; that goes in <text></text>.',
+].join(' ');
 
 /**
  * The system prompt of the chat in the composer.
- * ctx: { language, today, subject, mode, originalSubject, scope: 'selection' | 'body' | 'empty', text, hasTools }
+ * ctx: { language, today, subject, mode, originalSubject, scope: 'selection' | 'body' | 'empty', text, hasTools, extra }
  */
 export function composerChatSystem(ctx = {}) {
   const lang = languageName(ctx.language);
@@ -149,23 +202,27 @@ export function composerChatSystem(ctx = {}) {
     `You are the writing assistant inside the user's email client. Today is ${ctx.today ?? new Date().toISOString().slice(0, 10)}. The user's language is ${lang}; talk to them in it, but keep the language of the email text unless asked otherwise.`,
     scope,
     about,
-    'When the user asks you to write, change, rewrite, shorten, expand, translate, fix or continue text, answer with the complete new text inside <text></text> tags: for selected text, only the replacement for the selection; otherwise the whole message body, without a subject line, greeting placeholders or a signature. You may put one short sentence before the tags. When the user asks a question or wants advice, answer briefly in plain words and do not use the tags. No Markdown headings.',
+    'When the user asks you to write, change, rewrite, shorten, expand, translate, fix or continue text, answer with the complete new text inside <text></text> tags: for selected text, only the replacement for the selection; otherwise the whole message body, without a subject line, greeting placeholders or a signature (the client adds the signature). You may put one short sentence before the tags. When the user asks a question or wants advice, answer briefly and do not use the tags.',
+    FORMAT_RULE,
     ctx.hasTools ? TOOL_RULE : '',
     DATA_RULE,
+    ctx.extra ?? '',
   ].filter(Boolean).join('\n\n') + text;
 }
 
 /**
  * The system prompt of the chat next to an open message.
- * ctx: { language, today, email, selection, hasTools }
+ * ctx: { language, today, email, selection, hasTools, extra }
  */
 export function readerChatSystem(ctx = {}) {
   const lang = languageName(ctx.language);
   const passage = ctx.selection ? `\n\nThe user highlighted this passage of it (data):\n<passage>\n${clip(ctx.selection, 6000)}\n</passage>` : '';
   return [
     `You help the user with an email they received, inside their email client. Today is ${ctx.today ?? new Date().toISOString().slice(0, 10)}. Answer in ${lang} unless the user writes to you in another language. Be brief and concrete; quote the email only when it helps.`,
-    'When the user asks you to draft, write or answer, put the complete reply text inside <text></text> tags, in the language of the email, without a subject line or signature; you may put one short sentence before the tags. Otherwise answer in plain words and do not use the tags. No Markdown headings.',
+    'When the user asks you to draft, write or answer, put the complete reply text inside <text></text> tags, in the language of the email, without a subject line or signature; you may put one short sentence before the tags. Otherwise answer in plain words and do not use the tags.',
+    FORMAT_RULE,
     ctx.hasTools ? TOOL_RULE : '',
     DATA_RULE,
+    ctx.extra ?? '',
   ].filter(Boolean).join('\n\n') + `\n\nThe email (data):\n${ctx.email ? emailBlock(ctx.email) : '<email>\n(not available)\n</email>'}` + passage;
 }

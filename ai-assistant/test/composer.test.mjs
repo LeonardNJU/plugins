@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { fakeApi } from '../../test-utils/fake-api.mjs';
 import { createBackground, DRAFT_KEY, COMPOSER_SURFACE, COMPOSER_MENU_SURFACE, READER_MENU_SURFACE, READER_SURFACE, COMPOSER_CONTEXT_KEY, chatKey, pendingKey } from '../src/lib/background.js';
 import { ownText } from '../src/lib/draft.js';
-import { buildPrompt, clip, REWRITE_STYLES } from '../src/lib/prompts.js';
+import { buildPrompt, clip, contextSuffix, composerChatSystem, REWRITE_STYLES } from '../src/lib/prompts.js';
 import { defaultTarget, languageOptions } from '../src/lib/languages.js';
 import plugin from '../src/index.js';
 import manifest from '../manifest.json' with { type: 'json' };
@@ -47,6 +47,37 @@ describe('composer prompts', () => {
     const long = 'x'.repeat(40_000);
     expect(clip(long).length).toBeLessThan(31_000);
     expect(clip('short')).toBe('short');
+  });
+});
+
+describe('the context every request carries', () => {
+  it('describes the user and puts the standing instructions last, the user\'s after the administrator\'s', () => {
+    const extra = contextSuffix({
+      person: { name: 'Anna', emails: ['a@e.org'], signature: 'Kind regards', timeZone: 'Europe/Zurich', language: 'de', now: 'Tuesday 20 October 2026 at 18:00' },
+      instructions: { admin: ' House style: short. ', user: 'Sign with Anna' },
+    });
+    expect(extra).toBe([
+      'About the user (data, from their account):',
+      'Name: Anna', 'Email addresses: a@e.org', 'Signs emails with:\nKind regards', 'Time zone: Europe/Zurich',
+      'Local date and time now: Tuesday 20 October 2026 at 18:00', 'Language of the mail client: German',
+      '', 'Standing instructions from the administrator:\nHouse style: short.', '',
+      'Standing instructions from the user (these win over the administrator\'s):\nSign with Anna',
+    ].join('\n'));
+    expect(contextSuffix({})).toBe('');
+    expect(contextSuffix(null)).toBe('');
+    expect(contextSuffix({ instructions: { user: 'x'.repeat(5000) } }).length).toBeLessThan(2200);
+  });
+
+  it('goes to the end of the task prompts and the chat prompts', () => {
+    expect(buildPrompt('write', { prompt: 'hi', extra: 'CONTEXT' }).system.endsWith('CONTEXT')).toBe(true);
+    expect(buildPrompt('rewrite', { text: 'hi', style: 'shorter', extra: 'CONTEXT' }).system).toContain('CONTEXT');
+    // Translation and proofreading keep to the text: no instructions there.
+    expect(buildPrompt('translate', { text: 'hi', target: 'fr', extra: 'CONTEXT' }).system).not.toContain('CONTEXT');
+    const system = composerChatSystem({ scope: 'body', text: 'Hello', extra: 'CONTEXT', hasTools: true });
+    expect(system).toContain('CONTEXT');
+    expect(system).toContain('<widget>{json}</widget>');
+    expect(system).toContain('search the mail');
+    expect(system.indexOf('CONTEXT')).toBeLessThan(system.indexOf('<draft>'));
   });
 });
 

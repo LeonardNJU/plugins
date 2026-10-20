@@ -108,7 +108,7 @@ describe('the composer panel', () => {
     expect(prompt.system).toContain('<draft>\nHello Bob, can we meet tuesday? Thanks\n</draft>');
     expect(prompt.system).toContain('writing a reply to "Lunch"');
     expect(prompt.system).toContain('<text></text>');
-    expect(prompt.tools.map((t) => t.name)).toEqual(['read_original_message', 'check_calendar', 'find_contact']);
+    expect(prompt.tools.map((t) => t.name)).toEqual(['read_original_message', 'check_calendar', 'find_contact', 'search_mail', 'read_message']);
     expect(prompt.messages.at(-1)).toEqual({ role: 'user', content: 'add that I am away on Friday' });
     expect(screen.getByText('Here it is:')).toBeTruthy();
     expect([...document.querySelectorAll('ins')].map((x) => x.textContent).join(' ')).toContain('away on Friday');
@@ -207,7 +207,8 @@ describe('the reader panel', () => {
     await click(button('Summarize'));
     await settled();
     expect(sentPrompt(api).messages[0].content).toContain('Subject: Thursday');
-    expect(screen.getByText('- Carol asks for a meeting on Thursday at 3')).toBeTruthy();
+    // Markdown: the bullet becomes a list item.
+    expect(screen.getByRole('listitem').textContent).toBe('Carol asks for a meeting on Thursday at 3');
 
     await type('is there a time?');
     await pressEnter();
@@ -255,6 +256,74 @@ describe('the reader panel', () => {
     expect(step.textContent).toContain('Checked your calendar (2026-10-15 to 2026-10-15)');
     expect(screen.getByText('You are free then.')).toBeTruthy();
     expect(api.calls('calendar.getEvents')[0].args).toEqual([{ from: '2026-10-15', to: '2026-10-16' }]);
+  });
+
+  it('tells the model who the user is and their standing instructions, the user\'s last', async () => {
+    const api = makeApi({ answers: ['Done.'], handlers: {
+      'admin.getAllConfig': async () => ({ ...CONFIG, instructions: 'Write in British English.' }),
+      'user.getIdentities': async () => [{ id: 'i1', name: 'Anna Example', email: 'anna@example.org', textSignature: 'Kind regards,\nAnna' }],
+      'user.getAccounts': async () => [{ id: 'a1', email: 'anna@example.org', displayName: 'Anna', isActive: true }],
+      'user.getTimeZone': async () => 'Europe/Zurich',
+    } });
+    await api.storage.set('prefs', { instructions: 'Keep it short.' });
+    await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
+    await type('ok?');
+    await pressEnter();
+    await settled();
+    const system = sentPrompt(api).system;
+    expect(system).toContain('Name: Anna Example');
+    expect(system).toContain('Email addresses: anna@example.org');
+    expect(system).toContain('Signs emails with:\nKind regards,\nAnna');
+    expect(system).toContain('Time zone: Europe/Zurich');
+    expect(system).toMatch(/Local date and time now: \w+/);
+    expect(system).toContain('Standing instructions from the administrator:\nWrite in British English.');
+    expect(system).toContain('Standing instructions from the user (these win over the administrator\'s):\nKeep it short.');
+    expect(system.indexOf('administrator')).toBeLessThan(system.indexOf('Keep it short.'));
+    // The quick actions get the same context.
+    await click(button('Summarize'));
+    await settled();
+    expect(sentPrompt(api).system).toContain('Keep it short.');
+  });
+
+  it('draws the widgets the model adds and sends a chip as the next request', async () => {
+    const api = makeApi({ answers: [
+      'Two options:\n<widget>{"type":"choices","items":["Yes, Thursday works","Propose Friday"]}</widget>\n<widget>{"type":"times","items":[{"start":"2026-10-15T15:00","end":"2026-10-15T16:00"}]}</widget>',
+      'Sure.',
+    ] });
+    await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
+    await type('when?');
+    await pressEnter();
+    await settled();
+    expect(document.querySelector('[data-widget="choices"]')).toBeTruthy();
+    expect(document.querySelector('[data-widget="times"]')).toBeTruthy();
+    expect(screen.queryByText(/<widget>/)).toBeNull();
+    await click(button('Yes, Thursday works'));
+    await settled();
+    expect(sentPrompt(api).messages.at(-1)).toEqual({ role: 'user', content: 'Yes, Thursday works' });
+    expect(screen.getAllByText('Yes, Thursday works').length).toBeGreaterThan(0);
+  });
+
+  it('shows what a lookup found as a card, and the mail search as messages to summarise', async () => {
+    const ev = (event, data) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+    const toolTurn = ev('message_start', { type: 'message_start' })
+      + ev('content_block_start', { type: 'content_block_start', index: 0, content_block: { type: 'tool_use', id: 'tu1', name: 'search_mail' } })
+      + ev('content_block_delta', { type: 'content_block_delta', index: 0, delta: { type: 'input_json_delta', partial_json: '{"text":"invoice"}' } })
+      + ev('content_block_stop', { type: 'content_block_stop', index: 0 })
+      + ev('message_stop', { type: 'message_stop' });
+    let n = 0;
+    const api = makeApi({ handlers: {
+      'proxy.fetch': async () => streamResponse(n++ === 0 ? toolTurn : anthropicSse(['Found one.'])),
+      'email.search': async () => [{ id: 'M7', subject: 'Invoice 42', from: [{ name: 'Carol', email: 'carol@example.org' }], receivedAt: '2026-10-12T09:00:00Z' }],
+    } });
+    await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
+    await type('find the invoice');
+    await pressEnter();
+    await settled();
+    expect(document.querySelector('[data-step="search_mail"]').textContent).toContain('Searched your mail for “invoice”');
+    expect(document.querySelector('[data-widget="emails"]').textContent).toContain('Invoice 42');
+    await click(button('Summarize this message'));
+    await settled();
+    expect(sentPrompt(api).messages.at(-1).content).toBe('Read the message "Invoice 42" (id M7) and summarise it.');
   });
 
   it('offers no lookups when the user turned them off', async () => {

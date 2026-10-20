@@ -10,11 +10,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert, Badge, Button, DiffView, Icon, LinkButton, List, ListRow, Row, RowAction, Select, Spinner, Stack, Text, Textarea,
 } from '@plugin-host/ui';
-import { ConsentNotice, ErrorMessage, Lines, copyWithToast, useApi } from './common.jsx';
+import { ConsentNotice, ErrorMessage, copyWithToast, useApi } from './common.jsx';
+import { Markdown, stripMarkdown } from './Markdown.jsx';
+import { Widget } from './Widgets.jsx';
 import { ActionItems, Replies, emailForPrompt } from './Reader.jsx';
 import { keepEdges } from './AssistantDialog.jsx';
 import { ensureConsent, loadPrefs, loadSetup, savePrefs } from '../lib/assistant.js';
-import { composerChatSystem, readerChatSystem, buildPrompt, REWRITE_STYLES } from '../lib/prompts.js';
+import { composerChatSystem, readerChatSystem, buildPrompt, contextSuffix, REWRITE_STYLES } from '../lib/prompts.js';
+import { loadPerson, localNow } from '../lib/person.js';
 import { historyMessages, parseAnswer, runChat } from '../lib/chat.js';
 import { runTool, toolsFor } from '../lib/tools.js';
 import { streamCompletion } from '../lib/client.js';
@@ -93,6 +96,7 @@ export function AssistantPanel(props) {
 
   const [setup, setSetup] = useState(null);
   const [prefs, setPrefs] = useState({});
+  const [person, setPerson] = useState(null);
   const [turns, setTurns] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [body, setBody] = useState('');
@@ -129,14 +133,16 @@ export function AssistantPanel(props) {
     setLoaded(false);
     setTurns([]);
     void (async () => {
-      const [next, saved, ctx, draft] = await Promise.all([
+      const [next, saved, ctx, draft, who] = await Promise.all([
         loadSetup(api).catch(() => ({ endpoint: null, prefs: {} })),
         key ? loadTurns(api, key) : [],
         api.storage.get(COMPOSER_CONTEXT_KEY).catch(() => null),
         api.storage.get(DRAFT_KEY).catch(() => null),
+        loadPerson(api, locale).catch(() => null),
       ]);
       if (!live) return;
       setSetup(next);
+      setPerson(who);
       setPrefs(next.prefs ?? {});
       setTarget(defaultTarget(locale, next.prefs?.translateTo));
       setTurns(saved);
@@ -187,6 +193,12 @@ export function AssistantPanel(props) {
    * (the chat). `label` is what the user turn shows; `sent` what the chat
    * sends when it differs.
    */
+  /** Who the user is and their standing instructions, for this request. */
+  const extraContext = useCallback(() => contextSuffix({
+    person: person ? { ...person, now: localNow(person.timeZone) } : null,
+    instructions: { admin: setup?.config?.instructions, user: prefs.instructions },
+  }), [person, setup, prefs]);
+
   const send = useCallback(async ({ label, sent, task, input: taskInput, show, scope, src }) => {
     const endpoint = setup?.endpoint;
     if (!endpoint) return;
@@ -202,15 +214,16 @@ export function AssistantPanel(props) {
       if (abort.signal.aborted) throw new AiError('cancelled');
       const onText = (full) => patchTurn(turn.id, { content: full });
       let text;
+      const extra = extraContext();
       if (task) {
-        const prompt = buildPrompt(task, { language: locale, ...taskInput });
+        const prompt = buildPrompt(task, { language: locale, extra, ...taskInput });
         text = await streamCompletion(api, endpoint, prompt, { onText, signal: abort.signal });
       } else {
         const ctx = { inReplyToId: mode === 'composer' ? context?.inReplyToId : undefined, lookups };
         const tools = toolsFor(ctx);
         const system = mode === 'composer'
-          ? composerChatSystem({ language: locale, today: today(), subject, mode: context?.mode, originalSubject: context?.originalSubject, scope, text: src, hasTools: tools.length > 0 })
-          : readerChatSystem({ language: locale, today: today(), email: email ? emailForPrompt(email) : null, selection: scope === 'passage' ? src : '', hasTools: tools.length > 0 });
+          ? composerChatSystem({ language: locale, today: today(), subject, mode: context?.mode, originalSubject: context?.originalSubject, scope, text: src, hasTools: tools.length > 0, extra })
+          : readerChatSystem({ language: locale, today: today(), email: email ? emailForPrompt(email) : null, selection: scope === 'passage' ? src : '', hasTools: tools.length > 0, extra });
         const messages = [...historyMessages(previous), { role: 'user', content: userTurn.content }];
         const out = await runChat(api, endpoint, {
           system, messages, tools, runTool: (name, args) => runTool(api, name, args, ctx),
@@ -240,7 +253,7 @@ export function AssistantPanel(props) {
     } finally {
       if (controller.current === abort) controller.current = null;
     }
-  }, [api, setup, askConsent, patchTurn, locale, mode, context, lookups, subject, email]);
+  }, [api, setup, askConsent, patchTurn, locale, mode, context, lookups, subject, email, extraContext]);
 
   /** A quick action on the current source (or on `text` from a right-click). */
   const quick = useCallback((action, { text, targetTag } = {}) => {
@@ -316,6 +329,26 @@ export function AssistantPanel(props) {
       patchTurn(turn.id, { applying: null, applyFailed: true });
     }
   }, [api, mode, email, props.composerId, patchTurn, refreshBody]);
+
+  /** A widget's request: into the chat, on the current text. */
+  const sendText = useCallback((text) => {
+    const value = String(text ?? '').trim();
+    if (!value || running || !setup?.endpoint) return;
+    void send({ label: value, scope: source.scope, src: source.text });
+  }, [running, setup, send, source]);
+
+  /** A widget's text into the message, where the cursor is. */
+  const insertText = useCallback(async (text) => {
+    if (mode !== 'composer') return;
+    try {
+      const ok = await api.composer.replaceSelection(props.composerId, { text: String(text ?? '') });
+      if (ok === false) throw new Error('refused');
+      void refreshBody();
+    } catch (err) {
+      api.log?.warn?.('could not insert', err?.message ?? err);
+      api.toast.error(t('assistant.apply_failed'));
+    }
+  }, [api, mode, props.composerId, refreshBody, t]);
 
   const clear = useCallback(() => {
     stop();
@@ -457,6 +490,8 @@ export function AssistantPanel(props) {
                   onApply={apply}
                   onRetry={retry}
                   onReview={(review) => patchTurn(turn.id, { review })}
+                  onSend={sendText}
+                  onInsert={insertText}
                 />
               )
           ))}
@@ -516,20 +551,22 @@ function UserTurn({ turn }) {
 }
 
 /** The model's answer: what it says, what it proposes, what it looked up. */
-function AssistantTurn({ api, mode, turn, email, onApply, onRetry, onReview }) {
+function AssistantTurn({ api, mode, turn, email, onApply, onRetry, onReview, onSend, onInsert }) {
   const t = api.i18n.t;
   const running = turn.status === 'running';
   const parts = useMemo(() => partsOf(turn), [turn]);
   return (
     <div data-turn="assistant" data-status={turn.status}>
     <Stack gap={2}>
-      {turn.steps?.map((step) => <StepRow key={step.id} api={api} step={step} />)}
+      {turn.steps?.map((step) => <StepRow key={step.id} api={api} mode={mode} step={step} onSend={onSend} onInsert={onInsert} />)}
       {running && !turn.content && (!turn.steps || turn.steps.every((s) => s.status !== 'running')) && <Spinner label={t('common.thinking')} />}
       {turn.show === 'grammar' && turn.review
         ? <GrammarCard api={api} turn={turn} onApply={onApply} onReview={onReview} />
         : parts.map((part, i) => (
           part.kind === 'say'
             ? <SayPart key={i} api={api} mode={mode} turn={turn} text={part.text} onApply={onApply} />
+            : part.kind === 'widget'
+              ? (part.widget ? <Widget key={i} api={api} mode={mode} widget={part.widget} onSend={onSend} onInsert={onInsert} /> : null)
             : part.kind === 'actions'
               ? <ActionItems key={i} api={api} answer={part.text} />
               : part.kind === 'replies'
@@ -564,11 +601,11 @@ function SayPart({ api, mode, turn, text, onApply }) {
   const copyable = mode === 'reader' && turn.status === 'done' && (turn.show === 'text' || turn.show === 'chat');
   return (
     <Stack gap={1}>
-      <Lines text={text} />
+      <Markdown text={text} onOpenLink={(url) => void api.ui.openExternalUrl?.(url)} />
       {(offer || copyable) && (
         <Row>
-          {offer && <LinkButton icon="text-plus" onClick={() => onApply(turn, 'cursor', text)}>{t('panel.insert_cursor')}</LinkButton>}
-          {copyable && <LinkButton icon="copy" onClick={() => void copyWithToast(api, text)}>{t('common.copy')}</LinkButton>}
+          {offer && <LinkButton icon="text-plus" onClick={() => onApply(turn, 'cursor', stripMarkdown(text))}>{t('panel.insert_cursor')}</LinkButton>}
+          {copyable && <LinkButton icon="copy" onClick={() => void copyWithToast(api, stripMarkdown(text))}>{t('common.copy')}</LinkButton>}
         </Row>
       )}
     </Stack>
@@ -590,6 +627,7 @@ function proposalParts(text) {
   const out = [];
   for (const piece of (text ? parseAnswer(text) : [])) {
     if (piece.kind === 'say') out.push({ kind: 'say', text: piece.text });
+    else if (piece.kind === 'widget') out.push({ kind: 'widget', widget: piece.widget, open: piece.open });
     else out.push({ kind: 'proposal', text: piece.text, open: piece.open, plain: false });
   }
   return out;
@@ -685,25 +723,33 @@ function GrammarCard({ api, turn, onApply, onReview }) {
 }
 
 /** One lookup the model made. */
-function StepRow({ api, step }) {
+const STEP_ICONS = { check_calendar: 'calendar', find_contact: 'address-book', search_mail: 'search', read_message: 'mail-opened', read_original_message: 'mail' };
+
+function stepLabel(t, step) {
+  const args = step.args ?? {};
+  switch (step.name) {
+    case 'check_calendar': return t('panel.step.check_calendar', { from: args.from ?? '', to: args.to ?? args.from ?? '' });
+    case 'find_contact': return t('panel.step.find_contact', { query: args.query ?? '' });
+    case 'read_original_message': return t('panel.step.read_original_message');
+    case 'search_mail': return t('panel.step.search_mail', { query: [args.text, args.from, args.subject, args.after, args.before].filter(Boolean).join(' ') });
+    case 'read_message': return t('panel.step.read_message');
+    default: return step.name;
+  }
+}
+
+/** One lookup the model made, with a card of what it found. */
+function StepRow({ api, mode, step, onSend, onInsert }) {
   const t = api.i18n.t;
   const [open, setOpen] = useState(false);
-  const args = step.args ?? {};
-  const label = step.name === 'check_calendar'
-    ? t('panel.step.check_calendar', { from: args.from ?? '', to: args.to ?? args.from ?? '' })
-    : step.name === 'find_contact'
-      ? t('panel.step.find_contact', { query: args.query ?? '' })
-      : step.name === 'read_original_message'
-        ? t('panel.step.read_original_message')
-        : step.name;
-  const icon = step.status === 'running' ? 'loader-2' : step.status === 'failed' ? 'alert-circle' : step.name === 'check_calendar' ? 'calendar' : step.name === 'find_contact' ? 'address-book' : 'mail';
+  const icon = step.status === 'running' ? 'loader-2' : step.status === 'failed' ? 'alert-circle' : (STEP_ICONS[step.name] ?? 'mail');
   return (
     <div data-step={step.name} data-step-status={step.status}>
     <Stack gap={1}>
       <LinkButton icon={icon} onClick={() => setOpen((v) => !v)} aria-expanded={open}>
-        {label}{step.status === 'running' ? ` · ${t('panel.step.running')}` : step.status === 'failed' ? ` · ${t('panel.step.failed')}` : ''}
+        {stepLabel(t, step)}{step.status === 'running' ? ` · ${t('panel.step.running')}` : step.status === 'failed' ? ` · ${t('panel.step.failed')}` : ''}
       </LinkButton>
-      {open && step.result && <Text size="xs" tone="muted" className="whitespace-pre-wrap">{step.result}</Text>}
+      {step.widget && <Widget api={api} mode={mode} widget={step.widget} onSend={onSend} onInsert={onInsert} />}
+      {open && step.result && !step.widget && <Text size="xs" tone="muted" className="whitespace-pre-wrap">{step.result}</Text>}
     </Stack>
     </div>
   );
