@@ -1428,6 +1428,7 @@ await api.composer.attach(composerId, { blobId, name, type, size })             
 ```js
 await api.email.get(emailId)                 // EmailReadView or null; any message of the account
 await api.email.list({ mailboxId, limit, position })   // EmailSummary[]; limit 1-100, default 50
+await api.email.search({ text, from, to, subject, after, before, hasAttachment, mailboxId, limit })   // EmailSummary[], newest first; limit 1-50
 await api.email.move(emailIds, mailboxId)    // at most 100 ids; 20 moves a minute
 await api.email.archive(emailIds)
 await api.email.getAttachment(emailId, blobId)   // { name, type, size, data: ArrayBuffer }, at most 25 MB
@@ -1445,6 +1446,10 @@ receivedAt, isRead, isFlagged, hasAttachment, attachments, preview,
 keywords, text, headers, source, auth`. `EmailSummary` is the list view
 without body, headers or source.
 
+`search` runs a JMAP filter over all mail (or one folder with `mailboxId`):
+`text` matches whole words in sender, recipients, subject and body, `from`,
+`to` and `subject` their fields, `after` and `before` take dates; give at
+least one. The plugin gets summaries and reads one with `get`.
 `getAttachment` only accepts a `blobId` that is an attachment of that
 message. Keywords are JMAP keywords such as `$flagged` or `$label:work`
 (letters, digits and `$ _ . : -`, up to 128 characters).
@@ -1743,6 +1748,7 @@ comes from the plugin id, so one plugin can't derive another plugin's key.
 | `api.vacation.set` | `vacation:write` |
 | `api.email.get` | `email:read` |
 | `api.email.list` | `email:read` |
+| `api.email.search` | `email:read` |
 | `api.mailboxes.list` | `email:read` |
 | `api.email.getAttachment` | `email:blob-read` |
 | `api.email.getRaw` | `email:blob-read` |
