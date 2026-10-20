@@ -319,8 +319,8 @@ export function makeUi(host, deps) {
       if (!pass) return;
       setBusy(true);
       try {
-        const { signingKey, decryptionKey, legacyDecryptionKey } = await deps.unlockPrivateKey(rec, pass);
-        await deps.saveSessionKeys({ id: rec.id, signingKey, decryptionKey, legacyDecryptionKey });
+        const { signingKey, decryptionKey, sealedPkcs8 } = await deps.unlockPrivateKey(rec, pass);
+        await deps.saveSessionKeys({ id: rec.id, signingKey, decryptionKey, sealedPkcs8 });
         host.toast.success(rec.email ? t('unlock.done', { email: rec.email }) : t('unlock.doneNoEmail'));
         await refresh();
       } catch (err) {

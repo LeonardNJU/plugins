@@ -27,6 +27,8 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci
+      # The S/MIME tests decrypt with the plugin's own pkijs/asn1js.
+      - run: npm ci --prefix smime
       - run: npm test
 
   build:

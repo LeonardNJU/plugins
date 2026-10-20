@@ -13,7 +13,8 @@
  *
  * Private keys are imported from PKCS#12, AES-GCM-wrapped under PBKDF2(600k),
  * and unlocked into NON-EXTRACTABLE WebCrypto keys held in a same-origin
- * IndexedDB session store shared between the background and slot iframes.
+ * IndexedDB session store shared between the background and slot iframes
+ * (see session-keys.js for the RSA PKCS#1 v1.5 key).
  */
 
 const host = require('@plugin-host');
@@ -40,6 +41,7 @@ import {
   savePublicCert, listPublicCerts, deletePublicCert,
   saveSessionKeys, getSessionKeys, deleteSessionKeys, clearSessionKeys,
 } from './key-storage.js';
+import { unlockedDecryptMaps, forgetLegacyKeys } from './session-keys.js';
 
 const t = translator(host);
 
@@ -186,8 +188,8 @@ async function ensureKeyUnlocked(keyRecord) {
   if (!pass) return null;
 
   try {
-    const { signingKey, decryptionKey, legacyDecryptionKey } = await unlockPrivateKey(keyRecord, pass);
-    await saveSessionKeys({ id: keyRecord.id, signingKey, decryptionKey, legacyDecryptionKey });
+    const { signingKey, decryptionKey, sealedPkcs8 } = await unlockPrivateKey(keyRecord, pass);
+    await saveSessionKeys({ id: keyRecord.id, signingKey, decryptionKey, sealedPkcs8 });
     return await getSessionKeys(keyRecord.id);
   } catch (err) {
     host.toast.error(err && err.message ? errorMessage(t, err) : t('unlock.failedWrongPassphrase'));
@@ -205,20 +207,6 @@ async function recipientCertsFor(emails) {
     else missing.push(email);
   }
   return { found, missing };
-}
-
-// Build decrypt key maps from the session store, across all key records.
-async function unlockedDecryptMaps() {
-  const recs = await listKeyRecords();
-  const unlockedKeys = new Map();
-  const legacyUnlockedKeys = new Map();
-  for (const r of recs) {
-    const s = await getSessionKeys(r.id);
-    if (!s) continue;
-    if (s.decryptionKey) unlockedKeys.set(r.id, s.decryptionKey);
-    if (s.legacyDecryptionKey) legacyUnlockedKeys.set(r.id, s.legacyDecryptionKey);
-  }
-  return { keyRecords: recs, unlockedKeys, legacyUnlockedKeys };
 }
 
 // ─── Compose-send takeover ─────────────────────────────────────────────
@@ -630,10 +618,12 @@ export const hooks = {
   // Wipe unlocked keys from the shared session store on sign-out / account switch.
   async onAfterLogout() {
     if (settings().lockOnLogout === false) return;
+    forgetLegacyKeys();
     try { await clearSessionKeys(); } catch (err) { host.log.warn('clearSessionKeys failed', err); }
   },
   async onAccountSwitch() {
     if (settings().lockOnLogout === false) return;
+    forgetLegacyKeys();
     try { await clearSessionKeys(); } catch (err) { host.log.warn('clearSessionKeys failed', err); }
   },
   // Each new message starts with Sign / Encrypt as set under "Defaults for
@@ -663,6 +653,7 @@ export async function activate(api) {
   }
   // Enforce session scope for unlocked keys: wipe any left over from a prior
   // app session at boot (mirrors the native "in-memory, cleared on reload").
+  forgetLegacyKeys();
   try { await clearSessionKeys(); } catch (err) { api.log.warn('S/MIME: clearSessionKeys failed', err); }
   let keyCount = 0;
   try { keyCount = (await listKeyRecords()).length; } catch (err) { api.log.warn('S/MIME: listKeyRecords failed', err); }

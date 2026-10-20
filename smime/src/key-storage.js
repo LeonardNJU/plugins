@@ -14,7 +14,9 @@
  *
  * CryptoKey objects are structured-cloneable, so IndexedDB can persist the
  * unlocked handles without ever exposing the raw key material — a
- * non-extractable key stays non-extractable when read back.
+ * non-extractable key stays non-extractable when read back. Only CryptoKeys
+ * and bytes go in there: a webcrypto-liner key is a JS object and comes back
+ * as a plain Object (see session-keys.js).
  */
 
 const DB_NAME = 'smime-plugin-store';
@@ -101,16 +103,23 @@ export async function deletePublicCert(id) {
 }
 
 // ── Session (unlocked) key CRUD ─────────────────────────────────────
-// Each entry: { id, signingKey, decryptionKey?, legacyDecryptionKey? }
+// Each entry: { id, format, signingKey, decryptionKey?, sealedPkcs8? }
+// sealedPkcs8 is { key, iv, data }, set for RSA keys (session-keys.js).
+
+// Older versions wrote entries without a format, holding a webcrypto-liner
+// key that doesn't survive the store. Those count as locked, so the user gets
+// the unlock prompt instead of a decrypt error.
+const SESSION_FORMAT = 2;
 
 export async function saveSessionKeys(entry) {
   const db = await openDB();
-  await txPromise(db, SESSION_KEYS_STORE, 'readwrite', (s) => s.put(entry));
+  await txPromise(db, SESSION_KEYS_STORE, 'readwrite', (s) => s.put({ ...entry, format: SESSION_FORMAT }));
 }
 
 export async function getSessionKeys(id) {
   const db = await openDB();
-  return txPromise(db, SESSION_KEYS_STORE, 'readonly', (s) => s.get(id));
+  const entry = await txPromise(db, SESSION_KEYS_STORE, 'readonly', (s) => s.get(id));
+  return entry && entry.format === SESSION_FORMAT ? entry : undefined;
 }
 
 export async function listSessionKeyIds() {

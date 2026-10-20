@@ -10,7 +10,8 @@ import * as asn1js from 'asn1js';
 import * as pkijs from 'pkijs';
 import { generateUUID } from './util.js';
 import { extractCertificateInfo, classifyCapabilities } from './certificate-utils.js';
-import { withLinerEngine, getLinerCrypto } from './crypto-engine.js';
+import { withLinerEngine } from './crypto-engine.js';
+import { sealPkcs8 } from './session-keys.js';
 
 const KDF_ITERATIONS = 600_000;
 const AES_KEY_LENGTH = 256;
@@ -166,7 +167,9 @@ function ecdsaCurveFromAlg(alg) {
 
 /**
  * Decrypt stored PKCS#8 bytes and import as non-extractable CryptoKeys.
- * @returns { signingKey, decryptionKey?, legacyDecryptionKey? }
+ * RSA keys also get the PKCS#8 bytes sealed for the session, from which the
+ * decrypt path builds the RSAES-PKCS1-v1_5 key (session-keys.js).
+ * @returns { signingKey, decryptionKey?, sealedPkcs8? }
  */
 export async function unlockPrivateKey(record, passphrase) {
   const wrappingKey = await deriveWrappingKey(passphrase, record.salt, record.kdfIterations);
@@ -193,15 +196,8 @@ export async function unlockPrivateKey(record, passphrase) {
   } catch {
     // Key may only support decryption (key-encipherment-only cert)
     const decryptionKey = await crypto.subtle.importKey('pkcs8', pkcs8Bytes, decryptAlg, false, decryptUsages);
-    let legacyDecryptionKey;
-    if (!isEcdsa) {
-      try {
-        legacyDecryptionKey = await getLinerCrypto().subtle.importKey(
-          'pkcs8', pkcs8Bytes, { name: 'RSAES-PKCS1-v1_5' }, false, ['decrypt'],
-        );
-      } catch { /* liner unavailable */ }
-    }
-    return { signingKey: decryptionKey, decryptionKey, legacyDecryptionKey };
+    const sealedPkcs8 = isEcdsa ? undefined : await sealPkcs8(pkcs8Bytes);
+    return { signingKey: decryptionKey, decryptionKey, sealedPkcs8 };
   }
 
   let decryptionKey;
@@ -209,14 +205,7 @@ export async function unlockPrivateKey(record, passphrase) {
     decryptionKey = await crypto.subtle.importKey('pkcs8', pkcs8Bytes, decryptAlg, false, decryptUsages);
   } catch { /* signing-only cert */ }
 
-  let legacyDecryptionKey;
-  if (!isEcdsa) {
-    try {
-      legacyDecryptionKey = await getLinerCrypto().subtle.importKey(
-        'pkcs8', pkcs8Bytes, { name: 'RSAES-PKCS1-v1_5' }, false, ['decrypt'],
-      );
-    } catch { /* liner unavailable */ }
-  }
+  const sealedPkcs8 = isEcdsa ? undefined : await sealPkcs8(pkcs8Bytes);
 
-  return { signingKey, decryptionKey, legacyDecryptionKey };
+  return { signingKey, decryptionKey, sealedPkcs8 };
 }
