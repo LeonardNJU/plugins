@@ -1558,12 +1558,22 @@ await api.user.getAccounts()      // [{ id, label, serverUrl, username, displayN
 await api.user.getIdentities()    // the user's sender identities
 await api.user.logout()
 await api.app.getInfo()           // { product: 'Bulwark Mail', name, version, edition: 'full' | 'lite', stalwartFeatures, demoMode }
+await api.app.searchSettings('undo send', { limit })   // [{ pageId, page, label, description }], in the user's language
+await api.app.getSettings()       // { mailLayout: 'focus', sendDelaySeconds: 10, markAsReadDelay: 0, theme, language, ... }
 ```
 
 `api.app.getInfo` needs no permission: `name` is what the administrator
 called this installation (`APP_NAME`), `version` the app's version. It is
 new in Bulwark 1.17.1; on older versions the call fails with an unknown
 method, so catch it when the plugin supports those.
+
+`api.app.searchSettings` searches the same index as the search box in
+Settings, in the user's language; the query may also be in English. It
+lists only the pages this user has (filters and automatic replies only
+where the server supports them). `api.app.getSettings` needs
+`settings:read` and returns a fixed list of preferences as plain values;
+nothing about other people (trusted senders, mutes) and no server
+addresses.
 
 Template names up to 200 characters, subjects 998, bodies 100,000. Identity
 names up to 256 characters, at most 10 reply-to addresses, text signatures
@@ -1689,6 +1699,8 @@ comes from the plugin id, so one plugin can't derive another plugin's key.
 | `api.user.getIdentities` | `identity:read` |
 | `api.user.getTimeZone` | none |
 | `api.app.getInfo` | none |
+| `api.app.searchSettings` | none |
+| `api.app.getSettings` | `settings:read` |
 | `api.user.logout` | `auth:emit` |
 | `api.admin.getConfig` | `admin:config` |
 | `api.admin.getAllConfig` | `admin:config` |
