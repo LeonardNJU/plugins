@@ -40,10 +40,16 @@ const ALGORITHM_NAMES = {
   '2.16.840.1.101.3.4.1.7': 'AES-128-CCM',
   '2.16.840.1.101.3.4.1.27': 'AES-192-CCM',
   '2.16.840.1.101.3.4.1.47': 'AES-256-CCM',
+  '1.2.840.113549.3.2': 'RC2-CBC', // not in webcrypto-liner
+  '1.2.392.200011.61.1.1.1.2': 'Camellia-128-CBC',
+  '1.2.392.200011.61.1.1.1.3': 'Camellia-192-CBC',
+  '1.2.392.200011.61.1.1.1.4': 'Camellia-256-CBC',
 };
 
+/** The banner shows `algorithm` (a name, or the OID when we have none). */
 export class UnsupportedAlgorithmError extends Error {
-  constructor(algorithm) {
+  constructor(oidOrName) {
+    const algorithm = ALGORITHM_NAMES[oidOrName] || oidOrName;
     super(`Unsupported encryption algorithm ${algorithm}`);
     this.name = 'UnsupportedAlgorithmError';
     this.algorithm = algorithm;
@@ -119,7 +125,7 @@ const CIPHERS = {
 export function authCipher(encryptedContentInfo) {
   const { algorithmId, algorithmParams } = encryptedContentInfo.contentEncryptionAlgorithm;
   const cipher = CIPHERS[algorithmId];
-  if (!cipher) throw new UnsupportedAlgorithmError(ALGORITHM_NAMES[algorithmId] || algorithmId);
+  if (!cipher) throw new UnsupportedAlgorithmError(algorithmId);
   return {
     decrypt(cek, envelope) {
       if (cek.byteLength !== cipher.keyLength) throw new Error('Content key has the wrong length');

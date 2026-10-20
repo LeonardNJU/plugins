@@ -10,8 +10,10 @@ import { fakeIndexedDB } from './helpers/fake-indexeddb.mjs';
 import { importPkcs12, unlockPrivateKey } from '../src/pkcs12.js';
 import { saveKeyRecord, saveSessionKeys, deleteSessionKeys } from '../src/key-storage.js';
 import { unlockedDecryptMaps } from '../src/session-keys.js';
-import { smimeDecrypt, normalizeCmsBytes, SmimeKeyLockedError } from '../src/smime-decrypt.js';
+import { smimeDecrypt, normalizeCmsBytes, SmimeKeyLockedError, UnsupportedAlgorithmError } from '../src/smime-decrypt.js';
 import { detectSmime } from '../src/smime-detect.js';
+import { bannerRows } from '../src/ui.js';
+import { fakeApi } from '../../test-utils/fake-api.mjs';
 import {
   buildAuthEnveloped, stalwartMessage, flipMacByte, parseCertificatePem, addSealer, OID_CHACHA20_POLY1305,
 } from './helpers/auth-enveloped.mjs';
@@ -138,6 +140,26 @@ describe('ChaCha20-Poly1305 AuthEnvelopedData', () => {
     const build = (authAttrs) => buildAuthEnveloped(cert, { contentOid: OID_CHACHA20_POLY1305, plaintext: MESSAGE, authAttrs });
     expect(await decrypt(await build('match'))).toContain(PLAINTEXT);
     await expect(decrypt(await build('altered'))).rejects.toThrow(FAILED);
+  }, 30_000);
+});
+
+describe('a message the plugin can’t decrypt', () => {
+  beforeEach(unlock);
+
+  const { locales } = JSON.parse(readFileSync(fileURLToPath(new URL('../manifest.json', import.meta.url)), 'utf8'));
+  const t = (key, vars) => fakeApi({ translations: locales }).i18n.t(key, vars);
+  // As the render hook stores a failure.
+  const banner = (err) => bannerRows({ isEncrypted: true, decryptionSuccess: false, decryptionError: err.message }, { t })[0].text;
+
+  it('names the algorithm instead of blaming the keys', async () => {
+    const err = await decrypt(fixture('rc2.p7m')).catch((e) => e);
+    expect(err).toBeInstanceOf(UnsupportedAlgorithmError);
+    expect(banner(err)).toBe('Encrypted — unsupported encryption algorithm RC2-CBC');
+    // No matching key, or one that doesn't fit, still reads as before.
+    expect(banner(new Error('No imported S/MIME key matches any recipient in this encrypted message')))
+      .toBe('Encrypted — couldn’t be decrypted with your keys');
+    expect(banner(await decrypt(flipMacByte(normalizeCmsBytes(fixture('gcm.p7m')))).catch((e) => e)))
+      .toBe('Encrypted — couldn’t be decrypted with your keys');
   }, 30_000);
 });
 

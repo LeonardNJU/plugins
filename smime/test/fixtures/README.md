@@ -10,6 +10,8 @@ encrypted to it. Nothing here protects anything.
   (what Thunderbird, Outlook and Stalwart's AES-CBC encryption at rest write)
 - `gcm.p7m`: AuthEnvelopedData, AES-256-GCM, key wrapped with RSA-OAEP
   SHA-256 (Stalwart's AES-256-GCM encryption at rest)
+- `rc2.p7m`: EnvelopedData, RC2-CBC (old Outlook), which the plugin can't
+  decrypt
 
 OpenSSL can't write ChaCha20-Poly1305 CMS, so the test builds that one.
 
@@ -26,5 +28,6 @@ printf 'Content-Type: text/plain; charset=utf-8\r\n\r\nHello from the S/MIME tes
 openssl cms -encrypt -binary -aes256 -in plain.eml -out cbc.p7m cert.pem
 openssl cms -encrypt -binary -aes-256-gcm -in plain.eml -out gcm.p7m -recip cert.pem \
   -keyopt rsa_padding_mode:oaep -keyopt rsa_oaep_md:sha256 -keyopt rsa_mgf1_md:sha256
+openssl cms -encrypt -binary -rc2-128 -provider legacy -provider default -in plain.eml -out rc2.p7m cert.pem
 rm key.pem
 ```

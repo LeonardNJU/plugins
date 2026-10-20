@@ -16,6 +16,14 @@ export { UnsupportedAlgorithmError };
 
 const OID_ENVELOPED_DATA = '1.2.840.113549.1.7.3';
 
+// Content ciphers pkijs + webcrypto-liner decrypt in EnvelopedData. Anything
+// else fails in there with an error that reads like a wrong key.
+const ENVELOPED_CIPHERS = new Set([
+  '2.16.840.1.101.3.4.1.2', '2.16.840.1.101.3.4.1.22', '2.16.840.1.101.3.4.1.42', // AES-CBC
+  '2.16.840.1.101.3.4.1.6', '2.16.840.1.101.3.4.1.26', '2.16.840.1.101.3.4.1.46', // AES-GCM, as this plugin sends it
+  '1.2.840.113549.3.7', '1.3.14.3.2.7', // DES-EDE3-CBC, DES-CBC
+]);
+
 export class SmimeKeyLockedError extends Error {
   constructor(message, keyRecordId) {
     super(message);
@@ -43,6 +51,9 @@ export async function smimeDecrypt(input) {
   }
 
   if (envelopedData.mac) return decryptAuthEnveloped(envelopedData, matchedRecords, input);
+
+  const contentOid = envelopedData.encryptedContentInfo.contentEncryptionAlgorithm.algorithmId;
+  if (!ENVELOPED_CIPHERS.has(contentOid)) throw new UnsupportedAlgorithmError(contentOid);
 
   for (const { keyRecord, recipientIndex } of matchedRecords) {
     const privateKey = unlockedKeys.get(keyRecord.id);

@@ -120,7 +120,12 @@ export function bannerRows(status, { warnSelfSigned = true, t } = {}) {
     const eyebrow = t('banner.encryption');
     if (status.decryptionSuccess) rows.push({ icon: 'lock-open', eyebrow, text: t('banner.decrypted'), tone: 'success' });
     else if (status.decryptionError === 'locked') rows.push({ icon: 'lock', eyebrow, text: t('banner.locked'), tone: 'warning', action: 'unlock' });
-    else if (status.decryptionError) rows.push({ icon: 'lock', eyebrow, text: t('banner.undecryptable'), tone: 'destructive' });
+    else if (status.decryptionError) {
+      // As smime-decrypt.js UnsupportedAlgorithmError words it.
+      const algorithm = String(status.decryptionError).match(/^Unsupported encryption algorithm (.+)$/)?.[1];
+      const text = algorithm ? t('banner.unsupportedAlgorithm', { algorithm }) : t('banner.undecryptable');
+      rows.push({ icon: 'lock', eyebrow, text, tone: 'destructive' });
+    }
     else rows.push({ icon: 'lock', eyebrow, text: t('banner.encrypted'), tone: 'info' });
   }
   if (status.isSigned || status.signerCert) {
