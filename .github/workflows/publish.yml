@@ -51,6 +51,12 @@ jobs:
 
       - run: npm ci
 
+      # Tests such as the S/MIME decrypt ones use the plugin's own packages.
+      - name: Install the plugin's dependencies
+        env:
+          PLUGIN: ${{ steps.tag.outputs.plugin }}
+        run: if [ -f "$PLUGIN/package-lock.json" ]; then npm ci --ignore-scripts --prefix "$PLUGIN"; fi
+
       - name: Unit tests
         env:
           PLUGIN: ${{ steps.tag.outputs.plugin }}
