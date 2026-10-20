@@ -25,7 +25,7 @@ import { AiError } from '../lib/errors.js';
 import { defaultTarget, languageOptions } from '../lib/languages.js';
 import { acceptAll, applySuggestions, diffSuggestions, pendingSuggestions, reviewParts, reviewStep } from '../lib/grammar.js';
 import { diffWords, plainParts } from '../lib/diff.js';
-import { COMPOSER_CONTEXT_KEY, COMPOSER_PANEL, DRAFT_KEY, chatKey, pendingKey } from '../lib/background.js';
+import { COMPOSER_CONTEXT_KEY, COMPOSER_PANEL, DRAFT_KEY, READER_CHAT_KEY, chatKey, pendingKey } from '../lib/background.js';
 
 /** Quick actions on text in the composer. */
 export const COMPOSER_ACTIONS = [...REWRITE_STYLES, 'grammar', 'translate'];
@@ -52,7 +52,17 @@ export function sourceFor(mode, { selection, body, email }) {
     return body?.trim() ? { scope: 'body', text: body } : { scope: 'empty', text: '' };
   }
   if (selected) return { scope: 'passage', text: selected };
-  return { scope: 'message', text: email?.text ?? '' };
+  if (!email) return { scope: 'none', text: '' };
+  return { scope: 'message', text: email.text ?? '' };
+}
+
+/** The message the conversation was last about (user turns and markers carry it). */
+export function lastTopic(turns) {
+  for (let i = turns.length - 1; i >= 0; i--) {
+    const turn = turns[i];
+    if ((turn.role === 'user' || turn.role === 'context') && turn.emailId !== undefined) return turn.emailId;
+  }
+  return undefined;
 }
 
 /** What a quick action sends, as a task of prompts.js, and how its result is shown. */
@@ -92,7 +102,9 @@ export function AssistantPanel(props) {
   const id = mode === 'composer' ? props.composerId : props.email?.id;
   const email = props.email ?? null;
   const selection = props.selection ?? null;
-  const key = id ? chatKey(mode, id) : null;
+  // The composer keeps a chat per draft; the reader one conversation across
+  // the messages the user opens.
+  const key = mode === 'composer' ? (id ? chatKey(mode, id) : null) : READER_CHAT_KEY;
 
   const [setup, setSetup] = useState(null);
   const [prefs, setPrefs] = useState({});
@@ -205,10 +217,17 @@ export function AssistantPanel(props) {
     controller.current?.abort();
     const abort = new AbortController();
     controller.current = abort;
-    const userTurn = { id: uid(), role: 'user', content: sent ?? label, label };
-    const turn = { id: uid(), role: 'assistant', content: '', status: 'running', task: task ?? 'chat', show: show ?? 'chat', scope, source: src ?? '', steps: [], ...(task ? { input: taskInput ?? {} } : {}) };
     const previous = turnsRef.current;
-    setTurns([...previous, userTurn, turn]);
+    // In the reader the conversation runs on while the user opens other
+    // messages: a line in the transcript names the message a question is
+    // about when it is not the one before, and the model hears of it.
+    const emailId = mode === 'reader' ? (email?.id ?? null) : undefined;
+    const switched = mode === 'reader' && email && previous.length > 0 && lastTopic(previous) !== email.id;
+    const marker = switched ? [{ id: uid(), role: 'context', emailId: email.id, subject: email.subject ?? '' }] : [];
+    const note = switched ? `(Now about another message: "${email.subject ?? ''}" from ${email.from?.[0]?.name || email.from?.[0]?.email || 'unknown'}.)\n` : '';
+    const userTurn = { id: uid(), role: 'user', content: note + (sent ?? label), label, ...(emailId !== undefined ? { emailId } : {}) };
+    const turn = { id: uid(), role: 'assistant', content: '', status: 'running', task: task ?? 'chat', show: show ?? 'chat', scope, source: src ?? '', steps: [], ...(task ? { input: taskInput ?? {} } : {}) };
+    setTurns([...previous, ...marker, userTurn, turn]);
     try {
       if (!(await ensureConsent(api, endpoint, askConsent))) throw new AiError('declined');
       if (abort.signal.aborted) throw new AiError('cancelled');
@@ -284,6 +303,15 @@ export function AssistantPanel(props) {
   }, [input, running, setup, send, source]);
 
   // ─── Requests from the toolbar button and the right-click menu ───
+  // The input takes the focus when the panel is asked for (a new
+  // focusRequest) or a request waits; opening another message leaves the
+  // focus where the user is (the list, the message).
+  const lastFocusRequest = useRef(props.focusRequest);
+  useEffect(() => {
+    const asked = props.focusRequest !== lastFocusRequest.current;
+    lastFocusRequest.current = props.focusRequest;
+    if (asked) inputRef.current?.focus();
+  }, [props.focusRequest]);
   useEffect(() => {
     if (!loaded || !id) return;
     let live = true;
@@ -300,7 +328,7 @@ export function AssistantPanel(props) {
       }
       quick(pending.action, pending.text ? { text: pending.text } : {});
     })();
-    inputRef.current?.focus();
+    if (mode === 'composer') inputRef.current?.focus();
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded, id, props.focusRequest]);
@@ -396,22 +424,23 @@ export function AssistantPanel(props) {
     empty: t('panel.context.empty'),
     message: t('panel.context.message'),
     passage: t('panel.context.passage'),
+    none: t('panel.context.none'),
   }[source.scope];
-  const contextIcon = source.scope === 'selection' || source.scope === 'passage' ? 'highlight' : source.scope === 'empty' ? 'pencil' : 'mail';
+  const contextIcon = source.scope === 'selection' || source.scope === 'passage' ? 'highlight' : source.scope === 'empty' ? 'pencil' : source.scope === 'none' ? 'mail-off' : 'mail';
   // A whole message goes by its subject; highlighted text and the draft by their first words.
   const mailSubject = (email?.subject ?? '').trim();
   const contextDetail = source.scope === 'message' && mailSubject ? excerpt(mailSubject, 60) : source.text ? excerpt(source.text, 40) : '';
   const contextTitle = source.scope === 'message' && mailSubject ? mailSubject : source.text ? excerpt(source.text, 400) : contextLabel;
   const actions = mode === 'composer'
     ? (source.scope === 'empty' ? [] : COMPOSER_ACTIONS)
-    : (source.scope === 'passage' ? PASSAGE_ACTIONS : READER_ACTIONS);
+    : (source.scope === 'passage' ? PASSAGE_ACTIONS : source.scope === 'none' ? [] : READER_ACTIONS);
   const actionLabel = (action) => {
     if (action === 'translate') return t('assistant.action.translate');
     if (mode === 'composer') return t(`assistant.action.${action}`);
     return t(action === 'explain' || action === 'reply' ? `panel.quick.${action}` : `reader.${action}`);
   };
   const placeholder = mode === 'reader'
-    ? t('panel.placeholder.read')
+    ? t(source.scope === 'none' ? 'panel.placeholder.none' : 'panel.placeholder.read')
     : source.scope === 'empty' ? t('panel.placeholder.write') : t('panel.placeholder.compose');
 
   return (
@@ -432,7 +461,7 @@ export function AssistantPanel(props) {
       <div ref={scrollRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 16px' }} data-assistant-transcript>
         {turns.length === 0 && !consent && (
           <Stack gap={2}>
-            <Text tone="muted" size="xs">{t(mode === 'reader' ? 'panel.empty.read' : source.scope === 'empty' ? 'panel.empty.write' : 'panel.empty.compose')}</Text>
+            <Text tone="muted" size="xs">{t(mode === 'reader' ? (source.scope === 'none' ? 'panel.empty.none' : 'panel.empty.read') : source.scope === 'empty' ? 'panel.empty.write' : 'panel.empty.compose')}</Text>
             {mode === 'composer' && source.scope === 'empty' && (
               <Stack gap={1}>
                 {[1, 2, 3].map((n) => (
@@ -444,7 +473,9 @@ export function AssistantPanel(props) {
         )}
         <Stack gap={4}>
           {turns.map((turn) => (
-            turn.role === 'user'
+            turn.role === 'context'
+              ? <ContextMarker key={turn.id} api={api} turn={turn} />
+              : turn.role === 'user'
               ? <UserTurn key={turn.id} turn={turn} />
               : (
                 <AssistantTurn
@@ -579,6 +610,19 @@ function ActionsMenu({ api, actions, actionLabel, disabled, onPick }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/** A line in the transcript: from here on the conversation is about another message. */
+function ContextMarker({ api, turn }) {
+  const rule = { flex: 1, height: 1, background: 'var(--color-border)' };
+  return (
+    <div data-turn="context" style={{ display: 'flex', alignItems: 'center', gap: 8 }} title={turn.subject}>
+      <span style={rule} />
+      <Icon name="mail" size="xs" className="text-muted-foreground" />
+      <Text size="xs" tone="muted" className="truncate">{api.i18n.t('panel.context.now', { subject: turn.subject || '…' })}</Text>
+      <span style={rule} />
     </div>
   );
 }

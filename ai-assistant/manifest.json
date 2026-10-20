@@ -264,9 +264,9 @@
       "panel.quick.explain": "Explain",
       "panel.quick.reply": "Draft a reply",
       "panel.new_chat": "New chat",
-      "panel.empty.compose": "Pick an action above, or say what to change. Highlight text in the message to work on that part only.",
+      "panel.empty.compose": "Pick an action from the Actions menu, or say what to change. Highlight text in the message to work on that part only.",
       "panel.empty.write": "Describe the email and the assistant writes it. You can insert it and keep editing.",
-      "panel.empty.read": "Pick an action above, or ask about this message. Highlight a passage to ask about that part.",
+      "panel.empty.read": "Pick an action from the Actions menu, or ask about this message. Highlight a passage to ask about that part.",
       "panel.example_1": "Thank Anna for the offer and propose a call on Tuesday at 10",
       "panel.example_2": "Decline the invitation politely and suggest next month instead",
       "panel.example_3": "Ask for a corrected invoice: the VAT number is missing",
@@ -318,7 +318,11 @@
       "panel.steps.kind.find_contact": "Contacts",
       "panel.steps.kind.read_original_message": "Original message",
       "panel.steps.kind.read_message": "Message",
-      "panel.actions": "Actions"
+      "panel.actions": "Actions",
+      "panel.context.none": "No message open",
+      "panel.placeholder.none": "Ask anything, or search your mail…",
+      "panel.empty.none": "Open a message to work on it, or ask anything: the assistant can search your mail, calendar and contacts.",
+      "panel.context.now": "Now about: {subject}"
     },
     "ar": {
       "common.cancel": "إلغاء",
@@ -455,9 +459,9 @@
       "panel.quick.explain": "اشرح",
       "panel.quick.reply": "صياغة رد",
       "panel.new_chat": "محادثة جديدة",
-      "panel.empty.compose": "اختر إجراءً أعلاه أو اكتب ما تريد تغييره. حدد نصًا في الرسالة للعمل على ذلك الجزء فقط.",
+      "panel.empty.compose": "اختر إجراءً من قائمة الإجراءات أو قل ما تريد تغييره. حدد نصًا في الرسالة للعمل على ذلك الجزء فقط.",
       "panel.empty.write": "صف الرسالة وسيكتبها المساعد. يمكنك بعدها إدراجها ومتابعة التحرير.",
-      "panel.empty.read": "اختر إجراءً أعلاه أو اسأل عن هذه الرسالة. حدد مقطعًا للسؤال عن ذلك الجزء.",
+      "panel.empty.read": "اختر إجراءً من قائمة الإجراءات أو اسأل عن هذه الرسالة. حدد مقطعًا لتسأل عن ذلك الجزء.",
       "panel.example_1": "اشكر آنا على العرض واقترح مكالمة يوم الثلاثاء الساعة 10",
       "panel.example_2": "اعتذر بلطف عن الدعوة واقترح الشهر القادم",
       "panel.example_3": "اطلب فاتورة مصححة: الرقم الضريبي ناقص",
@@ -509,7 +513,11 @@
       "panel.steps.kind.find_contact": "جهات الاتصال",
       "panel.steps.kind.read_original_message": "الرسالة الأصلية",
       "panel.steps.kind.read_message": "رسالة",
-      "panel.actions": "إجراءات"
+      "panel.actions": "إجراءات",
+      "panel.context.none": "لا توجد رسالة مفتوحة",
+      "panel.placeholder.none": "اسأل عن أي شيء أو ابحث في بريدك…",
+      "panel.empty.none": "افتح رسالة للعمل عليها، أو اسأل عن أي شيء: يمكن للمساعد البحث في بريدك وتقويمك وجهات اتصالك.",
+      "panel.context.now": "الآن عن: {subject}"
     },
     "ca": {
       "common.cancel": "Cancel·la",
@@ -646,9 +654,9 @@
       "panel.quick.explain": "Explica",
       "panel.quick.reply": "Redacta una resposta",
       "panel.new_chat": "Xat nou",
-      "panel.empty.compose": "Tria una acció a dalt o digues què cal canviar. Selecciona text al missatge per treballar només amb aquesta part.",
+      "panel.empty.compose": "Tria una acció al menú Accions o digues què cal canviar. Ressalta text del missatge per treballar només amb aquesta part.",
       "panel.empty.write": "Descriu el correu i l'assistent l'escriu. Després el pots inserir i continuar editant.",
-      "panel.empty.read": "Tria una acció a dalt o pregunta sobre aquest missatge. Ressalta un fragment per preguntar sobre aquesta part.",
+      "panel.empty.read": "Tria una acció al menú Accions o pregunta sobre aquest missatge. Ressalta un fragment per preguntar sobre aquesta part.",
       "panel.example_1": "Agrair a l'Anna l'oferta i proposar una trucada dimarts a les 10",
       "panel.example_2": "Declinar la invitació amb cortesia i proposar el mes vinent",
       "panel.example_3": "Demanar una factura corregida: hi falta el número d'IVA",
@@ -700,7 +708,11 @@
       "panel.steps.kind.find_contact": "Contactes",
       "panel.steps.kind.read_original_message": "Missatge original",
       "panel.steps.kind.read_message": "Missatge",
-      "panel.actions": "Accions"
+      "panel.actions": "Accions",
+      "panel.context.none": "Cap missatge obert",
+      "panel.placeholder.none": "Pregunta el que vulguis o cerca al correu…",
+      "panel.empty.none": "Obre un missatge per treballar-hi, o pregunta el que vulguis: l’assistent pot cercar al correu, al calendari i als contactes.",
+      "panel.context.now": "Ara sobre: {subject}"
     },
     "cs": {
       "common.cancel": "Zrušit",
@@ -837,9 +849,9 @@
       "panel.quick.explain": "Vysvětlit",
       "panel.quick.reply": "Navrhnout odpověď",
       "panel.new_chat": "Nový chat",
-      "panel.empty.compose": "Vyberte akci výše nebo napište, co změnit. Vyberte text ve zprávě, aby se pracovalo jen s touto částí.",
+      "panel.empty.compose": "Vyberte akci v nabídce Akce nebo řekněte, co změnit. Označte text ve zprávě, chcete-li pracovat jen s touto částí.",
       "panel.empty.write": "Popište e-mail a asistent ho napíše. Pak ho můžete vložit a dál upravovat.",
-      "panel.empty.read": "Vyberte akci výše nebo se na tuto zprávu zeptejte. Zvýrazněte pasáž, chcete-li se ptát na tuto část.",
+      "panel.empty.read": "Vyberte akci v nabídce Akce nebo se zeptejte na tuto zprávu. Označte pasáž, chcete-li se zeptat na tuto část.",
       "panel.example_1": "Poděkovat Anně za nabídku a navrhnout hovor v úterý v 10",
       "panel.example_2": "Zdvořile odmítnout pozvání a navrhnout příští měsíc",
       "panel.example_3": "Požádat o opravenou fakturu: chybí DIČ",
@@ -891,7 +903,11 @@
       "panel.steps.kind.find_contact": "Kontakty",
       "panel.steps.kind.read_original_message": "Původní zpráva",
       "panel.steps.kind.read_message": "Zpráva",
-      "panel.actions": "Akce"
+      "panel.actions": "Akce",
+      "panel.context.none": "Není otevřena žádná zpráva",
+      "panel.placeholder.none": "Zeptejte se na cokoli nebo prohledejte poštu…",
+      "panel.empty.none": "Otevřete zprávu a pracujte s ní, nebo se zeptejte na cokoli: asistent umí prohledat poštu, kalendář a kontakty.",
+      "panel.context.now": "Nyní k: {subject}"
     },
     "da": {
       "common.cancel": "Annuller",
@@ -1028,9 +1044,9 @@
       "panel.quick.explain": "Forklar",
       "panel.quick.reply": "Skriv et svar",
       "panel.new_chat": "Ny chat",
-      "panel.empty.compose": "Vælg en handling ovenfor, eller sig hvad der skal ændres. Markér tekst i beskeden for kun at arbejde med den del.",
+      "panel.empty.compose": "Vælg en handling i menuen Handlinger, eller sig, hvad der skal ændres. Markér tekst i beskeden for kun at arbejde med den del.",
       "panel.empty.write": "Beskriv e-mailen, så skriver assistenten den. Du kan indsætte den og redigere videre.",
-      "panel.empty.read": "Vælg en handling ovenfor, eller spørg om denne besked. Markér et afsnit for at spørge om den del.",
+      "panel.empty.read": "Vælg en handling i menuen Handlinger, eller spørg om denne besked. Markér et afsnit for at spørge om den del.",
       "panel.example_1": "Tak Anna for tilbuddet og foreslå et opkald tirsdag kl. 10",
       "panel.example_2": "Afslå invitationen høfligt og foreslå næste måned i stedet",
       "panel.example_3": "Bed om en rettet faktura: momsnummeret mangler",
@@ -1082,7 +1098,11 @@
       "panel.steps.kind.find_contact": "Kontakter",
       "panel.steps.kind.read_original_message": "Oprindelig besked",
       "panel.steps.kind.read_message": "Besked",
-      "panel.actions": "Handlinger"
+      "panel.actions": "Handlinger",
+      "panel.context.none": "Ingen besked åben",
+      "panel.placeholder.none": "Spørg om hvad som helst, eller søg i din mail…",
+      "panel.empty.none": "Åbn en besked for at arbejde med den, eller spørg om hvad som helst: assistenten kan søge i din mail, kalender og dine kontakter.",
+      "panel.context.now": "Nu om: {subject}"
     },
     "de": {
       "common.cancel": "Abbrechen",
@@ -1219,9 +1239,9 @@
       "panel.quick.explain": "Erklären",
       "panel.quick.reply": "Antwort entwerfen",
       "panel.new_chat": "Neuer Chat",
-      "panel.empty.compose": "Wählen Sie oben eine Aktion oder sagen Sie, was geändert werden soll. Markieren Sie Text in der Nachricht, um nur diesen Teil zu bearbeiten.",
+      "panel.empty.compose": "Wählen Sie eine Aktion im Menü „Aktionen“ oder sagen Sie, was geändert werden soll. Markieren Sie Text in der Nachricht, um nur diesen Teil zu bearbeiten.",
       "panel.empty.write": "Beschreiben Sie die E-Mail, und der Assistent schreibt sie. Sie können sie dann einfügen und weiter bearbeiten.",
-      "panel.empty.read": "Wählen Sie oben eine Aktion oder stellen Sie eine Frage zu dieser Nachricht. Markieren Sie eine Stelle, um nach diesem Teil zu fragen.",
+      "panel.empty.read": "Wählen Sie eine Aktion im Menü „Aktionen“ oder stellen Sie eine Frage zu dieser Nachricht. Markieren Sie eine Stelle, um nach diesem Teil zu fragen.",
       "panel.example_1": "Anna für das Angebot danken und einen Anruf am Dienstag um 10 vorschlagen",
       "panel.example_2": "Die Einladung höflich absagen und stattdessen nächsten Monat vorschlagen",
       "panel.example_3": "Um eine korrigierte Rechnung bitten: die USt-IdNr. fehlt",
@@ -1273,7 +1293,11 @@
       "panel.steps.kind.find_contact": "Kontakte",
       "panel.steps.kind.read_original_message": "Ursprüngliche Nachricht",
       "panel.steps.kind.read_message": "Nachricht",
-      "panel.actions": "Aktionen"
+      "panel.actions": "Aktionen",
+      "panel.context.none": "Keine Nachricht geöffnet",
+      "panel.placeholder.none": "Fragen Sie etwas oder durchsuchen Sie Ihre E-Mails…",
+      "panel.empty.none": "Öffnen Sie eine Nachricht, um damit zu arbeiten, oder fragen Sie einfach: Der Assistent kann Ihre E-Mails, Ihren Kalender und Ihre Kontakte durchsuchen.",
+      "panel.context.now": "Jetzt zu: {subject}"
     },
     "es": {
       "common.cancel": "Cancelar",
@@ -1410,9 +1434,9 @@
       "panel.quick.explain": "Explicar",
       "panel.quick.reply": "Redactar respuesta",
       "panel.new_chat": "Nuevo chat",
-      "panel.empty.compose": "Elige una acción arriba o di qué cambiar. Selecciona texto en el mensaje para trabajar solo con esa parte.",
+      "panel.empty.compose": "Elige una acción en el menú Acciones o di qué cambiar. Resalta texto del mensaje para trabajar solo con esa parte.",
       "panel.empty.write": "Describe el correo y el asistente lo escribe. Luego puedes insertarlo y seguir editando.",
-      "panel.empty.read": "Elige una acción arriba o pregunta sobre este mensaje. Resalta un fragmento para preguntar sobre esa parte.",
+      "panel.empty.read": "Elige una acción en el menú Acciones o pregunta sobre este mensaje. Resalta un pasaje para preguntar por esa parte.",
       "panel.example_1": "Agradecer a Anna la oferta y proponer una llamada el martes a las 10",
       "panel.example_2": "Declinar la invitación con cortesía y proponer el mes que viene",
       "panel.example_3": "Pedir una factura corregida: falta el número de IVA",
@@ -1464,7 +1488,11 @@
       "panel.steps.kind.find_contact": "Contactos",
       "panel.steps.kind.read_original_message": "Mensaje original",
       "panel.steps.kind.read_message": "Mensaje",
-      "panel.actions": "Acciones"
+      "panel.actions": "Acciones",
+      "panel.context.none": "Ningún mensaje abierto",
+      "panel.placeholder.none": "Pregunta lo que quieras o busca en tu correo…",
+      "panel.empty.none": "Abre un mensaje para trabajar con él o pregunta lo que quieras: el asistente puede buscar en tu correo, tu calendario y tus contactos.",
+      "panel.context.now": "Ahora sobre: {subject}"
     },
     "fa": {
       "common.cancel": "انصراف",
@@ -1601,9 +1629,9 @@
       "panel.quick.explain": "توضیح",
       "panel.quick.reply": "پیش‌نویس پاسخ",
       "panel.new_chat": "گفتگوی جدید",
-      "panel.empty.compose": "یک کار را از بالا انتخاب کنید یا بگویید چه چیزی تغییر کند. برای کار روی بخشی از پیام، آن را انتخاب کنید.",
+      "panel.empty.compose": "از منوی اقدامات یک اقدام انتخاب کنید یا بگویید چه چیزی تغییر کند. متنی را در پیام انتخاب کنید تا فقط روی همان بخش کار شود.",
       "panel.empty.write": "ایمیل را توصیف کنید تا دستیار آن را بنویسد. سپس می‌توانید آن را درج کنید و به ویرایش ادامه دهید.",
-      "panel.empty.read": "یک کار را از بالا انتخاب کنید یا درباره این پیام بپرسید. برای پرسیدن درباره بخشی از آن، آن بخش را برجسته کنید.",
+      "panel.empty.read": "از منوی اقدامات یک اقدام انتخاب کنید یا درباره این پیام بپرسید. بخشی را انتخاب کنید تا درباره همان قسمت بپرسید.",
       "panel.example_1": "از آنا برای پیشنهادش تشکر کن و تماسی برای سه‌شنبه ساعت ۱۰ پیشنهاد بده",
       "panel.example_2": "دعوت را مؤدبانه رد کن و ماه آینده را پیشنهاد بده",
       "panel.example_3": "درخواست فاکتور اصلاح‌شده کن: شماره مالیاتی ندارد",
@@ -1655,7 +1683,11 @@
       "panel.steps.kind.find_contact": "مخاطبین",
       "panel.steps.kind.read_original_message": "پیام اصلی",
       "panel.steps.kind.read_message": "پیام",
-      "panel.actions": "اقدامات"
+      "panel.actions": "اقدامات",
+      "panel.context.none": "هیچ پیامی باز نیست",
+      "panel.placeholder.none": "هر چیزی بپرسید یا در ایمیل‌ها جستجو کنید…",
+      "panel.empty.none": "پیامی را باز کنید تا روی آن کار کنید، یا هر چیزی بپرسید: دستیار می‌تواند در ایمیل‌ها، تقویم و مخاطبین شما جستجو کند.",
+      "panel.context.now": "اکنون درباره: {subject}"
     },
     "fr": {
       "common.cancel": "Annuler",
@@ -1792,9 +1824,9 @@
       "panel.quick.explain": "Expliquer",
       "panel.quick.reply": "Rédiger une réponse",
       "panel.new_chat": "Nouvelle discussion",
-      "panel.empty.compose": "Choisissez une action ci-dessus ou dites ce qu'il faut changer. Sélectionnez du texte dans le message pour ne travailler que sur cette partie.",
+      "panel.empty.compose": "Choisissez une action dans le menu Actions ou dites ce qu’il faut changer. Sélectionnez du texte dans le message pour ne travailler que sur cette partie.",
       "panel.empty.write": "Décrivez l'e-mail et l'assistant l'écrit. Vous pourrez l'insérer et continuer à le modifier.",
-      "panel.empty.read": "Choisissez une action ci-dessus ou posez une question sur ce message. Surlignez un passage pour poser une question sur cette partie.",
+      "panel.empty.read": "Choisissez une action dans le menu Actions ou posez une question sur ce message. Sélectionnez un passage pour poser une question sur cette partie.",
       "panel.example_1": "Remercier Anna pour l'offre et proposer un appel mardi à 10 h",
       "panel.example_2": "Décliner poliment l'invitation et proposer le mois prochain",
       "panel.example_3": "Demander une facture corrigée : le numéro de TVA manque",
@@ -1846,7 +1878,11 @@
       "panel.steps.kind.find_contact": "Contacts",
       "panel.steps.kind.read_original_message": "Message d’origine",
       "panel.steps.kind.read_message": "Message",
-      "panel.actions": "Actions"
+      "panel.actions": "Actions",
+      "panel.context.none": "Aucun message ouvert",
+      "panel.placeholder.none": "Posez une question ou cherchez dans vos courriels…",
+      "panel.empty.none": "Ouvrez un message pour travailler dessus, ou posez une question : l’assistant peut chercher dans vos courriels, votre agenda et vos contacts.",
+      "panel.context.now": "Maintenant : {subject}"
     },
     "he": {
       "common.cancel": "ביטול",
@@ -1983,9 +2019,9 @@
       "panel.quick.explain": "הסבר",
       "panel.quick.reply": "ניסוח תשובה",
       "panel.new_chat": "שיחה חדשה",
-      "panel.empty.compose": "בחרו פעולה למעלה או כתבו מה לשנות. סמנו טקסט בהודעה כדי לעבוד רק על החלק הזה.",
+      "panel.empty.compose": "בחרו פעולה בתפריט הפעולות או אמרו מה לשנות. סמנו טקסט בהודעה כדי לעבוד רק על החלק הזה.",
       "panel.empty.write": "תארו את ההודעה והעוזר יכתוב אותה. אחר כך אפשר להכניס אותה ולהמשיך לערוך.",
-      "panel.empty.read": "בחרו פעולה למעלה או שאלו על הודעה זו. סמנו קטע כדי לשאול על החלק הזה.",
+      "panel.empty.read": "בחרו פעולה בתפריט הפעולות או שאלו על ההודעה הזו. סמנו קטע כדי לשאול על החלק הזה.",
       "panel.example_1": "להודות לאנה על ההצעה ולהציע שיחה ביום שלישי ב-10",
       "panel.example_2": "לדחות את ההזמנה בנימוס ולהציע את החודש הבא",
       "panel.example_3": "לבקש חשבונית מתוקנת: חסר מספר העוסק",
@@ -2037,7 +2073,11 @@
       "panel.steps.kind.find_contact": "אנשי קשר",
       "panel.steps.kind.read_original_message": "ההודעה המקורית",
       "panel.steps.kind.read_message": "הודעה",
-      "panel.actions": "פעולות"
+      "panel.actions": "פעולות",
+      "panel.context.none": "אין הודעה פתוחה",
+      "panel.placeholder.none": "שאלו כל דבר או חפשו בדואר…",
+      "panel.empty.none": "פתחו הודעה כדי לעבוד עליה, או שאלו כל דבר: העוזר יכול לחפש בדואר, בלוח השנה ובאנשי הקשר.",
+      "panel.context.now": "עכשיו על: {subject}"
     },
     "hu": {
       "common.cancel": "Mégse",
@@ -2174,9 +2214,9 @@
       "panel.quick.explain": "Magyarázat",
       "panel.quick.reply": "Válasz megfogalmazása",
       "panel.new_chat": "Új beszélgetés",
-      "panel.empty.compose": "Válassz fent egy műveletet, vagy írd le, mit változtasson. Jelölj ki szöveget az üzenetben, hogy csak azzal a résszel dolgozzon.",
+      "panel.empty.compose": "Válasszon műveletet a Műveletek menüből, vagy mondja meg, mit módosítson. Jelöljön ki szöveget az üzenetben, hogy csak azzal a résszel dolgozzon.",
       "panel.empty.write": "Írd le az e-mailt, és az asszisztens megírja. Utána beillesztheted és tovább szerkesztheted.",
-      "panel.empty.read": "Válassz fent egy műveletet, vagy kérdezz erről az üzenetről. Emelj ki egy részletet, hogy arról kérdezz.",
+      "panel.empty.read": "Válasszon műveletet a Műveletek menüből, vagy kérdezzen erről az üzenetről. Jelöljön ki egy részt, hogy arról kérdezzen.",
       "panel.example_1": "Köszönd meg Annának az ajánlatot, és javasolj egy hívást keddre 10-re",
       "panel.example_2": "Utasítsd el udvariasan a meghívást, és javasold a jövő hónapot",
       "panel.example_3": "Kérj javított számlát: hiányzik az adószám",
@@ -2228,7 +2268,11 @@
       "panel.steps.kind.find_contact": "Névjegyek",
       "panel.steps.kind.read_original_message": "Eredeti üzenet",
       "panel.steps.kind.read_message": "Üzenet",
-      "panel.actions": "Műveletek"
+      "panel.actions": "Műveletek",
+      "panel.context.none": "Nincs megnyitott üzenet",
+      "panel.placeholder.none": "Kérdezzen bármit, vagy keressen a levelei között…",
+      "panel.empty.none": "Nyisson meg egy üzenetet, hogy dolgozzon vele, vagy kérdezzen bármit: az asszisztens keresni tud a leveleiben, a naptárában és a névjegyei között.",
+      "panel.context.now": "Most erről: {subject}"
     },
     "it": {
       "common.cancel": "Annulla",
@@ -2365,9 +2409,9 @@
       "panel.quick.explain": "Spiega",
       "panel.quick.reply": "Scrivi una risposta",
       "panel.new_chat": "Nuova chat",
-      "panel.empty.compose": "Scegli un'azione qui sopra o di' cosa cambiare. Seleziona del testo nel messaggio per lavorare solo su quella parte.",
+      "panel.empty.compose": "Scegli un’azione dal menu Azioni o di’ cosa cambiare. Evidenzia del testo nel messaggio per lavorare solo su quella parte.",
       "panel.empty.write": "Descrivi l'e-mail e l'assistente la scrive. Potrai inserirla e continuare a modificarla.",
-      "panel.empty.read": "Scegli un'azione qui sopra o fai una domanda su questo messaggio. Evidenzia un passaggio per chiedere di quella parte.",
+      "panel.empty.read": "Scegli un’azione dal menu Azioni o fai una domanda su questo messaggio. Evidenzia un passaggio per chiedere di quella parte.",
       "panel.example_1": "Ringraziare Anna per l'offerta e proporre una chiamata martedì alle 10",
       "panel.example_2": "Declinare l'invito con cortesia e proporre il mese prossimo",
       "panel.example_3": "Chiedere una fattura corretta: manca la partita IVA",
@@ -2419,7 +2463,11 @@
       "panel.steps.kind.find_contact": "Contatti",
       "panel.steps.kind.read_original_message": "Messaggio originale",
       "panel.steps.kind.read_message": "Messaggio",
-      "panel.actions": "Azioni"
+      "panel.actions": "Azioni",
+      "panel.context.none": "Nessun messaggio aperto",
+      "panel.placeholder.none": "Chiedi qualsiasi cosa o cerca nella posta…",
+      "panel.empty.none": "Apri un messaggio per lavorarci, oppure chiedi qualsiasi cosa: l’assistente può cercare nella posta, nel calendario e nei contatti.",
+      "panel.context.now": "Ora su: {subject}"
     },
     "ja": {
       "common.cancel": "キャンセル",
@@ -2556,9 +2604,9 @@
       "panel.quick.explain": "説明",
       "panel.quick.reply": "返信を下書き",
       "panel.new_chat": "新しいチャット",
-      "panel.empty.compose": "上の操作を選ぶか、変更したい内容を入力してください。メッセージ内のテキストを選択すると、その部分だけを扱います。",
+      "panel.empty.compose": "「操作」メニューから操作を選ぶか、変更内容を伝えてください。メッセージ内のテキストを選択すると、その部分だけを扱います。",
       "panel.empty.write": "メールの内容を説明すると、アシスタントが書きます。挿入してから編集を続けられます。",
-      "panel.empty.read": "上の操作を選ぶか、このメッセージについて質問してください。箇所を選択すると、その部分について質問できます。",
+      "panel.empty.read": "「操作」メニューから操作を選ぶか、このメッセージについて質問してください。一部を選択すると、その部分について質問できます。",
       "panel.example_1": "アンナに提案のお礼を伝え、火曜10時の電話を提案する",
       "panel.example_2": "招待を丁寧に断り、来月を提案する",
       "panel.example_3": "請求書の修正を依頼する：VAT番号が抜けている",
@@ -2610,7 +2658,11 @@
       "panel.steps.kind.find_contact": "連絡先",
       "panel.steps.kind.read_original_message": "元のメッセージ",
       "panel.steps.kind.read_message": "メッセージ",
-      "panel.actions": "操作"
+      "panel.actions": "操作",
+      "panel.context.none": "開いているメッセージはありません",
+      "panel.placeholder.none": "何でも質問、またはメールを検索…",
+      "panel.empty.none": "メッセージを開いて作業するか、何でも質問してください。アシスタントはメール、カレンダー、連絡先を検索できます。",
+      "panel.context.now": "話題: {subject}"
     },
     "ko": {
       "common.cancel": "취소",
@@ -2747,9 +2799,9 @@
       "panel.quick.explain": "설명",
       "panel.quick.reply": "답장 작성",
       "panel.new_chat": "새 대화",
-      "panel.empty.compose": "위에서 작업을 고르거나 무엇을 바꿀지 적어 주세요. 메시지에서 텍스트를 선택하면 그 부분만 다룹니다.",
+      "panel.empty.compose": "작업 메뉴에서 작업을 고르거나 바꿀 내용을 말하세요. 메시지에서 텍스트를 선택하면 그 부분만 다룹니다.",
       "panel.empty.write": "이메일 내용을 설명하면 어시스턴트가 작성합니다. 삽입한 뒤 계속 편집할 수 있습니다.",
-      "panel.empty.read": "위에서 작업을 고르거나 이 메시지에 대해 물어보세요. 일부를 강조하면 그 부분에 대해 물을 수 있습니다.",
+      "panel.empty.read": "작업 메뉴에서 작업을 고르거나 이 메시지에 대해 물어보세요. 구절을 선택하면 그 부분에 대해 물어볼 수 있습니다.",
       "panel.example_1": "안나에게 제안에 감사하고 화요일 10시 통화를 제안",
       "panel.example_2": "초대를 정중히 거절하고 다음 달을 제안",
       "panel.example_3": "수정된 청구서 요청: 부가세 번호가 빠짐",
@@ -2801,7 +2853,11 @@
       "panel.steps.kind.find_contact": "연락처",
       "panel.steps.kind.read_original_message": "원본 메시지",
       "panel.steps.kind.read_message": "메시지",
-      "panel.actions": "작업"
+      "panel.actions": "작업",
+      "panel.context.none": "열린 메시지 없음",
+      "panel.placeholder.none": "무엇이든 물어보거나 메일을 검색하세요…",
+      "panel.empty.none": "메시지를 열어 작업하거나 무엇이든 물어보세요. 어시스턴트가 메일, 캘린더, 연락처를 검색할 수 있습니다.",
+      "panel.context.now": "지금 주제: {subject}"
     },
     "lv": {
       "common.cancel": "Atcelt",
@@ -2938,9 +2994,9 @@
       "panel.quick.explain": "Paskaidrot",
       "panel.quick.reply": "Sagatavot atbildi",
       "panel.new_chat": "Jauna saruna",
-      "panel.empty.compose": "Izvēlieties darbību augstāk vai pasakiet, ko mainīt. Atlasiet tekstu ziņā, lai strādātu tikai ar šo daļu.",
+      "panel.empty.compose": "Izvēlieties darbību izvēlnē Darbības vai pasakiet, ko mainīt. Iezīmējiet tekstu ziņā, lai strādātu tikai ar šo daļu.",
       "panel.empty.write": "Aprakstiet e-pastu, un asistents to uzrakstīs. Pēc tam varat to ievietot un turpināt rediģēt.",
-      "panel.empty.read": "Izvēlieties darbību augstāk vai jautājiet par šo ziņu. Iezīmējiet fragmentu, lai jautātu par šo daļu.",
+      "panel.empty.read": "Izvēlieties darbību izvēlnē Darbības vai jautājiet par šo ziņu. Iezīmējiet fragmentu, lai jautātu par šo daļu.",
       "panel.example_1": "Pateikties Annai par piedāvājumu un ierosināt zvanu otrdien plkst. 10",
       "panel.example_2": "Pieklājīgi atteikt ielūgumu un ierosināt nākamo mēnesi",
       "panel.example_3": "Lūgt labotu rēķinu: trūkst PVN numura",
@@ -2992,7 +3048,11 @@
       "panel.steps.kind.find_contact": "Kontakti",
       "panel.steps.kind.read_original_message": "Sākotnējā ziņa",
       "panel.steps.kind.read_message": "Ziņa",
-      "panel.actions": "Darbības"
+      "panel.actions": "Darbības",
+      "panel.context.none": "Nav atvērta neviena ziņa",
+      "panel.placeholder.none": "Jautājiet jebko vai meklējiet pastā…",
+      "panel.empty.none": "Atveriet ziņu, lai ar to strādātu, vai jautājiet jebko: asistents var meklēt jūsu pastā, kalendārā un kontaktos.",
+      "panel.context.now": "Tagad par: {subject}"
     },
     "mn": {
       "common.cancel": "Болих",
@@ -3129,9 +3189,9 @@
       "panel.quick.explain": "Тайлбарлах",
       "panel.quick.reply": "Хариу ноорог бичих",
       "panel.new_chat": "Шинэ чат",
-      "panel.empty.compose": "Дээрээс үйлдэл сонгох эсвэл юу өөрчлөхөө бичнэ үү. Зөвхөн тодорхой хэсэг дээр ажиллуулахын тулд захидал дахь бичвэрийг сонгоно уу.",
+      "panel.empty.compose": "Үйлдлүүд цэснээс үйлдэл сонгох эсвэл юуг өөрчлөхийг хэлнэ үү. Зөвхөн тэр хэсэг дээр ажиллахын тулд мессеж дэх текстийг тодруулна уу.",
       "panel.empty.write": "Захидлаа тайлбарлавал туслах бичиж өгнө. Дараа нь оруулаад үргэлжлүүлэн засах боломжтой.",
-      "panel.empty.read": "Дээрээс үйлдэл сонгох эсвэл энэ захидлын талаар асууна уу. Тодорхой хэсгийн талаар асуухын тулд тухайн хэсгийг тэмдэглэнэ үү.",
+      "panel.empty.read": "Үйлдлүүд цэснээс үйлдэл сонгох эсвэл энэ мессежийн талаар асууна уу. Тэр хэсгийн талаар асуухын тулд хэсгийг тодруулна уу.",
       "panel.example_1": "Аннад саналд нь талархал илэрхийлж, мягмар гаригийн 10 цагт ярих санал тавих",
       "panel.example_2": "Урилгаас эелдгээр татгалзаж, дараа сарыг санал болгох",
       "panel.example_3": "Засварласан нэхэмжлэх хүсэх: НӨАТ-ын дугаар дутуу байна",
@@ -3183,7 +3243,11 @@
       "panel.steps.kind.find_contact": "Харилцагчид",
       "panel.steps.kind.read_original_message": "Эх мессеж",
       "panel.steps.kind.read_message": "Мессеж",
-      "panel.actions": "Үйлдлүүд"
+      "panel.actions": "Үйлдлүүд",
+      "panel.context.none": "Нээлттэй мессеж алга",
+      "panel.placeholder.none": "Юу ч асуух эсвэл мэйлээсээ хайх…",
+      "panel.empty.none": "Мессеж нээж түүн дээр ажиллах эсвэл юу ч асуугаарай: туслах таны мэйл, хуанли, харилцагчдаас хайж чадна.",
+      "panel.context.now": "Одоо: {subject}"
     },
     "nb": {
       "common.cancel": "Avbryt",
@@ -3320,9 +3384,9 @@
       "panel.quick.explain": "Forklar",
       "panel.quick.reply": "Skriv et svar",
       "panel.new_chat": "Ny samtale",
-      "panel.empty.compose": "Velg en handling ovenfor, eller si hva som skal endres. Merk tekst i meldingen for å jobbe bare med den delen.",
+      "panel.empty.compose": "Velg en handling i menyen Handlinger, eller si hva som skal endres. Marker tekst i meldingen for å jobbe bare med den delen.",
       "panel.empty.write": "Beskriv e-posten, så skriver assistenten den. Du kan sette den inn og redigere videre.",
-      "panel.empty.read": "Velg en handling ovenfor, eller spør om denne meldingen. Merk et avsnitt for å spørre om den delen.",
+      "panel.empty.read": "Velg en handling i menyen Handlinger, eller spør om denne meldingen. Marker et avsnitt for å spørre om den delen.",
       "panel.example_1": "Takk Anna for tilbudet og foreslå en samtale tirsdag kl. 10",
       "panel.example_2": "Avslå invitasjonen høflig og foreslå neste måned i stedet",
       "panel.example_3": "Be om en rettet faktura: MVA-nummeret mangler",
@@ -3374,7 +3438,11 @@
       "panel.steps.kind.find_contact": "Kontakter",
       "panel.steps.kind.read_original_message": "Opprinnelig melding",
       "panel.steps.kind.read_message": "Melding",
-      "panel.actions": "Handlinger"
+      "panel.actions": "Handlinger",
+      "panel.context.none": "Ingen melding åpen",
+      "panel.placeholder.none": "Spør om hva som helst, eller søk i e-posten…",
+      "panel.empty.none": "Åpne en melding for å jobbe med den, eller spør om hva som helst: assistenten kan søke i e-post, kalender og kontakter.",
+      "panel.context.now": "Nå om: {subject}"
     },
     "nl": {
       "common.cancel": "Annuleren",
@@ -3511,9 +3579,9 @@
       "panel.quick.explain": "Uitleggen",
       "panel.quick.reply": "Antwoord opstellen",
       "panel.new_chat": "Nieuwe chat",
-      "panel.empty.compose": "Kies hierboven een actie of zeg wat er moet veranderen. Selecteer tekst in het bericht om alleen dat deel te bewerken.",
+      "panel.empty.compose": "Kies een actie in het menu Acties of zeg wat er anders moet. Markeer tekst in het bericht om alleen aan dat deel te werken.",
       "panel.empty.write": "Beschrijf de e-mail en de assistent schrijft hem. U kunt hem daarna invoegen en verder bewerken.",
-      "panel.empty.read": "Kies hierboven een actie of stel een vraag over dit bericht. Markeer een fragment om over dat deel te vragen.",
+      "panel.empty.read": "Kies een actie in het menu Acties of stel een vraag over dit bericht. Markeer een passage om naar dat deel te vragen.",
       "panel.example_1": "Anna bedanken voor het aanbod en een gesprek voorstellen op dinsdag om 10 uur",
       "panel.example_2": "De uitnodiging beleefd afslaan en volgende maand voorstellen",
       "panel.example_3": "Om een gecorrigeerde factuur vragen: het btw-nummer ontbreekt",
@@ -3565,7 +3633,11 @@
       "panel.steps.kind.find_contact": "Contacten",
       "panel.steps.kind.read_original_message": "Oorspronkelijk bericht",
       "panel.steps.kind.read_message": "Bericht",
-      "panel.actions": "Acties"
+      "panel.actions": "Acties",
+      "panel.context.none": "Geen bericht geopend",
+      "panel.placeholder.none": "Vraag iets of doorzoek je e-mail…",
+      "panel.empty.none": "Open een bericht om ermee te werken, of vraag iets: de assistent kan je e-mail, agenda en contacten doorzoeken.",
+      "panel.context.now": "Nu over: {subject}"
     },
     "pl": {
       "common.cancel": "Anuluj",
@@ -3702,9 +3774,9 @@
       "panel.quick.explain": "Wyjaśnij",
       "panel.quick.reply": "Przygotuj odpowiedź",
       "panel.new_chat": "Nowy czat",
-      "panel.empty.compose": "Wybierz działanie powyżej lub napisz, co zmienić. Zaznacz tekst w wiadomości, aby pracować tylko nad tą częścią.",
+      "panel.empty.compose": "Wybierz akcję z menu Akcje lub powiedz, co zmienić. Zaznacz tekst w wiadomości, aby pracować tylko nad tą częścią.",
       "panel.empty.write": "Opisz e-mail, a asystent go napisze. Potem możesz go wstawić i dalej edytować.",
-      "panel.empty.read": "Wybierz działanie powyżej lub zapytaj o tę wiadomość. Zaznacz fragment, aby zapytać o tę część.",
+      "panel.empty.read": "Wybierz akcję z menu Akcje lub zapytaj o tę wiadomość. Zaznacz fragment, aby zapytać o tę część.",
       "panel.example_1": "Podziękować Annie za ofertę i zaproponować rozmowę we wtorek o 10",
       "panel.example_2": "Grzecznie odmówić zaproszenia i zaproponować przyszły miesiąc",
       "panel.example_3": "Poprosić o poprawioną fakturę: brakuje numeru VAT",
@@ -3756,7 +3828,11 @@
       "panel.steps.kind.find_contact": "Kontakty",
       "panel.steps.kind.read_original_message": "Oryginalna wiadomość",
       "panel.steps.kind.read_message": "Wiadomość",
-      "panel.actions": "Akcje"
+      "panel.actions": "Akcje",
+      "panel.context.none": "Brak otwartej wiadomości",
+      "panel.placeholder.none": "Zapytaj o cokolwiek lub przeszukaj pocztę…",
+      "panel.empty.none": "Otwórz wiadomość, aby nad nią pracować, lub zapytaj o cokolwiek: asystent może przeszukać pocztę, kalendarz i kontakty.",
+      "panel.context.now": "Teraz o: {subject}"
     },
     "pt": {
       "common.cancel": "Cancelar",
@@ -3893,9 +3969,9 @@
       "panel.quick.explain": "Explicar",
       "panel.quick.reply": "Redigir resposta",
       "panel.new_chat": "Nova conversa",
-      "panel.empty.compose": "Escolha uma ação acima ou diga o que mudar. Selecione texto na mensagem para trabalhar só nessa parte.",
+      "panel.empty.compose": "Escolha uma ação no menu Ações ou diga o que mudar. Destaque texto na mensagem para trabalhar só nessa parte.",
       "panel.empty.write": "Descreva o e-mail e o assistente escreve-o. Depois pode inseri-lo e continuar a editar.",
-      "panel.empty.read": "Escolha uma ação acima ou pergunte sobre esta mensagem. Realce um trecho para perguntar sobre essa parte.",
+      "panel.empty.read": "Escolha uma ação no menu Ações ou pergunte sobre esta mensagem. Destaque um trecho para perguntar sobre essa parte.",
       "panel.example_1": "Agradecer à Anna pela proposta e sugerir uma chamada na terça às 10",
       "panel.example_2": "Recusar o convite com cortesia e sugerir o próximo mês",
       "panel.example_3": "Pedir uma fatura corrigida: falta o número de IVA",
@@ -3947,7 +4023,11 @@
       "panel.steps.kind.find_contact": "Contactos",
       "panel.steps.kind.read_original_message": "Mensagem original",
       "panel.steps.kind.read_message": "Mensagem",
-      "panel.actions": "Ações"
+      "panel.actions": "Ações",
+      "panel.context.none": "Nenhuma mensagem aberta",
+      "panel.placeholder.none": "Pergunte o que quiser ou pesquise no seu e-mail…",
+      "panel.empty.none": "Abra uma mensagem para trabalhar nela, ou pergunte o que quiser: o assistente pode pesquisar o seu e-mail, calendário e contactos.",
+      "panel.context.now": "Agora sobre: {subject}"
     },
     "ro": {
       "common.cancel": "Anulează",
@@ -4084,9 +4164,9 @@
       "panel.quick.explain": "Explică",
       "panel.quick.reply": "Redactează un răspuns",
       "panel.new_chat": "Conversație nouă",
-      "panel.empty.compose": "Alege o acțiune de mai sus sau spune ce să schimbe. Selectează text în mesaj ca să lucreze doar cu acea parte.",
+      "panel.empty.compose": "Alege o acțiune din meniul Acțiuni sau spune ce să schimbi. Selectează text din mesaj ca să lucrezi doar cu acea parte.",
       "panel.empty.write": "Descrie e-mailul și asistentul îl scrie. Îl poți insera apoi și continua editarea.",
-      "panel.empty.read": "Alege o acțiune de mai sus sau întreabă despre acest mesaj. Evidențiază un pasaj ca să întrebi despre acea parte.",
+      "panel.empty.read": "Alege o acțiune din meniul Acțiuni sau întreabă despre acest mesaj. Selectează un pasaj ca să întrebi despre acea parte.",
       "panel.example_1": "Mulțumește-i Annei pentru ofertă și propune un apel marți la 10",
       "panel.example_2": "Refuză politicos invitația și propune luna viitoare",
       "panel.example_3": "Cere o factură corectată: lipsește codul de TVA",
@@ -4138,7 +4218,11 @@
       "panel.steps.kind.find_contact": "Contacte",
       "panel.steps.kind.read_original_message": "Mesajul original",
       "panel.steps.kind.read_message": "Mesaj",
-      "panel.actions": "Acțiuni"
+      "panel.actions": "Acțiuni",
+      "panel.context.none": "Niciun mesaj deschis",
+      "panel.placeholder.none": "Întreabă orice sau caută în e-mailuri…",
+      "panel.empty.none": "Deschide un mesaj ca să lucrezi cu el sau întreabă orice: asistentul poate căuta în e-mailuri, calendar și contacte.",
+      "panel.context.now": "Acum despre: {subject}"
     },
     "ru": {
       "common.cancel": "Отмена",
@@ -4275,9 +4359,9 @@
       "panel.quick.explain": "Объяснить",
       "panel.quick.reply": "Составить ответ",
       "panel.new_chat": "Новый чат",
-      "panel.empty.compose": "Выберите действие выше или скажите, что изменить. Выделите текст в сообщении, чтобы работать только с этой частью.",
+      "panel.empty.compose": "Выберите действие в меню «Действия» или скажите, что изменить. Выделите текст в письме, чтобы работать только с этой частью.",
       "panel.empty.write": "Опишите письмо, и ассистент его напишет. Затем его можно вставить и редактировать дальше.",
-      "panel.empty.read": "Выберите действие выше или спросите об этом сообщении. Выделите фрагмент, чтобы спросить об этой части.",
+      "panel.empty.read": "Выберите действие в меню «Действия» или спросите об этом письме. Выделите отрывок, чтобы спросить об этой части.",
       "panel.example_1": "Поблагодарить Анну за предложение и предложить созвон во вторник в 10",
       "panel.example_2": "Вежливо отклонить приглашение и предложить следующий месяц",
       "panel.example_3": "Попросить исправленный счёт: не хватает номера НДС",
@@ -4329,7 +4413,11 @@
       "panel.steps.kind.find_contact": "Контакты",
       "panel.steps.kind.read_original_message": "Исходное сообщение",
       "panel.steps.kind.read_message": "Сообщение",
-      "panel.actions": "Действия"
+      "panel.actions": "Действия",
+      "panel.context.none": "Нет открытого письма",
+      "panel.placeholder.none": "Спросите что угодно или ищите в почте…",
+      "panel.empty.none": "Откройте письмо, чтобы работать с ним, или спросите что угодно: ассистент может искать в почте, календаре и контактах.",
+      "panel.context.now": "Теперь о: {subject}"
     },
     "sk": {
       "common.cancel": "Zrušiť",
@@ -4466,9 +4554,9 @@
       "panel.quick.explain": "Vysvetliť",
       "panel.quick.reply": "Navrhnúť odpoveď",
       "panel.new_chat": "Nový chat",
-      "panel.empty.compose": "Vyberte akciu vyššie alebo napíšte, čo zmeniť. Vyberte text v správe, aby sa pracovalo len s touto časťou.",
+      "panel.empty.compose": "Vyberte akciu v ponuke Akcie alebo povedzte, čo zmeniť. Označte text v správe, ak chcete pracovať len s touto časťou.",
       "panel.empty.write": "Opíšte e-mail a asistent ho napíše. Potom ho môžete vložiť a ďalej upravovať.",
-      "panel.empty.read": "Vyberte akciu vyššie alebo sa na túto správu opýtajte. Zvýraznite pasáž, ak sa chcete pýtať na túto časť.",
+      "panel.empty.read": "Vyberte akciu v ponuke Akcie alebo sa opýtajte na túto správu. Označte pasáž, ak sa chcete opýtať na túto časť.",
       "panel.example_1": "Poďakovať Anne za ponuku a navrhnúť hovor v utorok o 10",
       "panel.example_2": "Zdvorilo odmietnuť pozvanie a navrhnúť budúci mesiac",
       "panel.example_3": "Požiadať o opravenú faktúru: chýba IČ DPH",
@@ -4520,7 +4608,11 @@
       "panel.steps.kind.find_contact": "Kontakty",
       "panel.steps.kind.read_original_message": "Pôvodná správa",
       "panel.steps.kind.read_message": "Správa",
-      "panel.actions": "Akcie"
+      "panel.actions": "Akcie",
+      "panel.context.none": "Nie je otvorená žiadna správa",
+      "panel.placeholder.none": "Opýtajte sa na čokoľvek alebo prehľadajte poštu…",
+      "panel.empty.none": "Otvorte správu a pracujte s ňou, alebo sa opýtajte na čokoľvek: asistent vie prehľadať poštu, kalendár a kontakty.",
+      "panel.context.now": "Teraz k: {subject}"
     },
     "tr": {
       "common.cancel": "İptal",
@@ -4657,9 +4749,9 @@
       "panel.quick.explain": "Açıkla",
       "panel.quick.reply": "Yanıt taslağı hazırla",
       "panel.new_chat": "Yeni sohbet",
-      "panel.empty.compose": "Yukarıdan bir işlem seçin veya neyin değişeceğini söyleyin. Yalnızca bir bölüm üzerinde çalışmak için mesajda metin seçin.",
+      "panel.empty.compose": "Eylemler menüsünden bir eylem seçin veya neyin değişeceğini söyleyin. Yalnızca o bölüm üzerinde çalışmak için iletideki metni vurgulayın.",
       "panel.empty.write": "E-postayı tarif edin, asistan yazsın. Sonra ekleyip düzenlemeye devam edebilirsiniz.",
-      "panel.empty.read": "Yukarıdan bir işlem seçin veya bu mesaj hakkında soru sorun. Bir bölüm hakkında sormak için o bölümü vurgulayın.",
+      "panel.empty.read": "Eylemler menüsünden bir eylem seçin veya bu ileti hakkında sorun. O bölüm hakkında sormak için bir pasajı vurgulayın.",
       "panel.example_1": "Anna'ya teklif için teşekkür et ve salı saat 10'da bir görüşme öner",
       "panel.example_2": "Daveti nazikçe reddet ve bunun yerine gelecek ayı öner",
       "panel.example_3": "Düzeltilmiş fatura iste: KDV numarası eksik",
@@ -4711,7 +4803,11 @@
       "panel.steps.kind.find_contact": "Kişiler",
       "panel.steps.kind.read_original_message": "Özgün ileti",
       "panel.steps.kind.read_message": "İleti",
-      "panel.actions": "Eylemler"
+      "panel.actions": "Eylemler",
+      "panel.context.none": "Açık ileti yok",
+      "panel.placeholder.none": "Bir şey sorun veya postanızda arayın…",
+      "panel.empty.none": "Üzerinde çalışmak için bir ileti açın ya da bir şey sorun: asistan postanızda, takviminizde ve kişilerinizde arama yapabilir.",
+      "panel.context.now": "Şimdi: {subject}"
     },
     "uk": {
       "common.cancel": "Скасувати",
@@ -4848,9 +4944,9 @@
       "panel.quick.explain": "Пояснити",
       "panel.quick.reply": "Скласти відповідь",
       "panel.new_chat": "Новий чат",
-      "panel.empty.compose": "Виберіть дію вище або скажіть, що змінити. Виділіть текст у повідомленні, щоб працювати лише з цією частиною.",
+      "panel.empty.compose": "Виберіть дію в меню «Дії» або скажіть, що змінити. Виділіть текст у листі, щоб працювати лише з цією частиною.",
       "panel.empty.write": "Опишіть лист, і асистент його напише. Потім ви зможете вставити його й редагувати далі.",
-      "panel.empty.read": "Виберіть дію вище або запитайте про це повідомлення. Виділіть фрагмент, щоб запитати про цю частину.",
+      "panel.empty.read": "Виберіть дію в меню «Дії» або запитайте про цей лист. Виділіть уривок, щоб запитати про цю частину.",
       "panel.example_1": "Подякувати Анні за пропозицію і запропонувати дзвінок у вівторок о 10",
       "panel.example_2": "Ввічливо відхилити запрошення і запропонувати наступний місяць",
       "panel.example_3": "Попросити виправлений рахунок: бракує номера платника ПДВ",
@@ -4902,7 +4998,11 @@
       "panel.steps.kind.find_contact": "Контакти",
       "panel.steps.kind.read_original_message": "Початкове повідомлення",
       "panel.steps.kind.read_message": "Повідомлення",
-      "panel.actions": "Дії"
+      "panel.actions": "Дії",
+      "panel.context.none": "Жодного листа не відкрито",
+      "panel.placeholder.none": "Запитайте будь-що або шукайте в пошті…",
+      "panel.empty.none": "Відкрийте лист, щоб працювати з ним, або запитайте будь-що: асистент може шукати в пошті, календарі та контактах.",
+      "panel.context.now": "Тепер про: {subject}"
     },
     "zh": {
       "common.cancel": "取消",
@@ -5039,9 +5139,9 @@
       "panel.quick.explain": "解释",
       "panel.quick.reply": "起草回复",
       "panel.new_chat": "新对话",
-      "panel.empty.compose": "选择上方的操作，或说明要改什么。在邮件中选中文字，只处理这一部分。",
+      "panel.empty.compose": "从“操作”菜单中选择一个操作，或说明要修改什么。在邮件中选中文本即可只处理该部分。",
       "panel.empty.write": "描述这封邮件，助手来写。之后您可以插入并继续编辑。",
-      "panel.empty.read": "选择上方的操作，或就这封邮件提问。选中一段文字，可针对这部分提问。",
+      "panel.empty.read": "从“操作”菜单中选择一个操作，或就这封邮件提问。选中一段文字即可就该部分提问。",
       "panel.example_1": "感谢 Anna 的报价，并提议周二 10 点通话",
       "panel.example_2": "礼貌地谢绝邀请，并建议下个月",
       "panel.example_3": "请求更正发票：缺少增值税号",
@@ -5093,7 +5193,11 @@
       "panel.steps.kind.find_contact": "联系人",
       "panel.steps.kind.read_original_message": "原始邮件",
       "panel.steps.kind.read_message": "邮件",
-      "panel.actions": "操作"
+      "panel.actions": "操作",
+      "panel.context.none": "未打开邮件",
+      "panel.placeholder.none": "随便问，或搜索你的邮件…",
+      "panel.empty.none": "打开一封邮件来处理它，或者随便问：助手可以搜索你的邮件、日历和联系人。",
+      "panel.context.now": "现在关于：{subject}"
     },
     "zh-TW": {
       "common.cancel": "取消",
@@ -5230,9 +5334,9 @@
       "panel.quick.explain": "解釋",
       "panel.quick.reply": "草擬回覆",
       "panel.new_chat": "新對話",
-      "panel.empty.compose": "選擇上方的動作，或說明要改什麼。在郵件中選取文字，只處理這一部分。",
+      "panel.empty.compose": "從「操作」選單中選擇一個操作，或說明要修改什麼。在郵件中選取文字即可只處理該部分。",
       "panel.empty.write": "描述這封郵件，由助理撰寫。之後您可以插入並繼續編輯。",
-      "panel.empty.read": "選擇上方的動作，或就這封郵件提問。選取一段文字，可針對這部分提問。",
+      "panel.empty.read": "從「操作」選單中選擇一個操作，或就這封郵件提問。選取一段文字即可就該部分提問。",
       "panel.example_1": "感謝 Anna 的報價，並提議週二 10 點通話",
       "panel.example_2": "禮貌地婉拒邀請，並建議下個月",
       "panel.example_3": "要求更正發票：缺少統一編號",
@@ -5284,7 +5388,11 @@
       "panel.steps.kind.find_contact": "聯絡人",
       "panel.steps.kind.read_original_message": "原始郵件",
       "panel.steps.kind.read_message": "郵件",
-      "panel.actions": "操作"
+      "panel.actions": "操作",
+      "panel.context.none": "未開啟郵件",
+      "panel.placeholder.none": "隨意提問，或搜尋你的郵件…",
+      "panel.empty.none": "開啟一封郵件來處理，或隨意提問：助理可以搜尋你的郵件、行事曆和聯絡人。",
+      "panel.context.now": "現在關於：{subject}"
     }
   }
 }

@@ -201,6 +201,55 @@ describe('the composer panel', () => {
   });
 });
 
+describe('the reader panel across messages', () => {
+  const OTHER = { id: 'M2', subject: 'Invoice 42', receivedAt: '2026-10-13T09:00:00Z', from: [{ name: 'Dan', email: 'dan@example.org' }], text: 'Please pay invoice 42.' };
+
+  it('keeps one conversation while the user opens other messages, and marks the switch', async () => {
+    const api = makeApi({ answers: ['On Thursday at 3.', 'By Friday.'] });
+    const view = await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
+    await type('when?');
+    await pressEnter();
+    await settled();
+    expect(screen.getByText('On Thursday at 3.')).toBeTruthy();
+
+    await act(async () => { view.rerender(React.createElement(AssistantPanel, { api, email: OTHER, selection: { text: '' }, focusRequest: 0 })); });
+    // The transcript stays, and the chip names the new message.
+    expect(screen.getByText('On Thursday at 3.')).toBeTruthy();
+    expect(screen.getByText('Invoice 42')).toBeTruthy();
+    expect(document.querySelector('[data-turn="context"]')).toBeNull();
+
+    await type('until when?');
+    await pressEnter();
+    await settled();
+    // A line names the message the new question is about, and the model hears of the switch.
+    expect(document.querySelector('[data-turn="context"]').textContent).toContain('Now about: Invoice 42');
+    const sent = sentPrompt(api).messages;
+    expect(sent.at(-1).content).toContain('Now about another message: "Invoice 42" from Dan');
+    expect(sent.some((msg) => msg.content === 'On Thursday at 3.')).toBe(true);
+    await waitFor(async () => expect((await api.storage.get('chat:reader'))?.turns.filter((turn) => turn.role === 'context')).toHaveLength(1));
+  });
+
+  it('works with no message open: chat yes, actions no', async () => {
+    const api = makeApi();
+    await mount(api, { email: null, selection: null, focusRequest: 0 });
+    expect(screen.getByText('No message open')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Actions' })).toBeNull();
+    expect(screen.getByRole('textbox', { name: 'Message to the assistant' }).getAttribute('placeholder')).toBe('Ask anything, or search your mail…');
+  });
+
+  it('leaves the focus alone when another message opens, and takes it when asked', async () => {
+    const api = makeApi();
+    const view = await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
+    const input = screen.getByRole('textbox', { name: 'Message to the assistant' });
+    input.blur();
+    await act(async () => { view.rerender(React.createElement(AssistantPanel, { api, email: OTHER, selection: { text: '' }, focusRequest: 0 })); });
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
+    expect(document.activeElement).not.toBe(input);
+    await act(async () => { view.rerender(React.createElement(AssistantPanel, { api, email: OTHER, selection: { text: '' }, focusRequest: 1 })); });
+    await waitFor(() => expect(document.activeElement).toBe(input));
+  });
+});
+
 describe('the reader panel', () => {
   it('summarises the open message and lets the user ask about it', async () => {
     const api = makeApi({ answers: ['- Carol asks for a meeting on Thursday at 3', 'Yes, at 3 pm.'] });

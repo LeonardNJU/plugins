@@ -22,6 +22,8 @@ const REFRESH_EVERY_MS = 30_000;
 
 /** The saved transcript of a chat. */
 export const chatKey = (mode, id) => `chat:${mode === 'composer' ? 'composer' : 'email'}:${id}`;
+/** The reader's conversation: one for all messages, the panel stays while the user reads on. */
+export const READER_CHAT_KEY = 'chat:reader';
 /** A request from a button or menu entry for the panel to run when it shows: { action, text, at }. */
 export const pendingKey = (mode, id) => `pending:${mode === 'composer' ? 'composer' : 'email'}:${id}`;
 
