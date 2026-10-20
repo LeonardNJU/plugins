@@ -169,7 +169,7 @@ export function buildPrompt(task, input = {}) {
   }
 }
 
-const TOOL_RULE = 'Use the tools when the answer needs them: check the calendar before proposing a time, find a contact for an address, search the mail for earlier messages, facts or attachments the user refers to, and read a found message before you rely on it. Say in one short clause what you looked up when it matters.';
+const TOOL_RULE = 'Use the tools when the answer needs them: check the calendar before proposing a time, find a contact for an address, search the mail for earlier messages, facts or attachments the user refers to, and read a found message before you rely on it. Be economical: one search with the best words rather than several, read at most the two most relevant messages, and when a question needs the calendar and the mail, call both tools in the same turn. Do not announce or narrate lookups; call the tools, then give the answer. The user sees what was looked up.';
 
 const FORMAT_RULE = [
   'Format answers with light Markdown where it helps: short bullet lists, **bold** for the one thing that matters, no headings longer than a few words. Plain prose for short answers.',

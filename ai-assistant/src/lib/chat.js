@@ -98,7 +98,9 @@ export function historyMessages(turns, { limit = HISTORY_TURNS, chars = HISTORY_
  * One exchange: send the conversation, let the model call tools (each
  * result goes back to it), and stream its final answer.
  *
- * onText(fullAnswer): the answer so far, text of every round joined.
+ * onText(fullAnswer): the answer so far. What the model says before it
+ * calls tools ("let me check your calendar") is shown while it streams and
+ * dropped once the tools ran; the answer is the final round's text.
  * onStep({ id, name, args, status, result, widget }): a tool call starting
  * ('running') and finishing ('done' | 'failed'). `runTool` resolves to the
  * text for the model, or { text, widget } with a card for the panel.
@@ -112,8 +114,7 @@ export async function runChat(api, endpoint, { system, messages, tools = [], run
 } = {}) {
   const history = [...messages];
   const steps = [];
-  let said = '';
-  const prefix = () => (said ? `${said}\n\n` : '');
+  let lastSaid = '';
   for (let round = 0; ; round++) {
     const allowTools = tools.length > 0 && typeof runTool === 'function' && round < MAX_TOOL_ROUNDS;
     const turn = await streamTurn(api, endpoint, {
@@ -124,17 +125,21 @@ export async function runChat(api, endpoint, { system, messages, tools = [], run
     }, {
       signal,
       ...timeouts,
-      onText: (full) => onText(prefix() + full),
+      onText: (full) => onText(full),
     });
-    if (turn.text.trim()) said = prefix() + turn.text;
     if (!turn.toolCalls.length) {
-      if (!said.trim()) throw new AiError('empty');
-      onText(said);
-      return { text: said, steps };
+      // The answer. A model that only narrated before its last lookup and
+      // then fell silent keeps that narration rather than nothing.
+      const text = turn.text.trim() ? turn.text : lastSaid;
+      if (!text.trim()) throw new AiError('empty');
+      onText(text);
+      return { text, steps };
     }
+    if (turn.text.trim()) lastSaid = turn.text;
+    onText('');
     history.push({ role: 'assistant', content: turn.text, toolCalls: turn.toolCalls });
     for (const call of turn.toolCalls) {
-      if (signal?.aborted) throw new AiError('cancelled', { partial: said });
+      if (signal?.aborted) throw new AiError('cancelled', { partial: lastSaid });
       const step = { id: call.id, name: call.name, args: call.args, status: 'running', result: '', widget: null };
       steps.push(step);
       onStep({ ...step });

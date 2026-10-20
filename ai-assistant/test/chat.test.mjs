@@ -126,7 +126,8 @@ describe('runChat', () => {
       onStep: (s) => steps.push(s),
       onText: (t) => texts.push(t),
     });
-    expect(out.text).toBe('Let me check.\n\nYou are free at 10.');
+    // What the model said before the lookup is not part of the answer.
+    expect(out.text).toBe('You are free at 10.');
     expect(steps).toEqual([
       { id: 'tu_1', name: 'check_calendar', args: { from: '2026-10-22', to: '2026-10-22' }, status: 'running', result: '', widget: null },
       { id: 'tu_1', name: 'check_calendar', args: { from: '2026-10-22', to: '2026-10-22' }, status: 'done', result: 'events for check_calendar 2026-10-22: none', widget: null },
@@ -137,8 +138,10 @@ describe('runChat', () => {
       { role: 'assistant', content: [{ type: 'text', text: 'Let me check.' }, { type: 'tool_use', id: 'tu_1', name: 'check_calendar', input: { from: '2026-10-22', to: '2026-10-22' } }] },
       { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'tu_1', content: 'events for check_calendar 2026-10-22: none' }] },
     ]);
-    // The text streamed in the second round comes after the first round's.
-    expect(texts.at(-1)).toBe('Let me check.\n\nYou are free at 10.');
+    // The narration streamed, was cleared when the lookup started, and the answer followed.
+    expect(texts).toContain('Let me check.');
+    expect(texts).toContain('');
+    expect(texts.at(-1)).toBe('You are free at 10.');
   });
 
   it('keeps the card a tool brings for the step and hands only the text to the model', async () => {
@@ -165,6 +168,13 @@ describe('runChat', () => {
       { role: 'assistant', content: null, tool_calls: [{ id: 'call_9', type: 'function', function: { name: 'check_calendar', arguments: '{"from":"2026-10-22","to":"2026-10-23"}' } }] },
       { role: 'tool', tool_call_id: 'call_9', content: 'The tool failed: no calendar' },
     ]);
+  });
+
+  it('keeps the narration when the model falls silent after its last lookup', async () => {
+    const api = modelApi([anthropicToolTurn('Checking your calendar.', { id: 'tu', name: 'check_calendar', input: {} }), anthropicSse([' '])]);
+    await expect(runChat(api, ANTHROPIC_EP, { system: 's', messages: [{ role: 'user', content: 'x' }], tools: TOOLS, runTool: async () => 'r' })).rejects.toThrow(/empty/);
+    const api2 = modelApi([anthropicToolTurn('Checking your calendar.', { id: 'tu', name: 'check_calendar', input: {} }), anthropicToolTurn('', { id: 'tu2', name: 'check_calendar', input: {} }), anthropicSse([' '])]);
+    await expect(runChat(api2, ANTHROPIC_EP, { system: 's', messages: [{ role: 'user', content: 'x' }], tools: TOOLS, runTool: async () => 'r' })).rejects.toThrow(/empty/);
   });
 
   it('stops offering tools after a few rounds so the model has to answer', async () => {

@@ -308,7 +308,10 @@
       "widget.more": "Show all {count} days",
       "widget.less": "Show fewer",
       "panel.step.search_mail": "Searched your mail for “{query}”",
-      "panel.step.read_message": "Read a message from your mail"
+      "panel.step.read_message": "Read a message from your mail",
+      "panel.steps.summary": "Looked up: {list}",
+      "panel.steps.show": "Show details",
+      "panel.steps.hide": "Hide details"
     },
     "ar": {
       "common.cancel": "إلغاء",
@@ -489,7 +492,10 @@
       "widget.more": "إظهار كل الأيام ({count})",
       "widget.less": "إظهار أقل",
       "panel.step.search_mail": "تم البحث عن \"{query}\" في بريدك",
-      "panel.step.read_message": "تمت قراءة رسالة من بريدك"
+      "panel.step.read_message": "تمت قراءة رسالة من بريدك",
+      "panel.steps.summary": "تم الاطلاع على: {list}",
+      "panel.steps.show": "إظهار التفاصيل",
+      "panel.steps.hide": "إخفاء التفاصيل"
     },
     "ca": {
       "common.cancel": "Cancel·la",
@@ -670,7 +676,10 @@
       "widget.more": "Mostra els {count} dies",
       "widget.less": "Mostra'n menys",
       "panel.step.search_mail": "Cercat «{query}» al teu correu",
-      "panel.step.read_message": "Llegit un missatge del teu correu"
+      "panel.step.read_message": "Llegit un missatge del teu correu",
+      "panel.steps.summary": "Consultat: {list}",
+      "panel.steps.show": "Mostra els detalls",
+      "panel.steps.hide": "Amaga els detalls"
     },
     "cs": {
       "common.cancel": "Zrušit",
@@ -851,7 +860,10 @@
       "widget.more": "Zobrazit všech {count} dní",
       "widget.less": "Zobrazit méně",
       "panel.step.search_mail": "Ve vaší poště hledáno „{query}“",
-      "panel.step.read_message": "Přečtena zpráva z vaší pošty"
+      "panel.step.read_message": "Přečtena zpráva z vaší pošty",
+      "panel.steps.summary": "Vyhledáno: {list}",
+      "panel.steps.show": "Zobrazit podrobnosti",
+      "panel.steps.hide": "Skrýt podrobnosti"
     },
     "da": {
       "common.cancel": "Annuller",
@@ -1032,7 +1044,10 @@
       "widget.more": "Vis alle {count} dage",
       "widget.less": "Vis færre",
       "panel.step.search_mail": "Søgte efter \"{query}\" i din mail",
-      "panel.step.read_message": "Læste en besked fra din mail"
+      "panel.step.read_message": "Læste en besked fra din mail",
+      "panel.steps.summary": "Slået op: {list}",
+      "panel.steps.show": "Vis detaljer",
+      "panel.steps.hide": "Skjul detaljer"
     },
     "de": {
       "common.cancel": "Abbrechen",
@@ -1213,7 +1228,10 @@
       "widget.more": "Alle {count} Tage anzeigen",
       "widget.less": "Weniger anzeigen",
       "panel.step.search_mail": "In Ihren E-Mails nach „{query}“ gesucht",
-      "panel.step.read_message": "Eine Nachricht aus Ihren E-Mails gelesen"
+      "panel.step.read_message": "Eine Nachricht aus Ihren E-Mails gelesen",
+      "panel.steps.summary": "Nachgeschlagen: {list}",
+      "panel.steps.show": "Details anzeigen",
+      "panel.steps.hide": "Details ausblenden"
     },
     "es": {
       "common.cancel": "Cancelar",
@@ -1394,7 +1412,10 @@
       "widget.more": "Mostrar los {count} días",
       "widget.less": "Mostrar menos",
       "panel.step.search_mail": "Buscado «{query}» en tu correo",
-      "panel.step.read_message": "Leído un mensaje de tu correo"
+      "panel.step.read_message": "Leído un mensaje de tu correo",
+      "panel.steps.summary": "Consultado: {list}",
+      "panel.steps.show": "Mostrar detalles",
+      "panel.steps.hide": "Ocultar detalles"
     },
     "fa": {
       "common.cancel": "انصراف",
@@ -1575,7 +1596,10 @@
       "widget.more": "نمایش همه {count} روز",
       "widget.less": "نمایش کمتر",
       "panel.step.search_mail": "جستجوی «{query}» در ایمیل‌های شما",
-      "panel.step.read_message": "پیامی از ایمیل‌های شما خوانده شد"
+      "panel.step.read_message": "پیامی از ایمیل‌های شما خوانده شد",
+      "panel.steps.summary": "بررسی شد: {list}",
+      "panel.steps.show": "نمایش جزئیات",
+      "panel.steps.hide": "پنهان‌کردن جزئیات"
     },
     "fr": {
       "common.cancel": "Annuler",
@@ -1756,7 +1780,10 @@
       "widget.more": "Afficher les {count} jours",
       "widget.less": "Afficher moins",
       "panel.step.search_mail": "Recherche de « {query} » dans vos e-mails",
-      "panel.step.read_message": "Un message de votre boîte lu"
+      "panel.step.read_message": "Un message de votre boîte lu",
+      "panel.steps.summary": "Consulté : {list}",
+      "panel.steps.show": "Afficher les détails",
+      "panel.steps.hide": "Masquer les détails"
     },
     "he": {
       "common.cancel": "ביטול",
@@ -1937,7 +1964,10 @@
       "widget.more": "הצגת כל {count} הימים",
       "widget.less": "הצגת פחות",
       "panel.step.search_mail": "חיפוש \"{query}\" בדואר שלך",
-      "panel.step.read_message": "נקראה הודעה מהדואר שלך"
+      "panel.step.read_message": "נקראה הודעה מהדואר שלך",
+      "panel.steps.summary": "נבדק: {list}",
+      "panel.steps.show": "הצגת פרטים",
+      "panel.steps.hide": "הסתרת פרטים"
     },
     "hu": {
       "common.cancel": "Mégse",
@@ -2118,7 +2148,10 @@
       "widget.more": "Mind a {count} nap megjelenítése",
       "widget.less": "Kevesebb megjelenítése",
       "panel.step.search_mail": "Keresés a leveleid között: „{query}”",
-      "panel.step.read_message": "Elolvasott egy üzenetet a leveleid közül"
+      "panel.step.read_message": "Elolvasott egy üzenetet a leveleid közül",
+      "panel.steps.summary": "Kikeresve: {list}",
+      "panel.steps.show": "Részletek megjelenítése",
+      "panel.steps.hide": "Részletek elrejtése"
     },
     "it": {
       "common.cancel": "Annulla",
@@ -2299,7 +2332,10 @@
       "widget.more": "Mostra tutti i {count} giorni",
       "widget.less": "Mostra meno",
       "panel.step.search_mail": "Cercato «{query}» nella tua posta",
-      "panel.step.read_message": "Letto un messaggio dalla tua posta"
+      "panel.step.read_message": "Letto un messaggio dalla tua posta",
+      "panel.steps.summary": "Consultato: {list}",
+      "panel.steps.show": "Mostra dettagli",
+      "panel.steps.hide": "Nascondi dettagli"
     },
     "ja": {
       "common.cancel": "キャンセル",
@@ -2480,7 +2516,10 @@
       "widget.more": "{count} 日すべて表示",
       "widget.less": "表示を減らす",
       "panel.step.search_mail": "メールで「{query}」を検索しました",
-      "panel.step.read_message": "メールからメッセージを読みました"
+      "panel.step.read_message": "メールからメッセージを読みました",
+      "panel.steps.summary": "参照: {list}",
+      "panel.steps.show": "詳細を表示",
+      "panel.steps.hide": "詳細を隠す"
     },
     "ko": {
       "common.cancel": "취소",
@@ -2661,7 +2700,10 @@
       "widget.more": "{count}일 모두 보기",
       "widget.less": "줄여서 보기",
       "panel.step.search_mail": "메일에서 \"{query}\"을(를) 검색했습니다",
-      "panel.step.read_message": "메일에서 메시지를 읽었습니다"
+      "panel.step.read_message": "메일에서 메시지를 읽었습니다",
+      "panel.steps.summary": "조회함: {list}",
+      "panel.steps.show": "자세히 보기",
+      "panel.steps.hide": "자세히 숨기기"
     },
     "lv": {
       "common.cancel": "Atcelt",
@@ -2842,7 +2884,10 @@
       "widget.more": "Rādīt visas {count} dienas",
       "widget.less": "Rādīt mazāk",
       "panel.step.search_mail": "Jūsu pastā meklēts “{query}”",
-      "panel.step.read_message": "Izlasīta ziņa no jūsu pasta"
+      "panel.step.read_message": "Izlasīta ziņa no jūsu pasta",
+      "panel.steps.summary": "Pārbaudīts: {list}",
+      "panel.steps.show": "Rādīt detaļas",
+      "panel.steps.hide": "Slēpt detaļas"
     },
     "mn": {
       "common.cancel": "Болих",
@@ -3023,7 +3068,10 @@
       "widget.more": "Бүх {count} өдрийг харуулах",
       "widget.less": "Цөөнийг харуулах",
       "panel.step.search_mail": "Таны захидлаас «{query}»-г хайлаа",
-      "panel.step.read_message": "Таны захидлаас нэг захидал уншлаа"
+      "panel.step.read_message": "Таны захидлаас нэг захидал уншлаа",
+      "panel.steps.summary": "Шалгасан: {list}",
+      "panel.steps.show": "Дэлгэрэнгүй харуулах",
+      "panel.steps.hide": "Дэлгэрэнгүйг нуух"
     },
     "nb": {
       "common.cancel": "Avbryt",
@@ -3204,7 +3252,10 @@
       "widget.more": "Vis alle {count} dager",
       "widget.less": "Vis færre",
       "panel.step.search_mail": "Søkte etter «{query}» i e-posten din",
-      "panel.step.read_message": "Leste en melding fra e-posten din"
+      "panel.step.read_message": "Leste en melding fra e-posten din",
+      "panel.steps.summary": "Slått opp: {list}",
+      "panel.steps.show": "Vis detaljer",
+      "panel.steps.hide": "Skjul detaljer"
     },
     "nl": {
       "common.cancel": "Annuleren",
@@ -3385,7 +3436,10 @@
       "widget.more": "Alle {count} dagen tonen",
       "widget.less": "Minder tonen",
       "panel.step.search_mail": "In uw e-mail gezocht naar '{query}'",
-      "panel.step.read_message": "Een bericht uit uw e-mail gelezen"
+      "panel.step.read_message": "Een bericht uit uw e-mail gelezen",
+      "panel.steps.summary": "Opgezocht: {list}",
+      "panel.steps.show": "Details tonen",
+      "panel.steps.hide": "Details verbergen"
     },
     "pl": {
       "common.cancel": "Anuluj",
@@ -3566,7 +3620,10 @@
       "widget.more": "Pokaż wszystkie {count} dni",
       "widget.less": "Pokaż mniej",
       "panel.step.search_mail": "Wyszukano „{query}” w Twojej poczcie",
-      "panel.step.read_message": "Przeczytano wiadomość z Twojej poczty"
+      "panel.step.read_message": "Przeczytano wiadomość z Twojej poczty",
+      "panel.steps.summary": "Sprawdzono: {list}",
+      "panel.steps.show": "Pokaż szczegóły",
+      "panel.steps.hide": "Ukryj szczegóły"
     },
     "pt": {
       "common.cancel": "Cancelar",
@@ -3747,7 +3804,10 @@
       "widget.more": "Mostrar os {count} dias",
       "widget.less": "Mostrar menos",
       "panel.step.search_mail": "Pesquisado «{query}» no seu correio",
-      "panel.step.read_message": "Lida uma mensagem do seu correio"
+      "panel.step.read_message": "Lida uma mensagem do seu correio",
+      "panel.steps.summary": "Consultado: {list}",
+      "panel.steps.show": "Mostrar detalhes",
+      "panel.steps.hide": "Ocultar detalhes"
     },
     "ro": {
       "common.cancel": "Anulează",
@@ -3928,7 +3988,10 @@
       "widget.more": "Arată toate cele {count} zile",
       "widget.less": "Arată mai puține",
       "panel.step.search_mail": "Căutat „{query}” în e-mailurile tale",
-      "panel.step.read_message": "Citit un mesaj din e-mailurile tale"
+      "panel.step.read_message": "Citit un mesaj din e-mailurile tale",
+      "panel.steps.summary": "Consultat: {list}",
+      "panel.steps.show": "Arată detaliile",
+      "panel.steps.hide": "Ascunde detaliile"
     },
     "ru": {
       "common.cancel": "Отмена",
@@ -4109,7 +4172,10 @@
       "widget.more": "Показать все {count} дней",
       "widget.less": "Показать меньше",
       "panel.step.search_mail": "Поиск «{query}» в вашей почте",
-      "panel.step.read_message": "Прочитано сообщение из вашей почты"
+      "panel.step.read_message": "Прочитано сообщение из вашей почты",
+      "panel.steps.summary": "Проверено: {list}",
+      "panel.steps.show": "Показать подробности",
+      "panel.steps.hide": "Скрыть подробности"
     },
     "sk": {
       "common.cancel": "Zrušiť",
@@ -4290,7 +4356,10 @@
       "widget.more": "Zobraziť všetkých {count} dní",
       "widget.less": "Zobraziť menej",
       "panel.step.search_mail": "Vo vašej pošte hľadané „{query}“",
-      "panel.step.read_message": "Prečítaná správa z vašej pošty"
+      "panel.step.read_message": "Prečítaná správa z vašej pošty",
+      "panel.steps.summary": "Vyhľadané: {list}",
+      "panel.steps.show": "Zobraziť podrobnosti",
+      "panel.steps.hide": "Skryť podrobnosti"
     },
     "tr": {
       "common.cancel": "İptal",
@@ -4471,7 +4540,10 @@
       "widget.more": "{count} günün tamamını göster",
       "widget.less": "Daha az göster",
       "panel.step.search_mail": "Postanızda \"{query}\" arandı",
-      "panel.step.read_message": "Postanızdan bir mesaj okundu"
+      "panel.step.read_message": "Postanızdan bir mesaj okundu",
+      "panel.steps.summary": "Bakıldı: {list}",
+      "panel.steps.show": "Ayrıntıları göster",
+      "panel.steps.hide": "Ayrıntıları gizle"
     },
     "uk": {
       "common.cancel": "Скасувати",
@@ -4652,7 +4724,10 @@
       "widget.more": "Показати всі {count} днів",
       "widget.less": "Показати менше",
       "panel.step.search_mail": "Пошук «{query}» у вашій пошті",
-      "panel.step.read_message": "Прочитано повідомлення з вашої пошти"
+      "panel.step.read_message": "Прочитано повідомлення з вашої пошти",
+      "panel.steps.summary": "Перевірено: {list}",
+      "panel.steps.show": "Показати деталі",
+      "panel.steps.hide": "Сховати деталі"
     },
     "zh": {
       "common.cancel": "取消",
@@ -4833,7 +4908,10 @@
       "widget.more": "显示全部 {count} 天",
       "widget.less": "收起",
       "panel.step.search_mail": "已在您的邮件中搜索“{query}”",
-      "panel.step.read_message": "已读取您邮件中的一封邮件"
+      "panel.step.read_message": "已读取您邮件中的一封邮件",
+      "panel.steps.summary": "已查阅：{list}",
+      "panel.steps.show": "显示详情",
+      "panel.steps.hide": "隐藏详情"
     },
     "zh-TW": {
       "common.cancel": "取消",
@@ -5014,7 +5092,10 @@
       "widget.more": "顯示全部 {count} 天",
       "widget.less": "收合",
       "panel.step.search_mail": "已在您的郵件中搜尋「{query}」",
-      "panel.step.read_message": "已讀取您郵件中的一封郵件"
+      "panel.step.read_message": "已讀取您郵件中的一封郵件",
+      "panel.steps.summary": "已查閱：{list}",
+      "panel.steps.show": "顯示詳細資料",
+      "panel.steps.hide": "隱藏詳細資料"
     }
   }
 }

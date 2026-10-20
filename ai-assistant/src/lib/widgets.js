@@ -104,9 +104,17 @@ export function contactsWidget(contacts) {
   });
 }
 
+/** Messages found, the newest of each subject and sender (newsletters arrive twice), at most 6. */
 export function emailsWidget(messages) {
-  return normalizeWidget({
-    type: 'emails',
-    items: messages.map((m) => ({ id: m.id, subject: m.subject || '', from: m.from?.[0]?.name || m.from?.[0]?.email || '', date: m.receivedAt || '' })),
-  });
+  const seen = new Set();
+  const items = [];
+  for (const m of messages) {
+    const from = m.from?.[0]?.name || m.from?.[0]?.email || '';
+    const key = `${(m.subject || '').trim().toLowerCase()}|${from.toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    items.push({ id: m.id, subject: m.subject || '', from, date: m.receivedAt || '' });
+    if (items.length === 6) break;
+  }
+  return normalizeWidget({ type: 'emails', items });
 }

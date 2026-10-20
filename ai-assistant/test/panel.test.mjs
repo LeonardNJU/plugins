@@ -251,9 +251,14 @@ describe('the reader panel', () => {
     await type('am I free?');
     await pressEnter();
     await settled();
+    // The lookups fold into one line; the details open on request.
+    const group = document.querySelector('[data-steps]');
+    expect(group.textContent).toContain('Looked up: Checked your calendar (2026-10-15 to 2026-10-15)');
+    expect(document.querySelector('[data-step="check_calendar"]')).toBeNull();
+    await click(document.querySelector('[data-steps] button'));
     const step = document.querySelector('[data-step="check_calendar"]');
     expect(step.dataset.stepStatus).toBe('done');
-    expect(step.textContent).toContain('Checked your calendar (2026-10-15 to 2026-10-15)');
+    expect(document.querySelector('[data-widget="calendar"]')).toBeTruthy();
     expect(screen.getByText('You are free then.')).toBeTruthy();
     expect(api.calls('calendar.getEvents')[0].args).toEqual([{ from: '2026-10-15', to: '2026-10-16' }]);
   });
@@ -319,7 +324,8 @@ describe('the reader panel', () => {
     await type('find the invoice');
     await pressEnter();
     await settled();
-    expect(document.querySelector('[data-step="search_mail"]').textContent).toContain('Searched your mail for “invoice”');
+    expect(document.querySelector('[data-steps]').textContent).toContain('Searched your mail for “invoice”');
+    await click(document.querySelector('[data-steps] button'));
     expect(document.querySelector('[data-widget="emails"]').textContent).toContain('Invoice 42');
     await click(button('Summarize this message'));
     await settled();

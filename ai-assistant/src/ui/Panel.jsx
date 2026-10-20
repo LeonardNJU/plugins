@@ -558,7 +558,7 @@ function AssistantTurn({ api, mode, turn, email, onApply, onRetry, onReview, onS
   return (
     <div data-turn="assistant" data-status={turn.status}>
     <Stack gap={2}>
-      {turn.steps?.map((step) => <StepRow key={step.id} api={api} mode={mode} step={step} onSend={onSend} onInsert={onInsert} />)}
+      {turn.steps?.length > 0 && <StepsGroup api={api} mode={mode} steps={turn.steps} running={running} onSend={onSend} onInsert={onInsert} />}
       {running && !turn.content && (!turn.steps || turn.steps.every((s) => s.status !== 'running')) && <Spinner label={t('common.thinking')} />}
       {turn.show === 'grammar' && turn.review
         ? <GrammarCard api={api} turn={turn} onApply={onApply} onReview={onReview} />
@@ -737,19 +737,45 @@ function stepLabel(t, step) {
   }
 }
 
+/**
+ * The lookups of one answer, as one line: while they run, the current one;
+ * afterwards "Looked up: …", folded, with the cards of what was found behind
+ * Show details. The answer itself is what the user came for.
+ */
+function StepsGroup({ api, mode, steps, running, onSend, onInsert }) {
+  const t = api.i18n.t;
+  const [open, setOpen] = useState(false);
+  const current = steps.find((s) => s.status === 'running');
+  const failed = steps.filter((s) => s.status === 'failed').length;
+  const summary = running && current
+    ? `${stepLabel(t, current)} · ${t('panel.step.running')}`
+    : t('panel.steps.summary', { list: steps.map((s) => stepLabel(t, s)).join(' · ') }) + (failed ? ` · ${t('panel.step.failed')} (${failed})` : '');
+  const icon = running ? 'loader-2' : failed ? 'alert-circle' : 'list-search';
+  return (
+    <div data-steps={steps.length} data-steps-open={open || undefined}>
+    <Stack gap={1}>
+      <LinkButton icon={icon} onClick={() => setOpen((v) => !v)} aria-expanded={open} title={open ? t('panel.steps.hide') : t('panel.steps.show')}>
+        <span className="line-clamp-2">{summary}</span>
+      </LinkButton>
+      {open && steps.map((step) => <StepRow key={step.id} api={api} mode={mode} step={step} onSend={onSend} onInsert={onInsert} />)}
+    </Stack>
+    </div>
+  );
+}
+
 /** One lookup the model made, with a card of what it found. */
 function StepRow({ api, mode, step, onSend, onInsert }) {
   const t = api.i18n.t;
-  const [open, setOpen] = useState(false);
   const icon = step.status === 'running' ? 'loader-2' : step.status === 'failed' ? 'alert-circle' : (STEP_ICONS[step.name] ?? 'mail');
   return (
-    <div data-step={step.name} data-step-status={step.status}>
+    <div data-step={step.name} data-step-status={step.status} style={{ paddingInlineStart: 8, borderInlineStart: '2px solid var(--color-border)' }}>
     <Stack gap={1}>
-      <LinkButton icon={icon} onClick={() => setOpen((v) => !v)} aria-expanded={open}>
-        {stepLabel(t, step)}{step.status === 'running' ? ` · ${t('panel.step.running')}` : step.status === 'failed' ? ` · ${t('panel.step.failed')}` : ''}
-      </LinkButton>
+      <Row gap={1} wrap={false} align="start">
+        <Icon name={icon} size="sm" className="text-muted-foreground" />
+        <Text size="xs" tone="muted">{stepLabel(t, step)}{step.status === 'failed' ? ` · ${t('panel.step.failed')}` : ''}</Text>
+      </Row>
       {step.widget && <Widget api={api} mode={mode} widget={step.widget} onSend={onSend} onInsert={onInsert} />}
-      {open && step.result && !step.widget && <Text size="xs" tone="muted" className="whitespace-pre-wrap">{step.result}</Text>}
+      {step.result && !step.widget && <Text size="xs" tone="muted" className="whitespace-pre-wrap">{step.result.slice(0, 1200)}</Text>}
     </Stack>
     </div>
   );
