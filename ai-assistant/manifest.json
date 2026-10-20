@@ -26,7 +26,8 @@
     "email:write",
     "calendar:write",
     "tasks:write",
-    "contacts:write"
+    "contacts:write",
+    "settings:read"
   ],
   "entrypoint": "index.js",
   "minAppVersion": "1.17.0",
@@ -396,7 +397,11 @@
       "app.settings.contacts": "Contacts",
       "app.settings.files": "Files",
       "app.settings.addons": "Add-ons",
-      "app.settings.backup": "Backup & reset"
+      "app.settings.backup": "Backup & reset",
+      "panel.step.find_setting": "Looked up “{query}” in the settings",
+      "panel.step.read_my_settings": "Read your settings",
+      "panel.steps.kind.find_setting": "Settings",
+      "panel.steps.kind.read_my_settings": "Settings"
     },
     "ar": {
       "common.cancel": "إلغاء",
@@ -641,7 +646,11 @@
       "app.settings.contacts": "جهات الاتصال",
       "app.settings.files": "الملفات",
       "app.settings.addons": "الإضافات",
-      "app.settings.backup": "النسخ الاحتياطي وإعادة الضبط"
+      "app.settings.backup": "النسخ الاحتياطي وإعادة الضبط",
+      "panel.step.find_setting": "تم البحث عن \"{query}\" في الإعدادات",
+      "panel.step.read_my_settings": "تمت قراءة إعداداتك",
+      "panel.steps.kind.find_setting": "الإعدادات",
+      "panel.steps.kind.read_my_settings": "الإعدادات"
     },
     "ca": {
       "common.cancel": "Cancel·la",
@@ -886,7 +895,11 @@
       "app.settings.contacts": "Contactes",
       "app.settings.files": "Fitxers",
       "app.settings.addons": "Complements",
-      "app.settings.backup": "Còpia de seguretat i restabliment"
+      "app.settings.backup": "Còpia de seguretat i restabliment",
+      "panel.step.find_setting": "Cercat «{query}» a la configuració",
+      "panel.step.read_my_settings": "S'ha llegit la teva configuració",
+      "panel.steps.kind.find_setting": "Configuració",
+      "panel.steps.kind.read_my_settings": "Configuració"
     },
     "cs": {
       "common.cancel": "Zrušit",
@@ -1131,7 +1144,11 @@
       "app.settings.contacts": "Kontakty",
       "app.settings.files": "Soubory",
       "app.settings.addons": "Doplňky",
-      "app.settings.backup": "Záloha a obnovení"
+      "app.settings.backup": "Záloha a obnovení",
+      "panel.step.find_setting": "V nastavení hledáno „{query}“",
+      "panel.step.read_my_settings": "Přečteno vaše nastavení",
+      "panel.steps.kind.find_setting": "Nastavení",
+      "panel.steps.kind.read_my_settings": "Nastavení"
     },
     "da": {
       "common.cancel": "Annuller",
@@ -1376,7 +1393,11 @@
       "app.settings.contacts": "Kontakter",
       "app.settings.files": "Filer",
       "app.settings.addons": "Tilføjelser",
-      "app.settings.backup": "Sikkerhedskopi og nulstilling"
+      "app.settings.backup": "Sikkerhedskopi og nulstilling",
+      "panel.step.find_setting": "Søgte efter \"{query}\" i indstillingerne",
+      "panel.step.read_my_settings": "Læste dine indstillinger",
+      "panel.steps.kind.find_setting": "Indstillinger",
+      "panel.steps.kind.read_my_settings": "Indstillinger"
     },
     "de": {
       "common.cancel": "Abbrechen",
@@ -1621,7 +1642,11 @@
       "app.settings.contacts": "Kontakte",
       "app.settings.files": "Dateien",
       "app.settings.addons": "Erweiterungen",
-      "app.settings.backup": "Sicherung & Zurücksetzen"
+      "app.settings.backup": "Sicherung & Zurücksetzen",
+      "panel.step.find_setting": "In den Einstellungen nach „{query}“ gesucht",
+      "panel.step.read_my_settings": "Ihre Einstellungen gelesen",
+      "panel.steps.kind.find_setting": "Einstellungen",
+      "panel.steps.kind.read_my_settings": "Einstellungen"
     },
     "es": {
       "common.cancel": "Cancelar",
@@ -1866,7 +1891,11 @@
       "app.settings.contacts": "Contactos",
       "app.settings.files": "Archivos",
       "app.settings.addons": "Complementos",
-      "app.settings.backup": "Copia de seguridad y restablecer"
+      "app.settings.backup": "Copia de seguridad y restablecer",
+      "panel.step.find_setting": "Buscado «{query}» en los ajustes",
+      "panel.step.read_my_settings": "Leídos tus ajustes",
+      "panel.steps.kind.find_setting": "Ajustes",
+      "panel.steps.kind.read_my_settings": "Ajustes"
     },
     "fa": {
       "common.cancel": "انصراف",
@@ -2111,7 +2140,11 @@
       "app.settings.contacts": "مخاطبین",
       "app.settings.files": "فایل‌ها",
       "app.settings.addons": "افزونه‌ها",
-      "app.settings.backup": "پشتیبان‌گیری و بازنشانی"
+      "app.settings.backup": "پشتیبان‌گیری و بازنشانی",
+      "panel.step.find_setting": "جستجوی «{query}» در تنظیمات",
+      "panel.step.read_my_settings": "تنظیمات شما خوانده شد",
+      "panel.steps.kind.find_setting": "تنظیمات",
+      "panel.steps.kind.read_my_settings": "تنظیمات"
     },
     "fr": {
       "common.cancel": "Annuler",
@@ -2356,7 +2389,11 @@
       "app.settings.contacts": "Contacts",
       "app.settings.files": "Fichiers",
       "app.settings.addons": "Extensions",
-      "app.settings.backup": "Sauvegarde et réinitialisation"
+      "app.settings.backup": "Sauvegarde et réinitialisation",
+      "panel.step.find_setting": "Recherche de « {query} » dans les paramètres",
+      "panel.step.read_my_settings": "Lecture de vos paramètres",
+      "panel.steps.kind.find_setting": "Paramètres",
+      "panel.steps.kind.read_my_settings": "Paramètres"
     },
     "he": {
       "common.cancel": "ביטול",
@@ -2601,7 +2638,11 @@
       "app.settings.contacts": "אנשי קשר",
       "app.settings.files": "קבצים",
       "app.settings.addons": "תוספים",
-      "app.settings.backup": "גיבוי ואיפוס"
+      "app.settings.backup": "גיבוי ואיפוס",
+      "panel.step.find_setting": "חיפוש \"{query}\" בהגדרות",
+      "panel.step.read_my_settings": "ההגדרות שלך נקראו",
+      "panel.steps.kind.find_setting": "הגדרות",
+      "panel.steps.kind.read_my_settings": "הגדרות"
     },
     "hu": {
       "common.cancel": "Mégse",
@@ -2846,7 +2887,11 @@
       "app.settings.contacts": "Névjegyek",
       "app.settings.files": "Fájlok",
       "app.settings.addons": "Bővítmények",
-      "app.settings.backup": "Biztonsági mentés és visszaállítás"
+      "app.settings.backup": "Biztonsági mentés és visszaállítás",
+      "panel.step.find_setting": "Keresés a beállításokban: „{query}”",
+      "panel.step.read_my_settings": "A beállításaid beolvasva",
+      "panel.steps.kind.find_setting": "Beállítások",
+      "panel.steps.kind.read_my_settings": "Beállítások"
     },
     "it": {
       "common.cancel": "Annulla",
@@ -3091,7 +3136,11 @@
       "app.settings.contacts": "Contatti",
       "app.settings.files": "File",
       "app.settings.addons": "Componenti aggiuntivi",
-      "app.settings.backup": "Backup e ripristino"
+      "app.settings.backup": "Backup e ripristino",
+      "panel.step.find_setting": "Cercato «{query}» nelle impostazioni",
+      "panel.step.read_my_settings": "Lette le tue impostazioni",
+      "panel.steps.kind.find_setting": "Impostazioni",
+      "panel.steps.kind.read_my_settings": "Impostazioni"
     },
     "ja": {
       "common.cancel": "キャンセル",
@@ -3336,7 +3385,11 @@
       "app.settings.contacts": "連絡先",
       "app.settings.files": "ファイル",
       "app.settings.addons": "アドオン",
-      "app.settings.backup": "バックアップとリセット"
+      "app.settings.backup": "バックアップとリセット",
+      "panel.step.find_setting": "設定で「{query}」を検索しました",
+      "panel.step.read_my_settings": "設定を読み取りました",
+      "panel.steps.kind.find_setting": "設定",
+      "panel.steps.kind.read_my_settings": "設定"
     },
     "ko": {
       "common.cancel": "취소",
@@ -3581,7 +3634,11 @@
       "app.settings.contacts": "연락처",
       "app.settings.files": "파일",
       "app.settings.addons": "추가 기능",
-      "app.settings.backup": "백업 및 초기화"
+      "app.settings.backup": "백업 및 초기화",
+      "panel.step.find_setting": "설정에서 \"{query}\"을(를) 검색했습니다",
+      "panel.step.read_my_settings": "설정을 읽었습니다",
+      "panel.steps.kind.find_setting": "설정",
+      "panel.steps.kind.read_my_settings": "설정"
     },
     "lv": {
       "common.cancel": "Atcelt",
@@ -3826,7 +3883,11 @@
       "app.settings.contacts": "Kontakti",
       "app.settings.files": "Faili",
       "app.settings.addons": "Papildinājumi",
-      "app.settings.backup": "Dublēšana un atiestatīšana"
+      "app.settings.backup": "Dublēšana un atiestatīšana",
+      "panel.step.find_setting": "Iestatījumos meklēts “{query}”",
+      "panel.step.read_my_settings": "Nolasīti jūsu iestatījumi",
+      "panel.steps.kind.find_setting": "Iestatījumi",
+      "panel.steps.kind.read_my_settings": "Iestatījumi"
     },
     "mn": {
       "common.cancel": "Болих",
@@ -4071,7 +4132,11 @@
       "app.settings.contacts": "Харилцах утас",
       "app.settings.files": "Файл",
       "app.settings.addons": "Нэмэлтүүд",
-      "app.settings.backup": "Нөөцлөлт ба дахин тохируулах"
+      "app.settings.backup": "Нөөцлөлт ба дахин тохируулах",
+      "panel.step.find_setting": "Тохиргооноос «{query}»-г хайлаа",
+      "panel.step.read_my_settings": "Таны тохиргоог уншлаа",
+      "panel.steps.kind.find_setting": "Тохиргоо",
+      "panel.steps.kind.read_my_settings": "Тохиргоо"
     },
     "nb": {
       "common.cancel": "Avbryt",
@@ -4316,7 +4381,11 @@
       "app.settings.contacts": "Kontakter",
       "app.settings.files": "Filer",
       "app.settings.addons": "Tillegg",
-      "app.settings.backup": "Sikkerhetskopi og tilbakestilling"
+      "app.settings.backup": "Sikkerhetskopi og tilbakestilling",
+      "panel.step.find_setting": "Søkte etter «{query}» i innstillingene",
+      "panel.step.read_my_settings": "Leste innstillingene dine",
+      "panel.steps.kind.find_setting": "Innstillinger",
+      "panel.steps.kind.read_my_settings": "Innstillinger"
     },
     "nl": {
       "common.cancel": "Annuleren",
@@ -4561,7 +4630,11 @@
       "app.settings.contacts": "Contacten",
       "app.settings.files": "Bestanden",
       "app.settings.addons": "Add-ons",
-      "app.settings.backup": "Back-up en herstel"
+      "app.settings.backup": "Back-up en herstel",
+      "panel.step.find_setting": "In de instellingen gezocht naar '{query}'",
+      "panel.step.read_my_settings": "Uw instellingen gelezen",
+      "panel.steps.kind.find_setting": "Instellingen",
+      "panel.steps.kind.read_my_settings": "Instellingen"
     },
     "pl": {
       "common.cancel": "Anuluj",
@@ -4806,7 +4879,11 @@
       "app.settings.contacts": "Kontakty",
       "app.settings.files": "Pliki",
       "app.settings.addons": "Dodatki",
-      "app.settings.backup": "Kopia zapasowa i reset"
+      "app.settings.backup": "Kopia zapasowa i reset",
+      "panel.step.find_setting": "Wyszukano „{query}” w ustawieniach",
+      "panel.step.read_my_settings": "Odczytano Twoje ustawienia",
+      "panel.steps.kind.find_setting": "Ustawienia",
+      "panel.steps.kind.read_my_settings": "Ustawienia"
     },
     "pt": {
       "common.cancel": "Cancelar",
@@ -5051,7 +5128,11 @@
       "app.settings.contacts": "Contatos",
       "app.settings.files": "Arquivos",
       "app.settings.addons": "Extras",
-      "app.settings.backup": "Cópia de segurança e reposição"
+      "app.settings.backup": "Cópia de segurança e reposição",
+      "panel.step.find_setting": "Pesquisado «{query}» nas definições",
+      "panel.step.read_my_settings": "Lidas as suas definições",
+      "panel.steps.kind.find_setting": "Definições",
+      "panel.steps.kind.read_my_settings": "Definições"
     },
     "ro": {
       "common.cancel": "Anulează",
@@ -5296,7 +5377,11 @@
       "app.settings.contacts": "Contacte",
       "app.settings.files": "Fișiere",
       "app.settings.addons": "Suplimente",
-      "app.settings.backup": "Copie de rezervă și resetare"
+      "app.settings.backup": "Copie de rezervă și resetare",
+      "panel.step.find_setting": "Căutat „{query}” în setări",
+      "panel.step.read_my_settings": "Citite setările tale",
+      "panel.steps.kind.find_setting": "Setări",
+      "panel.steps.kind.read_my_settings": "Setări"
     },
     "ru": {
       "common.cancel": "Отмена",
@@ -5541,7 +5626,11 @@
       "app.settings.contacts": "Контакты",
       "app.settings.files": "Файлы",
       "app.settings.addons": "Дополнения",
-      "app.settings.backup": "Резервная копия и сброс"
+      "app.settings.backup": "Резервная копия и сброс",
+      "panel.step.find_setting": "Поиск «{query}» в настройках",
+      "panel.step.read_my_settings": "Прочитаны ваши настройки",
+      "panel.steps.kind.find_setting": "Настройки",
+      "panel.steps.kind.read_my_settings": "Настройки"
     },
     "sk": {
       "common.cancel": "Zrušiť",
@@ -5786,7 +5875,11 @@
       "app.settings.contacts": "Kontakty",
       "app.settings.files": "Súbory",
       "app.settings.addons": "Doplnky",
-      "app.settings.backup": "Záloha a obnovenie"
+      "app.settings.backup": "Záloha a obnovenie",
+      "panel.step.find_setting": "V nastaveniach hľadané „{query}“",
+      "panel.step.read_my_settings": "Prečítané vaše nastavenia",
+      "panel.steps.kind.find_setting": "Nastavenia",
+      "panel.steps.kind.read_my_settings": "Nastavenia"
     },
     "tr": {
       "common.cancel": "İptal",
@@ -6031,7 +6124,11 @@
       "app.settings.contacts": "Kişiler",
       "app.settings.files": "Dosyalar",
       "app.settings.addons": "Eklentiler",
-      "app.settings.backup": "Yedekleme ve sıfırlama"
+      "app.settings.backup": "Yedekleme ve sıfırlama",
+      "panel.step.find_setting": "Ayarlarda \"{query}\" arandı",
+      "panel.step.read_my_settings": "Ayarlarınız okundu",
+      "panel.steps.kind.find_setting": "Ayarlar",
+      "panel.steps.kind.read_my_settings": "Ayarlar"
     },
     "uk": {
       "common.cancel": "Скасувати",
@@ -6276,7 +6373,11 @@
       "app.settings.contacts": "Контакти",
       "app.settings.files": "Файли",
       "app.settings.addons": "Додатки",
-      "app.settings.backup": "Резервна копія та скидання"
+      "app.settings.backup": "Резервна копія та скидання",
+      "panel.step.find_setting": "Пошук «{query}» у налаштуваннях",
+      "panel.step.read_my_settings": "Прочитано ваші налаштування",
+      "panel.steps.kind.find_setting": "Налаштування",
+      "panel.steps.kind.read_my_settings": "Налаштування"
     },
     "zh": {
       "common.cancel": "取消",
@@ -6521,7 +6622,11 @@
       "app.settings.contacts": "联系人",
       "app.settings.files": "文件",
       "app.settings.addons": "附加组件",
-      "app.settings.backup": "备份与重置"
+      "app.settings.backup": "备份与重置",
+      "panel.step.find_setting": "已在设置中搜索“{query}”",
+      "panel.step.read_my_settings": "已读取你的设置",
+      "panel.steps.kind.find_setting": "设置",
+      "panel.steps.kind.read_my_settings": "设置"
     },
     "zh-TW": {
       "common.cancel": "取消",
@@ -6766,7 +6871,11 @@
       "app.settings.contacts": "聯絡人",
       "app.settings.files": "檔案",
       "app.settings.addons": "附加元件",
-      "app.settings.backup": "備份與重設"
+      "app.settings.backup": "備份與重設",
+      "panel.step.find_setting": "已在設定中搜尋「{query}」",
+      "panel.step.read_my_settings": "已讀取你的設定",
+      "panel.steps.kind.find_setting": "設定",
+      "panel.steps.kind.read_my_settings": "設定"
     }
   }
 }

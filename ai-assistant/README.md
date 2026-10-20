@@ -66,8 +66,15 @@ your **calendar** ("propose a time next week when I'm free" shows the
 days busy or free), your **contacts** ("send it to Anna from accounting"
 gives the address, to copy or insert), your **mail** ("what did Carol
 write about the invoice?" searches, lists the messages found and reads
-the one that matters) and **the message you reply to**. Turn this off in
-the plugin's settings. Nothing is looked up or sent unless you asked a
+the one that matters), **the message you reply to** and **your settings**
+("why are messages marked read so fast?" reads how you set the app up).
+Turn this off in the plugin's settings.
+
+The assistant also knows the app itself: its name and version, the
+account and mail server you use, what the app can do, and where each
+setting is. Asked "how do I set up an automatic reply?", it looks the
+setting up in the app's own settings index and names the page and the
+setting as you see them, in your language. Nothing is looked up or sent unless you asked a
 question.
 
 ## Actions
@@ -203,7 +210,8 @@ composer closes).
 | `tasks:write` | Actions: add a task (and delete it again on Undo) |
 | `contacts:write` | Actions: add a contact (and delete it again on Undo) |
 | `identity:read` | Your name, addresses and signature, so the model knows who writes |
-| `account:read` | Your account's name and address when there is no identity |
+| `account:read` | Your account's name and address when there is no identity, and the mail server it is on |
+| `settings:read` | Your settings (layout, formats, reading and sending options), for the settings lookup |
 
 ## Credentials
 

@@ -313,7 +313,7 @@ export function AssistantPanel(props) {
         const prompt = buildPrompt(task, { language: locale, extra, ...taskInput });
         text = await streamCompletion(api, endpoint, prompt, { onText, signal: abort.signal });
       } else {
-        const ctx = { inReplyToId: mode === 'composer' ? context?.inReplyToId : undefined, lookups, actions: actionMode, mode, openEmailId: mode === 'reader' ? contextEmail?.id : undefined };
+        const ctx = { inReplyToId: mode === 'composer' ? context?.inReplyToId : undefined, lookups, actions: actionMode, mode, openEmailId: mode === 'reader' ? contextEmail?.id : undefined, settingsName: t('app.nav.settings') };
         const tools = [...toolsFor(ctx), ...actionToolsFor(ctx)];
         let autoActions = 0;
         // Lookups run straight away; an action is shown first, then waits for
@@ -373,7 +373,7 @@ export function AssistantPanel(props) {
     } finally {
       if (controller.current === abort) controller.current = null;
     }
-  }, [api, setup, askConsent, patchTurn, locale, mode, context, lookups, subject, contextEmail, extraContext]);
+  }, [api, setup, askConsent, patchTurn, locale, mode, context, lookups, subject, contextEmail, extraContext, t]);
 
   /** A quick action on the current source (or on `text` from a right-click). */
   const quick = useCallback((action, { text, targetTag } = {}) => {
@@ -984,7 +984,7 @@ function GrammarCard({ api, turn, onApply, onReview }) {
 }
 
 /** One lookup the model made. */
-const STEP_ICONS = { check_calendar: 'calendar', find_contact: 'address-book', search_mail: 'search', read_message: 'mail-opened', read_original_message: 'mail' };
+const STEP_ICONS = { check_calendar: 'calendar', find_contact: 'address-book', search_mail: 'search', read_message: 'mail-opened', read_original_message: 'mail', find_setting: 'settings', read_my_settings: 'adjustments' };
 
 function stepLabel(t, step) {
   const args = step.args ?? {};
@@ -994,6 +994,8 @@ function stepLabel(t, step) {
     case 'read_original_message': return t('panel.step.read_original_message');
     case 'search_mail': return t('panel.step.search_mail', { query: [args.text, args.from, args.subject, args.after, args.before].filter(Boolean).join(' ') });
     case 'read_message': return t('panel.step.read_message');
+    case 'find_setting': return t('panel.step.find_setting', { query: args.query ?? '' });
+    case 'read_my_settings': return t('panel.step.read_my_settings');
     default: return step.name;
   }
 }

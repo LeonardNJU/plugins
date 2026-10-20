@@ -128,6 +128,11 @@ export function appBlock(person, place) {
       `for mail: ${l('settings.message_list')}, ${l('settings.reading')}, ${l('settings.composing')} (signatures, templates), ${l('settings.organize')}, ${l('settings.filters')} (rules that sort incoming mail) and ${l('settings.vacation')} (automatic replies), the last two where the server supports them;`,
       `apps: ${l('settings.calendar')}, ${l('settings.contacts')}, ${l('settings.files')}, ${l('settings.addons')} (plugins such as this assistant, and sidebar apps); then ${l('settings.backup')}.`,
       'The More menu (⋮) of an open message has print, view source, export and keyboard shortcuts; ? shows all shortcuts.',
+      'What the app does: mail as conversations or single messages, search with advanced filters, pinned messages, folders and tags, rules (also from a message\'s right-click menu, for example to block a sender), and filters and automatic replies where the server supports them.',
+      'Writing: templates, signatures, undo send (a short delay before a message goes out), scheduled sending (a Scheduled folder holds those messages), read receipts, priority, S/MIME signing and encryption once set up, and a reminder about missing attachments.',
+      'Reading: remote images blocked until allowed, an unsubscribe banner for newsletters, verification codes offered in the list, print, view source, and .eml export and import.',
+      'Also: several accounts with a unified inbox, push notifications and muting per folder, a calendar with invitations, tasks and birthdays, contacts in address books, files, themes and layouts (split, focus, horizontal; the Mountain View interface; an experimental Pro interface with tabs), plugins and sidebar apps, and linking a phone by QR code.',
+      'Use find_setting to tell the user where a setting is and what it is called for them, and read_my_settings for how they have set things up, instead of guessing.',
       'When the user asks how to do something in the app, name the place with these names, as the user sees them. Do not invent menus or settings you do not know; say so instead.',
     ].join(' '));
   }

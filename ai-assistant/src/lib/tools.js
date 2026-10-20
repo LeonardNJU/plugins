@@ -58,6 +58,19 @@ const DEFINITIONS = {
       additionalProperties: false,
     },
   },
+  find_setting: {
+    description: 'Find where a setting or feature of this mail app is: the settings page, the setting\'s name as the user sees it, and what it does. Use it before telling the user where to change something. Query in English or the user\'s language, a few words (for example: undo send, automatic reply, dark mode, signature).',
+    parameters: {
+      type: 'object',
+      properties: { query: { type: 'string', description: 'A few words about the setting' } },
+      required: ['query'],
+      additionalProperties: false,
+    },
+  },
+  read_my_settings: {
+    description: 'Read how the user has set up the app: layout, theme, language and formats, mark-as-read delay, remote content, undo send delay, reply and signature options, notifications and more. Use it when the user asks why the app behaves as it does.',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+  },
   read_message: {
     description: 'Read one message of the user\'s mail by the id search_mail gave: sender, date, subject and text.',
     parameters: {
@@ -76,7 +89,9 @@ const DEFINITIONS = {
 export function toolsFor(ctx = {}) {
   const names = [];
   if (ctx.inReplyToId) names.push('read_original_message');
-  if (ctx.lookups !== false) names.push('check_calendar', 'find_contact', 'search_mail', 'read_message');
+  if (ctx.lookups !== false) names.push('check_calendar', 'find_contact', 'search_mail', 'read_message', 'read_my_settings');
+  // Where a setting is: the app's own texts, nothing of the user's.
+  names.push('find_setting');
   return names.map((name) => ({ name, ...DEFINITIONS[name] }));
 }
 
@@ -119,6 +134,24 @@ export function formatContacts(contacts, query) {
     return `- ${name}: ${emails}${c.company ? ` (${c.company})` : ''}`;
   });
   return list.length ? `Contacts matching "${query}":\n${list.join('\n')}` : `No contact matches "${query}".`;
+}
+
+/** Settings found, as the user sees them: Settings > page > setting: what it does. */
+export function formatSettings(results, query, settingsName = 'Settings') {
+  if (!results.length) return `No setting matches "${query}". Try other words, or say that you do not know where it is.`;
+  const lines = results.map((r) => `- ${settingsName} > ${r.page} > ${r.label}${r.description ? `: ${r.description}` : ''}`);
+  return `Settings matching "${query}" (names as the user sees them):\n${lines.join('\n')}`;
+}
+
+/** Units of the settings that are numbers. */
+const SETTING_UNITS = { markAsReadDelay: 'ms', autoSaveDraftInterval: 'ms', sendDelaySeconds: 's', sessionTimeout: 'min' };
+
+/** The user's preferences as lines the model reads. */
+export function formatMySettings(settings) {
+  const entries = Object.entries(settings ?? {});
+  if (!entries.length) return 'No settings could be read.';
+  const lines = entries.map(([key, value]) => `- ${key}: ${Array.isArray(value) ? value.join(', ') : String(value)}${SETTING_UNITS[key] ? ` ${SETTING_UNITS[key]}` : ''}`);
+  return `The user's settings (internal names; find_setting gives the names they see):\n${lines.join('\n')}`;
 }
 
 /** Search results as lines the model reads, with the ids read_message takes. */
@@ -182,6 +215,16 @@ export async function runTool(api, name, args = {}, ctx = {}) {
       const limit = Math.min(MAX_SEARCH_RESULTS, Math.max(1, Number(args.limit) || 5));
       const messages = (await api.email.search({ ...query, limit })) ?? [];
       return { text: clip(formatMessages(messages, query), MAX_TOOL_RESULT), widget: emailsWidget(messages) };
+    }
+    case 'find_setting': {
+      const query = String(args.query ?? '').trim().slice(0, 200);
+      if (!query) throw new Error('query is empty');
+      const results = (await api.app.searchSettings(query, { limit: 6 })) ?? [];
+      return clip(formatSettings(results, query, ctx.settingsName), MAX_TOOL_RESULT);
+    }
+    case 'read_my_settings': {
+      const settings = await api.app.getSettings();
+      return clip(formatMySettings(settings), MAX_TOOL_RESULT);
     }
     case 'read_message': {
       const id = String(args.id ?? '').trim();

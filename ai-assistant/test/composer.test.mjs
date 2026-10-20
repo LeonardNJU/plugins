@@ -82,6 +82,9 @@ describe('the context every request carries', () => {
     expect(block).toContain('Einstellungen (at the bottom of the navigation)');
     expect(block).toContain('Abwesenheit (automatic replies)');
     expect(block).toContain('Verfassen (signatures, templates)');
+    // What the app does, and to look a setting up rather than guess.
+    expect(block).toContain('undo send (a short delay before a message goes out)');
+    expect(block).toContain('Use find_setting to tell the user where a setting is');
     // Without Stalwart's features there is no Security page.
     expect(block).not.toContain(manifest.locales.de['app.settings.security']);
     // An older webmail without api.app: still the product, no version.

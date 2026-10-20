@@ -110,7 +110,7 @@ describe('the composer panel', () => {
     expect(prompt.system).toContain('<draft>\nHello Bob, can we meet tuesday? Thanks\n</draft>');
     expect(prompt.system).toContain('writing a reply to "Lunch"');
     expect(prompt.system).toContain('<text></text>');
-    expect(prompt.tools.map((t) => t.name)).toEqual(['read_original_message', 'check_calendar', 'find_contact', 'search_mail', 'read_message']);
+    expect(prompt.tools.map((t) => t.name)).toEqual(['read_original_message', 'check_calendar', 'find_contact', 'search_mail', 'read_message', 'read_my_settings', 'find_setting']);
     expect(prompt.messages.at(-1)).toEqual({ role: 'user', content: 'add that I am away on Friday' });
     expect(screen.getByText('Here it is:')).toBeTruthy();
     expect([...document.querySelectorAll('ins')].map((x) => x.textContent).join(' ')).toContain('away on Friday');
@@ -586,13 +586,13 @@ describe('the reader panel', () => {
     expect(sentPrompt(api).messages.at(-1).content).toBe('Read the message "Invoice 42" (id M7) and summarise it.');
   });
 
-  it('offers no lookups when the user turned them off', async () => {
+  it('offers no lookups when the user turned them off, only where a setting is', async () => {
     const api = makeApi({ answers: ['Fine.'] });
     await api.storage.set('prefs', { lookups: false });
     await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
     await type('ok?');
     await pressEnter();
     await settled();
-    expect(sentPrompt(api).tools).toBeUndefined();
+    expect(sentPrompt(api).tools.map((t) => t.name)).toEqual(['find_setting']);
   });
 });

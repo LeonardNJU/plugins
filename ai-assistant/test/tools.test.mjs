@@ -1,20 +1,44 @@
 import { describe, expect, it } from 'vitest';
 import { fakeApi } from '../../test-utils/fake-api.mjs';
-import { formatContacts, formatEvents, runTool, toolsFor } from '../src/lib/tools.js';
+import { formatContacts, formatEvents, formatMySettings, formatSettings, runTool, toolsFor } from '../src/lib/tools.js';
 
 // What the model may look up: offered by context and setting, run through
 // the api, answered as text.
 
 describe('toolsFor', () => {
-  it('offers the original message only in a reply, and the lookups unless turned off', () => {
-    expect(toolsFor({}).map((t) => t.name)).toEqual(['check_calendar', 'find_contact', 'search_mail', 'read_message']);
-    expect(toolsFor({ inReplyToId: 'M1' }).map((t) => t.name)).toEqual(['read_original_message', 'check_calendar', 'find_contact', 'search_mail', 'read_message']);
-    expect(toolsFor({ inReplyToId: 'M1', lookups: false }).map((t) => t.name)).toEqual(['read_original_message']);
-    expect(toolsFor({ lookups: false })).toEqual([]);
+  it('offers the original message only in a reply, the lookups unless turned off, and where a setting is always', () => {
+    expect(toolsFor({}).map((t) => t.name)).toEqual(['check_calendar', 'find_contact', 'search_mail', 'read_message', 'read_my_settings', 'find_setting']);
+    expect(toolsFor({ inReplyToId: 'M1' }).map((t) => t.name)).toEqual(['read_original_message', 'check_calendar', 'find_contact', 'search_mail', 'read_message', 'read_my_settings', 'find_setting']);
+    // The user's own settings are a lookup; where a setting is, is the app's text.
+    expect(toolsFor({ inReplyToId: 'M1', lookups: false }).map((t) => t.name)).toEqual(['read_original_message', 'find_setting']);
+    expect(toolsFor({ lookups: false }).map((t) => t.name)).toEqual(['find_setting']);
     for (const tool of toolsFor({ inReplyToId: 'M1' })) {
       expect(tool.description.length).toBeGreaterThan(10);
       expect(tool.parameters.type).toBe('object');
     }
+  });
+});
+
+describe('the app\'s settings', () => {
+  it('finds where a setting is, by the names the user sees', async () => {
+    const api = fakeApi({ handlers: { 'app.searchSettings': async () => [
+      { pageId: 'composing', page: 'Verfassen', label: 'Senden rückgängig machen', description: 'Wartezeit vor dem Senden' },
+    ] } });
+    const text = await runTool(api, 'find_setting', { query: 'undo send' }, { settingsName: 'Einstellungen' });
+    expect(api.calls('app.searchSettings')[0].args).toEqual(['undo send', { limit: 6 }]);
+    expect(text).toContain('- Einstellungen > Verfassen > Senden rückgängig machen: Wartezeit vor dem Senden');
+    await expect(runTool(api, 'find_setting', { query: ' ' })).rejects.toThrow(/query is empty/);
+    expect(formatSettings([], 'teleport')).toContain('No setting matches "teleport"');
+  });
+
+  it('reads the user\'s settings with their units', async () => {
+    const api = fakeApi({ handlers: { 'app.getSettings': async () => ({ sendDelaySeconds: 10, markAsReadDelay: 0, mailLayout: 'focus', calendarWorkingDays: [1, 2, 3] }) } });
+    const text = await runTool(api, 'read_my_settings', {});
+    expect(text).toContain('- sendDelaySeconds: 10 s');
+    expect(text).toContain('- markAsReadDelay: 0 ms');
+    expect(text).toContain('- mailLayout: focus');
+    expect(text).toContain('- calendarWorkingDays: 1, 2, 3');
+    expect(formatMySettings({})).toBe('No settings could be read.');
   });
 });
 
