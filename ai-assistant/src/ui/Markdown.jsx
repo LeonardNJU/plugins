@@ -5,19 +5,34 @@
 
 import { Fragment } from 'react';
 
+// Blocks are spaced like a short document: a gap between paragraphs, air
+// around lists and headings, real bullets (the frame's CSS reset removes
+// them), nothing after the last block.
+const GAP = 10;
 const styles = {
-  p: { margin: '0 0 6px' },
-  h: { margin: '8px 0 4px', fontWeight: 600, fontSize: '0.95em', lineHeight: 1.3 },
-  ul: { margin: '0 0 6px', paddingInlineStart: 18 },
-  li: { margin: '2px 0' },
-  quote: { margin: '0 0 6px', paddingInlineStart: 10, borderInlineStart: '2px solid var(--color-border)', color: 'var(--color-muted-foreground)' },
-  pre: { margin: '0 0 6px', padding: '6px 8px', background: 'var(--color-muted)', borderRadius: 6, overflowX: 'auto', fontSize: '0.9em', whiteSpace: 'pre-wrap' },
+  root: { fontSize: '0.875rem', lineHeight: 1.55, overflowWrap: 'anywhere' },
+  p: { margin: `0 0 ${GAP}px` },
+  h: { margin: `${GAP + 4}px 0 4px`, fontWeight: 600, fontSize: '0.95em', lineHeight: 1.3 },
+  ul: { margin: `0 0 ${GAP}px`, paddingInlineStart: 22, listStyleType: 'disc', listStylePosition: 'outside' },
+  ol: { margin: `0 0 ${GAP}px`, paddingInlineStart: 22, listStyleType: 'decimal', listStylePosition: 'outside' },
+  li: { margin: '4px 0', paddingInlineStart: 2, display: 'list-item' },
+  quote: { margin: `0 0 ${GAP}px`, padding: '2px 0 2px 10px', borderInlineStart: '2px solid var(--color-border)', color: 'var(--color-muted-foreground)' },
+  pre: { margin: `0 0 ${GAP}px`, padding: '8px 10px', background: 'var(--color-muted)', borderRadius: 6, overflowX: 'auto', fontSize: '0.9em', whiteSpace: 'pre-wrap' },
   code: { padding: '1px 4px', background: 'var(--color-muted)', borderRadius: 4, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '0.9em' },
-  hr: { border: 0, borderTop: '1px solid var(--color-border)', margin: '8px 0' },
+  hr: { border: 0, borderTop: '1px solid var(--color-border)', margin: `${GAP}px 0` },
   link: { color: 'var(--color-primary)', textDecoration: 'underline', background: 'none', border: 0, padding: 0, font: 'inherit', cursor: 'pointer' },
-  table: { borderCollapse: 'collapse', margin: '0 0 6px', fontSize: '0.95em' },
-  cell: { border: '1px solid var(--color-border)', padding: '2px 6px', verticalAlign: 'top' },
+  table: { borderCollapse: 'collapse', margin: `0 0 ${GAP}px`, fontSize: '0.95em' },
+  cell: { border: '1px solid var(--color-border)', padding: '4px 8px', verticalAlign: 'top' },
 };
+
+/** The block's style, with no margin above the first block and none below the last. */
+function at(style, i, n) {
+  const out = { ...style };
+  if (i === 0) out.marginTop = 0;
+  if (i === n - 1) out.marginBottom = 0;
+  if (i === 0 && i === n - 1) out.margin = 0;
+  return out;
+}
 
 /** Blocks of a Markdown text: { kind, ... }. */
 export function parseBlocks(text) {
@@ -121,24 +136,25 @@ function Lines({ lines, open, keyBase }) {
 export function Markdown({ text, onOpenLink }) {
   const blocks = parseBlocks(text);
   const open = onOpenLink ?? (() => {});
+  const n = blocks.length;
   return (
-    <div data-markdown>
+    <div data-markdown style={styles.root}>
       {blocks.map((b, i) => {
         const key = `b${i}`;
         switch (b.kind) {
-          case 'h': return <div key={key} role="heading" aria-level={Math.min(6, b.level + 2)} style={styles.h}>{renderInline(b.text, open, `${key}-`)}</div>;
-          case 'ul': return <ul key={key} style={styles.ul}>{b.items.map((item, j) => <li key={j} style={styles.li}><Lines lines={item.split('\n')} open={open} keyBase={`${key}-${j}-`} /></li>)}</ul>;
-          case 'ol': return <ol key={key} style={styles.ul}>{b.items.map((item, j) => <li key={j} style={styles.li}><Lines lines={item.split('\n')} open={open} keyBase={`${key}-${j}-`} /></li>)}</ol>;
-          case 'quote': return <blockquote key={key} style={styles.quote}><Lines lines={b.lines} open={open} keyBase={`${key}-`} /></blockquote>;
-          case 'code': return <pre key={key} style={styles.pre}><code>{b.text}</code></pre>;
-          case 'hr': return <hr key={key} style={styles.hr} />;
+          case 'h': return <div key={key} role="heading" aria-level={Math.min(6, b.level + 2)} style={at(styles.h, i, n)}>{renderInline(b.text, open, `${key}-`)}</div>;
+          case 'ul': return <ul key={key} style={at(styles.ul, i, n)}>{b.items.map((item, j) => <li key={j} style={styles.li}><Lines lines={item.split('\n')} open={open} keyBase={`${key}-${j}-`} /></li>)}</ul>;
+          case 'ol': return <ol key={key} style={at(styles.ol, i, n)}>{b.items.map((item, j) => <li key={j} style={styles.li}><Lines lines={item.split('\n')} open={open} keyBase={`${key}-${j}-`} /></li>)}</ol>;
+          case 'quote': return <blockquote key={key} style={at(styles.quote, i, n)}><Lines lines={b.lines} open={open} keyBase={`${key}-`} /></blockquote>;
+          case 'code': return <pre key={key} style={at(styles.pre, i, n)}><code>{b.text}</code></pre>;
+          case 'hr': return <hr key={key} style={at(styles.hr, i, n)} />;
           case 'table': return (
-            <table key={key} style={styles.table}>
+            <table key={key} style={at(styles.table, i, n)}>
               <thead><tr>{b.columns.map((c, j) => <th key={j} style={{ ...styles.cell, fontWeight: 600 }}>{renderInline(c, open, `${key}h${j}-`)}</th>)}</tr></thead>
               <tbody>{b.rows.map((row, r) => <tr key={r}>{b.columns.map((_, j) => <td key={j} style={styles.cell}>{renderInline(row[j] ?? '', open, `${key}r${r}c${j}-`)}</td>)}</tr>)}</tbody>
             </table>
           );
-          default: return <p key={key} style={styles.p}><Lines lines={b.lines} open={open} keyBase={`${key}-`} /></p>;
+          default: return <p key={key} style={at(styles.p, i, n)}><Lines lines={b.lines} open={open} keyBase={`${key}-`} /></p>;
         }
       })}
     </div>

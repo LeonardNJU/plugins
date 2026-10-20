@@ -172,7 +172,7 @@ export function buildPrompt(task, input = {}) {
 const TOOL_RULE = 'Use the tools when the answer needs them: check the calendar before proposing a time, find a contact for an address, search the mail for earlier messages, facts or attachments the user refers to, and read a found message before you rely on it. Be economical: one search with the best words rather than several, read at most the two most relevant messages, and when a question needs the calendar and the mail, call both tools in the same turn. Do not announce or narrate lookups; call the tools, then give the answer. The user sees what was looked up.';
 
 const FORMAT_RULE = [
-  'Format answers with light Markdown where it helps: short bullet lists, **bold** for the one thing that matters, no headings longer than a few words. Plain prose for short answers.',
+  'The answer shows in a narrow side panel. Lead with the answer in one or two plain sentences. Use light Markdown only where it helps: a bullet list for several parallel facts (one short line each, a blank line before and after the list), **bold** for the one thing that matters, a heading only for a long answer with sections. Separate paragraphs with a blank line. Short answers are plain prose with no list at all.',
   'You may add a card by writing <widget>{json}</widget> on its own line (at most two per answer), with one of these shapes:',
   '{"type":"choices","items":["Yes, Tuesday works","Propose another time"]} short replies the user may want to send next;',
   '{"type":"times","items":[{"start":"2026-05-04T10:00","end":"2026-05-04T11:00","label":"optional"}]} time slots to propose (the user\'s time zone);',

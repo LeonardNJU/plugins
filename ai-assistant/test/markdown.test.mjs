@@ -35,6 +35,11 @@ describe('Markdown', () => {
     render(React.createElement(Markdown, { text: '### Free\n- Sat 24\n- Sun 25' }));
     expect(screen.getByRole('heading').textContent).toBe('Free');
     expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Sat 24', 'Sun 25']);
+    // Real bullets despite the frame's CSS reset, and no margin after the last block.
+    const ul = document.querySelector('ul');
+    expect(ul.style.listStyleType).toBe('disc');
+    expect(ul.style.marginBottom).toBe('0px');
+    expect(screen.getByRole('heading').style.marginTop).toBe('0px');
   });
 });
 
