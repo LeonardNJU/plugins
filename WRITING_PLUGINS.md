@@ -1545,7 +1545,7 @@ await api.addressBooks.list()
 await api.addressBooks.create(name)
 ```
 
-### api.templates, api.identities, api.vacation, api.user
+### api.templates, api.identities, api.vacation, api.user, api.app
 
 ```js
 await api.templates.list() / get(id)
@@ -1557,7 +1557,13 @@ await api.vacation.set({ isEnabled, subject, textBody, htmlBody, fromDate, toDat
 await api.user.getAccounts()      // [{ id, label, serverUrl, username, displayName, email, avatarColor, isConnected, isDefault, isActive }]
 await api.user.getIdentities()    // the user's sender identities
 await api.user.logout()
+await api.app.getInfo()           // { product: 'Bulwark Mail', name, version, edition: 'full' | 'lite', stalwartFeatures, demoMode }
 ```
+
+`api.app.getInfo` needs no permission: `name` is what the administrator
+called this installation (`APP_NAME`), `version` the app's version. It is
+new in Bulwark 1.17.1; on older versions the call fails with an unknown
+method, so catch it when the plugin supports those.
 
 Template names up to 200 characters, subjects 998, bodies 100,000. Identity
 names up to 256 characters, at most 10 reply-to addresses, text signatures
@@ -1682,6 +1688,7 @@ comes from the plugin id, so one plugin can't derive another plugin's key.
 | `api.user.getAccounts` | `account:read` |
 | `api.user.getIdentities` | `identity:read` |
 | `api.user.getTimeZone` | none |
+| `api.app.getInfo` | none |
 | `api.user.logout` | `auth:emit` |
 | `api.admin.getConfig` | `admin:config` |
 | `api.admin.getAllConfig` | `admin:config` |
