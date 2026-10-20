@@ -261,6 +261,8 @@ describe('the reader panel', () => {
     await quickAction('Summarize');
     await settled();
     expect(sentPrompt(api).messages[0].content).toContain('Subject: Thursday');
+    // The answer stands on its own: no Copy link under it (the text can be selected).
+    expect(screen.queryByRole('button', { name: 'Copy' })).toBeNull();
     // Markdown: the bullet becomes a list item.
     expect(screen.getByRole('listitem').textContent).toBe('Carol asks for a meeting on Thursday at 3');
 

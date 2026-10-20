@@ -121,8 +121,6 @@ for (const theme of ['light', 'dark']) {
       await expect(frame.getByText('Summarize · this message')).toBeVisible();
       await waitDone(frame);
       await expect(frame.locator('[data-turn="assistant"]').last()).toContainText(svc.answer);
-      await frame.getByRole('button', { name: 'Copy', exact: true }).last().click();
-      expect(await readClipboard(page)).toMatch(svc.answer);
       await shoot(page, ID, 'reader-summary', theme);
 
       await ask(frame, 'what does Carol want?');

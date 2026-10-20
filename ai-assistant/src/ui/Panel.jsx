@@ -684,15 +684,12 @@ function SayPart({ api, mode, turn, text, onApply }) {
   const t = api.i18n.t;
   const offer = mode === 'composer' && turn.status === 'done' && turn.show === 'chat' && !turn.applied
     && !(turn.content ?? '').includes('<text') && text.split(/\s+/).length >= 12;
-  // A summary, an explanation or a translation of a message: copyable.
-  const copyable = mode === 'reader' && turn.status === 'done' && (turn.show === 'text' || turn.show === 'chat');
   return (
     <Stack gap={1}>
       <Markdown text={text} onOpenLink={(url) => void api.ui.openExternalUrl?.(url)} />
-      {(offer || copyable) && (
+      {offer && (
         <Row>
-          {offer && <LinkButton icon="text-plus" onClick={() => onApply(turn, 'cursor', stripMarkdown(text))}>{t('panel.insert_cursor')}</LinkButton>}
-          {copyable && <LinkButton icon="copy" onClick={() => void copyWithToast(api, stripMarkdown(text))}>{t('common.copy')}</LinkButton>}
+          <LinkButton icon="text-plus" onClick={() => onApply(turn, 'cursor', stripMarkdown(text))}>{t('panel.insert_cursor')}</LinkButton>
         </Row>
       )}
     </Stack>
