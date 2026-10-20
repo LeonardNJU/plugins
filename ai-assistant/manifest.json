@@ -309,9 +309,15 @@
       "widget.less": "Show fewer",
       "panel.step.search_mail": "Searched your mail for “{query}”",
       "panel.step.read_message": "Read a message from your mail",
-      "panel.steps.summary": "Looked up: {list}",
       "panel.steps.show": "Show details",
-      "panel.steps.hide": "Hide details"
+      "panel.steps.hide": "Hide details",
+      "panel.steps.title": "Looked up",
+      "panel.steps.running": "Looking up…",
+      "panel.steps.kind.search_mail": "Mail",
+      "panel.steps.kind.check_calendar": "Calendar",
+      "panel.steps.kind.find_contact": "Contacts",
+      "panel.steps.kind.read_original_message": "Original message",
+      "panel.steps.kind.read_message": "Message"
     },
     "ar": {
       "common.cancel": "إلغاء",
@@ -493,9 +499,15 @@
       "widget.less": "إظهار أقل",
       "panel.step.search_mail": "تم البحث عن \"{query}\" في بريدك",
       "panel.step.read_message": "تمت قراءة رسالة من بريدك",
-      "panel.steps.summary": "تم الاطلاع على: {list}",
       "panel.steps.show": "إظهار التفاصيل",
-      "panel.steps.hide": "إخفاء التفاصيل"
+      "panel.steps.hide": "إخفاء التفاصيل",
+      "panel.steps.title": "تم الاطلاع",
+      "panel.steps.running": "جارٍ الاطلاع…",
+      "panel.steps.kind.search_mail": "البريد",
+      "panel.steps.kind.check_calendar": "التقويم",
+      "panel.steps.kind.find_contact": "جهات الاتصال",
+      "panel.steps.kind.read_original_message": "الرسالة الأصلية",
+      "panel.steps.kind.read_message": "رسالة"
     },
     "ca": {
       "common.cancel": "Cancel·la",
@@ -677,9 +689,15 @@
       "widget.less": "Mostra'n menys",
       "panel.step.search_mail": "Cercat «{query}» al teu correu",
       "panel.step.read_message": "Llegit un missatge del teu correu",
-      "panel.steps.summary": "Consultat: {list}",
       "panel.steps.show": "Mostra els detalls",
-      "panel.steps.hide": "Amaga els detalls"
+      "panel.steps.hide": "Amaga els detalls",
+      "panel.steps.title": "Consultat",
+      "panel.steps.running": "Consultant…",
+      "panel.steps.kind.search_mail": "Correu",
+      "panel.steps.kind.check_calendar": "Calendari",
+      "panel.steps.kind.find_contact": "Contactes",
+      "panel.steps.kind.read_original_message": "Missatge original",
+      "panel.steps.kind.read_message": "Missatge"
     },
     "cs": {
       "common.cancel": "Zrušit",
@@ -861,9 +879,15 @@
       "widget.less": "Zobrazit méně",
       "panel.step.search_mail": "Ve vaší poště hledáno „{query}“",
       "panel.step.read_message": "Přečtena zpráva z vaší pošty",
-      "panel.steps.summary": "Vyhledáno: {list}",
       "panel.steps.show": "Zobrazit podrobnosti",
-      "panel.steps.hide": "Skrýt podrobnosti"
+      "panel.steps.hide": "Skrýt podrobnosti",
+      "panel.steps.title": "Vyhledáno",
+      "panel.steps.running": "Vyhledává…",
+      "panel.steps.kind.search_mail": "Pošta",
+      "panel.steps.kind.check_calendar": "Kalendář",
+      "panel.steps.kind.find_contact": "Kontakty",
+      "panel.steps.kind.read_original_message": "Původní zpráva",
+      "panel.steps.kind.read_message": "Zpráva"
     },
     "da": {
       "common.cancel": "Annuller",
@@ -1045,9 +1069,15 @@
       "widget.less": "Vis færre",
       "panel.step.search_mail": "Søgte efter \"{query}\" i din mail",
       "panel.step.read_message": "Læste en besked fra din mail",
-      "panel.steps.summary": "Slået op: {list}",
       "panel.steps.show": "Vis detaljer",
-      "panel.steps.hide": "Skjul detaljer"
+      "panel.steps.hide": "Skjul detaljer",
+      "panel.steps.title": "Slået op",
+      "panel.steps.running": "Slår op…",
+      "panel.steps.kind.search_mail": "Mail",
+      "panel.steps.kind.check_calendar": "Kalender",
+      "panel.steps.kind.find_contact": "Kontakter",
+      "panel.steps.kind.read_original_message": "Oprindelig besked",
+      "panel.steps.kind.read_message": "Besked"
     },
     "de": {
       "common.cancel": "Abbrechen",
@@ -1229,9 +1259,15 @@
       "widget.less": "Weniger anzeigen",
       "panel.step.search_mail": "In Ihren E-Mails nach „{query}“ gesucht",
       "panel.step.read_message": "Eine Nachricht aus Ihren E-Mails gelesen",
-      "panel.steps.summary": "Nachgeschlagen: {list}",
       "panel.steps.show": "Details anzeigen",
-      "panel.steps.hide": "Details ausblenden"
+      "panel.steps.hide": "Details ausblenden",
+      "panel.steps.title": "Nachgeschlagen",
+      "panel.steps.running": "Schlägt nach…",
+      "panel.steps.kind.search_mail": "E-Mails",
+      "panel.steps.kind.check_calendar": "Kalender",
+      "panel.steps.kind.find_contact": "Kontakte",
+      "panel.steps.kind.read_original_message": "Ursprüngliche Nachricht",
+      "panel.steps.kind.read_message": "Nachricht"
     },
     "es": {
       "common.cancel": "Cancelar",
@@ -1413,9 +1449,15 @@
       "widget.less": "Mostrar menos",
       "panel.step.search_mail": "Buscado «{query}» en tu correo",
       "panel.step.read_message": "Leído un mensaje de tu correo",
-      "panel.steps.summary": "Consultado: {list}",
       "panel.steps.show": "Mostrar detalles",
-      "panel.steps.hide": "Ocultar detalles"
+      "panel.steps.hide": "Ocultar detalles",
+      "panel.steps.title": "Consultado",
+      "panel.steps.running": "Consultando…",
+      "panel.steps.kind.search_mail": "Correo",
+      "panel.steps.kind.check_calendar": "Calendario",
+      "panel.steps.kind.find_contact": "Contactos",
+      "panel.steps.kind.read_original_message": "Mensaje original",
+      "panel.steps.kind.read_message": "Mensaje"
     },
     "fa": {
       "common.cancel": "انصراف",
@@ -1597,9 +1639,15 @@
       "widget.less": "نمایش کمتر",
       "panel.step.search_mail": "جستجوی «{query}» در ایمیل‌های شما",
       "panel.step.read_message": "پیامی از ایمیل‌های شما خوانده شد",
-      "panel.steps.summary": "بررسی شد: {list}",
       "panel.steps.show": "نمایش جزئیات",
-      "panel.steps.hide": "پنهان‌کردن جزئیات"
+      "panel.steps.hide": "پنهان‌کردن جزئیات",
+      "panel.steps.title": "بررسی شد",
+      "panel.steps.running": "در حال بررسی…",
+      "panel.steps.kind.search_mail": "ایمیل",
+      "panel.steps.kind.check_calendar": "تقویم",
+      "panel.steps.kind.find_contact": "مخاطبین",
+      "panel.steps.kind.read_original_message": "پیام اصلی",
+      "panel.steps.kind.read_message": "پیام"
     },
     "fr": {
       "common.cancel": "Annuler",
@@ -1781,9 +1829,15 @@
       "widget.less": "Afficher moins",
       "panel.step.search_mail": "Recherche de « {query} » dans vos e-mails",
       "panel.step.read_message": "Un message de votre boîte lu",
-      "panel.steps.summary": "Consulté : {list}",
       "panel.steps.show": "Afficher les détails",
-      "panel.steps.hide": "Masquer les détails"
+      "panel.steps.hide": "Masquer les détails",
+      "panel.steps.title": "Consulté",
+      "panel.steps.running": "Consultation…",
+      "panel.steps.kind.search_mail": "Courriels",
+      "panel.steps.kind.check_calendar": "Agenda",
+      "panel.steps.kind.find_contact": "Contacts",
+      "panel.steps.kind.read_original_message": "Message d’origine",
+      "panel.steps.kind.read_message": "Message"
     },
     "he": {
       "common.cancel": "ביטול",
@@ -1965,9 +2019,15 @@
       "widget.less": "הצגת פחות",
       "panel.step.search_mail": "חיפוש \"{query}\" בדואר שלך",
       "panel.step.read_message": "נקראה הודעה מהדואר שלך",
-      "panel.steps.summary": "נבדק: {list}",
       "panel.steps.show": "הצגת פרטים",
-      "panel.steps.hide": "הסתרת פרטים"
+      "panel.steps.hide": "הסתרת פרטים",
+      "panel.steps.title": "נבדק",
+      "panel.steps.running": "בודק…",
+      "panel.steps.kind.search_mail": "דואר",
+      "panel.steps.kind.check_calendar": "לוח שנה",
+      "panel.steps.kind.find_contact": "אנשי קשר",
+      "panel.steps.kind.read_original_message": "ההודעה המקורית",
+      "panel.steps.kind.read_message": "הודעה"
     },
     "hu": {
       "common.cancel": "Mégse",
@@ -2149,9 +2209,15 @@
       "widget.less": "Kevesebb megjelenítése",
       "panel.step.search_mail": "Keresés a leveleid között: „{query}”",
       "panel.step.read_message": "Elolvasott egy üzenetet a leveleid közül",
-      "panel.steps.summary": "Kikeresve: {list}",
       "panel.steps.show": "Részletek megjelenítése",
-      "panel.steps.hide": "Részletek elrejtése"
+      "panel.steps.hide": "Részletek elrejtése",
+      "panel.steps.title": "Kikeresve",
+      "panel.steps.running": "Keresés…",
+      "panel.steps.kind.search_mail": "Levelek",
+      "panel.steps.kind.check_calendar": "Naptár",
+      "panel.steps.kind.find_contact": "Névjegyek",
+      "panel.steps.kind.read_original_message": "Eredeti üzenet",
+      "panel.steps.kind.read_message": "Üzenet"
     },
     "it": {
       "common.cancel": "Annulla",
@@ -2333,9 +2399,15 @@
       "widget.less": "Mostra meno",
       "panel.step.search_mail": "Cercato «{query}» nella tua posta",
       "panel.step.read_message": "Letto un messaggio dalla tua posta",
-      "panel.steps.summary": "Consultato: {list}",
       "panel.steps.show": "Mostra dettagli",
-      "panel.steps.hide": "Nascondi dettagli"
+      "panel.steps.hide": "Nascondi dettagli",
+      "panel.steps.title": "Consultato",
+      "panel.steps.running": "Consultazione…",
+      "panel.steps.kind.search_mail": "Posta",
+      "panel.steps.kind.check_calendar": "Calendario",
+      "panel.steps.kind.find_contact": "Contatti",
+      "panel.steps.kind.read_original_message": "Messaggio originale",
+      "panel.steps.kind.read_message": "Messaggio"
     },
     "ja": {
       "common.cancel": "キャンセル",
@@ -2517,9 +2589,15 @@
       "widget.less": "表示を減らす",
       "panel.step.search_mail": "メールで「{query}」を検索しました",
       "panel.step.read_message": "メールからメッセージを読みました",
-      "panel.steps.summary": "参照: {list}",
       "panel.steps.show": "詳細を表示",
-      "panel.steps.hide": "詳細を隠す"
+      "panel.steps.hide": "詳細を隠す",
+      "panel.steps.title": "参照済み",
+      "panel.steps.running": "参照中…",
+      "panel.steps.kind.search_mail": "メール",
+      "panel.steps.kind.check_calendar": "カレンダー",
+      "panel.steps.kind.find_contact": "連絡先",
+      "panel.steps.kind.read_original_message": "元のメッセージ",
+      "panel.steps.kind.read_message": "メッセージ"
     },
     "ko": {
       "common.cancel": "취소",
@@ -2701,9 +2779,15 @@
       "widget.less": "줄여서 보기",
       "panel.step.search_mail": "메일에서 \"{query}\"을(를) 검색했습니다",
       "panel.step.read_message": "메일에서 메시지를 읽었습니다",
-      "panel.steps.summary": "조회함: {list}",
       "panel.steps.show": "자세히 보기",
-      "panel.steps.hide": "자세히 숨기기"
+      "panel.steps.hide": "자세히 숨기기",
+      "panel.steps.title": "조회함",
+      "panel.steps.running": "조회 중…",
+      "panel.steps.kind.search_mail": "메일",
+      "panel.steps.kind.check_calendar": "캘린더",
+      "panel.steps.kind.find_contact": "연락처",
+      "panel.steps.kind.read_original_message": "원본 메시지",
+      "panel.steps.kind.read_message": "메시지"
     },
     "lv": {
       "common.cancel": "Atcelt",
@@ -2885,9 +2969,15 @@
       "widget.less": "Rādīt mazāk",
       "panel.step.search_mail": "Jūsu pastā meklēts “{query}”",
       "panel.step.read_message": "Izlasīta ziņa no jūsu pasta",
-      "panel.steps.summary": "Pārbaudīts: {list}",
       "panel.steps.show": "Rādīt detaļas",
-      "panel.steps.hide": "Slēpt detaļas"
+      "panel.steps.hide": "Slēpt detaļas",
+      "panel.steps.title": "Pārbaudīts",
+      "panel.steps.running": "Pārbauda…",
+      "panel.steps.kind.search_mail": "Pasts",
+      "panel.steps.kind.check_calendar": "Kalendārs",
+      "panel.steps.kind.find_contact": "Kontakti",
+      "panel.steps.kind.read_original_message": "Sākotnējā ziņa",
+      "panel.steps.kind.read_message": "Ziņa"
     },
     "mn": {
       "common.cancel": "Болих",
@@ -3069,9 +3159,15 @@
       "widget.less": "Цөөнийг харуулах",
       "panel.step.search_mail": "Таны захидлаас «{query}»-г хайлаа",
       "panel.step.read_message": "Таны захидлаас нэг захидал уншлаа",
-      "panel.steps.summary": "Шалгасан: {list}",
       "panel.steps.show": "Дэлгэрэнгүй харуулах",
-      "panel.steps.hide": "Дэлгэрэнгүйг нуух"
+      "panel.steps.hide": "Дэлгэрэнгүйг нуух",
+      "panel.steps.title": "Шалгасан",
+      "panel.steps.running": "Шалгаж байна…",
+      "panel.steps.kind.search_mail": "Мэйл",
+      "panel.steps.kind.check_calendar": "Хуанли",
+      "panel.steps.kind.find_contact": "Харилцагчид",
+      "panel.steps.kind.read_original_message": "Эх мессеж",
+      "panel.steps.kind.read_message": "Мессеж"
     },
     "nb": {
       "common.cancel": "Avbryt",
@@ -3253,9 +3349,15 @@
       "widget.less": "Vis færre",
       "panel.step.search_mail": "Søkte etter «{query}» i e-posten din",
       "panel.step.read_message": "Leste en melding fra e-posten din",
-      "panel.steps.summary": "Slått opp: {list}",
       "panel.steps.show": "Vis detaljer",
-      "panel.steps.hide": "Skjul detaljer"
+      "panel.steps.hide": "Skjul detaljer",
+      "panel.steps.title": "Slått opp",
+      "panel.steps.running": "Slår opp…",
+      "panel.steps.kind.search_mail": "E-post",
+      "panel.steps.kind.check_calendar": "Kalender",
+      "panel.steps.kind.find_contact": "Kontakter",
+      "panel.steps.kind.read_original_message": "Opprinnelig melding",
+      "panel.steps.kind.read_message": "Melding"
     },
     "nl": {
       "common.cancel": "Annuleren",
@@ -3437,9 +3539,15 @@
       "widget.less": "Minder tonen",
       "panel.step.search_mail": "In uw e-mail gezocht naar '{query}'",
       "panel.step.read_message": "Een bericht uit uw e-mail gelezen",
-      "panel.steps.summary": "Opgezocht: {list}",
       "panel.steps.show": "Details tonen",
-      "panel.steps.hide": "Details verbergen"
+      "panel.steps.hide": "Details verbergen",
+      "panel.steps.title": "Opgezocht",
+      "panel.steps.running": "Zoekt op…",
+      "panel.steps.kind.search_mail": "E-mail",
+      "panel.steps.kind.check_calendar": "Agenda",
+      "panel.steps.kind.find_contact": "Contacten",
+      "panel.steps.kind.read_original_message": "Oorspronkelijk bericht",
+      "panel.steps.kind.read_message": "Bericht"
     },
     "pl": {
       "common.cancel": "Anuluj",
@@ -3621,9 +3729,15 @@
       "widget.less": "Pokaż mniej",
       "panel.step.search_mail": "Wyszukano „{query}” w Twojej poczcie",
       "panel.step.read_message": "Przeczytano wiadomość z Twojej poczty",
-      "panel.steps.summary": "Sprawdzono: {list}",
       "panel.steps.show": "Pokaż szczegóły",
-      "panel.steps.hide": "Ukryj szczegóły"
+      "panel.steps.hide": "Ukryj szczegóły",
+      "panel.steps.title": "Sprawdzono",
+      "panel.steps.running": "Sprawdza…",
+      "panel.steps.kind.search_mail": "Poczta",
+      "panel.steps.kind.check_calendar": "Kalendarz",
+      "panel.steps.kind.find_contact": "Kontakty",
+      "panel.steps.kind.read_original_message": "Oryginalna wiadomość",
+      "panel.steps.kind.read_message": "Wiadomość"
     },
     "pt": {
       "common.cancel": "Cancelar",
@@ -3805,9 +3919,15 @@
       "widget.less": "Mostrar menos",
       "panel.step.search_mail": "Pesquisado «{query}» no seu correio",
       "panel.step.read_message": "Lida uma mensagem do seu correio",
-      "panel.steps.summary": "Consultado: {list}",
       "panel.steps.show": "Mostrar detalhes",
-      "panel.steps.hide": "Ocultar detalhes"
+      "panel.steps.hide": "Ocultar detalhes",
+      "panel.steps.title": "Consultado",
+      "panel.steps.running": "A consultar…",
+      "panel.steps.kind.search_mail": "E-mail",
+      "panel.steps.kind.check_calendar": "Calendário",
+      "panel.steps.kind.find_contact": "Contactos",
+      "panel.steps.kind.read_original_message": "Mensagem original",
+      "panel.steps.kind.read_message": "Mensagem"
     },
     "ro": {
       "common.cancel": "Anulează",
@@ -3989,9 +4109,15 @@
       "widget.less": "Arată mai puține",
       "panel.step.search_mail": "Căutat „{query}” în e-mailurile tale",
       "panel.step.read_message": "Citit un mesaj din e-mailurile tale",
-      "panel.steps.summary": "Consultat: {list}",
       "panel.steps.show": "Arată detaliile",
-      "panel.steps.hide": "Ascunde detaliile"
+      "panel.steps.hide": "Ascunde detaliile",
+      "panel.steps.title": "Consultat",
+      "panel.steps.running": "Se consultă…",
+      "panel.steps.kind.search_mail": "E-mail",
+      "panel.steps.kind.check_calendar": "Calendar",
+      "panel.steps.kind.find_contact": "Contacte",
+      "panel.steps.kind.read_original_message": "Mesajul original",
+      "panel.steps.kind.read_message": "Mesaj"
     },
     "ru": {
       "common.cancel": "Отмена",
@@ -4173,9 +4299,15 @@
       "widget.less": "Показать меньше",
       "panel.step.search_mail": "Поиск «{query}» в вашей почте",
       "panel.step.read_message": "Прочитано сообщение из вашей почты",
-      "panel.steps.summary": "Проверено: {list}",
       "panel.steps.show": "Показать подробности",
-      "panel.steps.hide": "Скрыть подробности"
+      "panel.steps.hide": "Скрыть подробности",
+      "panel.steps.title": "Проверено",
+      "panel.steps.running": "Проверяет…",
+      "panel.steps.kind.search_mail": "Почта",
+      "panel.steps.kind.check_calendar": "Календарь",
+      "panel.steps.kind.find_contact": "Контакты",
+      "panel.steps.kind.read_original_message": "Исходное сообщение",
+      "panel.steps.kind.read_message": "Сообщение"
     },
     "sk": {
       "common.cancel": "Zrušiť",
@@ -4357,9 +4489,15 @@
       "widget.less": "Zobraziť menej",
       "panel.step.search_mail": "Vo vašej pošte hľadané „{query}“",
       "panel.step.read_message": "Prečítaná správa z vašej pošty",
-      "panel.steps.summary": "Vyhľadané: {list}",
       "panel.steps.show": "Zobraziť podrobnosti",
-      "panel.steps.hide": "Skryť podrobnosti"
+      "panel.steps.hide": "Skryť podrobnosti",
+      "panel.steps.title": "Vyhľadané",
+      "panel.steps.running": "Vyhľadáva…",
+      "panel.steps.kind.search_mail": "Pošta",
+      "panel.steps.kind.check_calendar": "Kalendár",
+      "panel.steps.kind.find_contact": "Kontakty",
+      "panel.steps.kind.read_original_message": "Pôvodná správa",
+      "panel.steps.kind.read_message": "Správa"
     },
     "tr": {
       "common.cancel": "İptal",
@@ -4541,9 +4679,15 @@
       "widget.less": "Daha az göster",
       "panel.step.search_mail": "Postanızda \"{query}\" arandı",
       "panel.step.read_message": "Postanızdan bir mesaj okundu",
-      "panel.steps.summary": "Bakıldı: {list}",
       "panel.steps.show": "Ayrıntıları göster",
-      "panel.steps.hide": "Ayrıntıları gizle"
+      "panel.steps.hide": "Ayrıntıları gizle",
+      "panel.steps.title": "Bakıldı",
+      "panel.steps.running": "Bakılıyor…",
+      "panel.steps.kind.search_mail": "Posta",
+      "panel.steps.kind.check_calendar": "Takvim",
+      "panel.steps.kind.find_contact": "Kişiler",
+      "panel.steps.kind.read_original_message": "Özgün ileti",
+      "panel.steps.kind.read_message": "İleti"
     },
     "uk": {
       "common.cancel": "Скасувати",
@@ -4725,9 +4869,15 @@
       "widget.less": "Показати менше",
       "panel.step.search_mail": "Пошук «{query}» у вашій пошті",
       "panel.step.read_message": "Прочитано повідомлення з вашої пошти",
-      "panel.steps.summary": "Перевірено: {list}",
       "panel.steps.show": "Показати деталі",
-      "panel.steps.hide": "Сховати деталі"
+      "panel.steps.hide": "Сховати деталі",
+      "panel.steps.title": "Перевірено",
+      "panel.steps.running": "Перевіряє…",
+      "panel.steps.kind.search_mail": "Пошта",
+      "panel.steps.kind.check_calendar": "Календар",
+      "panel.steps.kind.find_contact": "Контакти",
+      "panel.steps.kind.read_original_message": "Початкове повідомлення",
+      "panel.steps.kind.read_message": "Повідомлення"
     },
     "zh": {
       "common.cancel": "取消",
@@ -4909,9 +5059,15 @@
       "widget.less": "收起",
       "panel.step.search_mail": "已在您的邮件中搜索“{query}”",
       "panel.step.read_message": "已读取您邮件中的一封邮件",
-      "panel.steps.summary": "已查阅：{list}",
       "panel.steps.show": "显示详情",
-      "panel.steps.hide": "隐藏详情"
+      "panel.steps.hide": "隐藏详情",
+      "panel.steps.title": "已查阅",
+      "panel.steps.running": "正在查阅…",
+      "panel.steps.kind.search_mail": "邮件",
+      "panel.steps.kind.check_calendar": "日历",
+      "panel.steps.kind.find_contact": "联系人",
+      "panel.steps.kind.read_original_message": "原始邮件",
+      "panel.steps.kind.read_message": "邮件"
     },
     "zh-TW": {
       "common.cancel": "取消",
@@ -5093,9 +5249,15 @@
       "widget.less": "收合",
       "panel.step.search_mail": "已在您的郵件中搜尋「{query}」",
       "panel.step.read_message": "已讀取您郵件中的一封郵件",
-      "panel.steps.summary": "已查閱：{list}",
       "panel.steps.show": "顯示詳細資料",
-      "panel.steps.hide": "隱藏詳細資料"
+      "panel.steps.hide": "隱藏詳細資料",
+      "panel.steps.title": "已查閱",
+      "panel.steps.running": "正在查閱…",
+      "panel.steps.kind.search_mail": "郵件",
+      "panel.steps.kind.check_calendar": "行事曆",
+      "panel.steps.kind.find_contact": "聯絡人",
+      "panel.steps.kind.read_original_message": "原始郵件",
+      "panel.steps.kind.read_message": "郵件"
     }
   }
 }

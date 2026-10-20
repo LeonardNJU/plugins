@@ -738,27 +738,46 @@ function stepLabel(t, step) {
 }
 
 /**
- * The lookups of one answer, as one line: while they run, the current one;
- * afterwards "Looked up: …", folded, with the cards of what was found behind
- * Show details. The answer itself is what the user came for.
+ * The lookups of one answer, in a box of their own: "Looked up" and a chip
+ * per lookup (Mail, Calendar, Message), a spinner while they run. Clicking
+ * the box opens the details with the cards of what was found.
  */
 function StepsGroup({ api, mode, steps, running, onSend, onInsert }) {
   const t = api.i18n.t;
   const [open, setOpen] = useState(false);
-  const current = steps.find((s) => s.status === 'running');
-  const failed = steps.filter((s) => s.status === 'failed').length;
-  const summary = running && current
-    ? `${stepLabel(t, current)} · ${t('panel.step.running')}`
-    : t('panel.steps.summary', { list: steps.map((s) => stepLabel(t, s)).join(' · ') }) + (failed ? ` · ${t('panel.step.failed')} (${failed})` : '');
-  const icon = running ? 'loader-2' : failed ? 'alert-circle' : 'list-search';
+  const busy = running && steps.some((s) => s.status === 'running');
+  const failed = steps.some((s) => s.status === 'failed');
+  const chips = [];
+  for (const step of steps) {
+    const label = t(`panel.steps.kind.${step.name}`);
+    const prev = chips.find((c) => c.label === label);
+    if (prev) { prev.count++; prev.status = step.status === 'failed' || prev.status === 'failed' ? 'failed' : step.status === 'running' ? 'running' : prev.status; }
+    else chips.push({ label, count: 1, status: step.status });
+  }
   return (
-    <div data-steps={steps.length} data-steps-open={open || undefined}>
-    <Stack gap={1}>
-      <LinkButton icon={icon} onClick={() => setOpen((v) => !v)} aria-expanded={open} title={open ? t('panel.steps.hide') : t('panel.steps.show')}>
-        <span className="line-clamp-2">{summary}</span>
-      </LinkButton>
-      {open && steps.map((step) => <StepRow key={step.id} api={api} mode={mode} step={step} onSend={onSend} onInsert={onInsert} />)}
-    </Stack>
+    <div data-steps={steps.length} data-steps-open={open || undefined} style={{ border: '1px solid var(--color-border)', borderRadius: 8 }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        title={open ? t('panel.steps.hide') : t('panel.steps.show')}
+        className="bk"
+        style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%', padding: '6px 8px', background: 'none', border: 0, font: 'inherit', color: 'inherit', textAlign: 'start', cursor: 'pointer', flexWrap: 'wrap' }}
+      >
+        {busy ? <Spinner size="sm" /> : <Icon name={failed ? 'alert-circle' : 'list-search'} size="sm" className="text-muted-foreground" />}
+        <Text size="xs" tone="muted">{busy ? t('panel.steps.running') : t('panel.steps.title')}</Text>
+        {chips.map((c) => (
+          <Badge key={c.label} tone={c.status === 'failed' ? 'danger' : c.status === 'running' ? 'info' : 'neutral'}>{c.label}{c.count > 1 ? ` ×${c.count}` : ''}</Badge>
+        ))}
+        <span style={{ marginInlineStart: 'auto' }}><Icon name={open ? 'chevron-up' : 'chevron-down'} size="sm" className="text-muted-foreground" /></span>
+      </button>
+      {open && (
+        <div style={{ padding: '2px 8px 8px' }}>
+          <Stack gap={2}>
+            {steps.map((step) => <StepRow key={step.id} api={api} mode={mode} step={step} onSend={onSend} onInsert={onInsert} />)}
+          </Stack>
+        </div>
+      )}
     </div>
   );
 }
@@ -768,7 +787,7 @@ function StepRow({ api, mode, step, onSend, onInsert }) {
   const t = api.i18n.t;
   const icon = step.status === 'running' ? 'loader-2' : step.status === 'failed' ? 'alert-circle' : (STEP_ICONS[step.name] ?? 'mail');
   return (
-    <div data-step={step.name} data-step-status={step.status} style={{ paddingInlineStart: 8, borderInlineStart: '2px solid var(--color-border)' }}>
+    <div data-step={step.name} data-step-status={step.status} style={{ paddingTop: 6, borderTop: '1px solid var(--color-border)' }}>
     <Stack gap={1}>
       <Row gap={1} wrap={false} align="start">
         <Icon name={icon} size="sm" className="text-muted-foreground" />
