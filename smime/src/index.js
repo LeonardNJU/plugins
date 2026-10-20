@@ -41,7 +41,7 @@ import {
   savePublicCert, listPublicCerts, deletePublicCert,
   saveSessionKeys, getSessionKeys, deleteSessionKeys, clearSessionKeys,
 } from './key-storage.js';
-import { unlockedDecryptMaps, forgetLegacyKeys } from './session-keys.js';
+import { unlockedDecryptMaps, forgetRebuiltKeys } from './session-keys.js';
 
 const t = translator(host);
 
@@ -483,10 +483,10 @@ async function onRenderEmailBody(body, ctx) {
     const der = normalizeCmsBytes(bytesArrayBuffer(raw instanceof Uint8Array ? raw : new Uint8Array(raw)));
 
     if (detection.type === 'enveloped-data') {
-      const { keyRecords, unlockedKeys, legacyUnlockedKeys } = await unlockedDecryptMaps();
+      const keys = await unlockedDecryptMaps();
       let result;
       try {
-        result = await smimeDecrypt({ cmsBytes: der, keyRecords, unlockedKeys, legacyUnlockedKeys });
+        result = await smimeDecrypt({ cmsBytes: der, ...keys });
       } catch (err) {
         // Single-banner UX: on failure we surface the status ONLY through the
         // email-banner slot (which reads the persisted verification), and leave
@@ -618,12 +618,12 @@ export const hooks = {
   // Wipe unlocked keys from the shared session store on sign-out / account switch.
   async onAfterLogout() {
     if (settings().lockOnLogout === false) return;
-    forgetLegacyKeys();
+    forgetRebuiltKeys();
     try { await clearSessionKeys(); } catch (err) { host.log.warn('clearSessionKeys failed', err); }
   },
   async onAccountSwitch() {
     if (settings().lockOnLogout === false) return;
-    forgetLegacyKeys();
+    forgetRebuiltKeys();
     try { await clearSessionKeys(); } catch (err) { host.log.warn('clearSessionKeys failed', err); }
   },
   // Each new message starts with Sign / Encrypt as set under "Defaults for
@@ -653,7 +653,7 @@ export async function activate(api) {
   }
   // Enforce session scope for unlocked keys: wipe any left over from a prior
   // app session at boot (mirrors the native "in-memory, cleared on reload").
-  forgetLegacyKeys();
+  forgetRebuiltKeys();
   try { await clearSessionKeys(); } catch (err) { api.log.warn('S/MIME: clearSessionKeys failed', err); }
   let keyCount = 0;
   try { keyCount = (await listKeyRecords()).length; } catch (err) { api.log.warn('S/MIME: listKeyRecords failed', err); }

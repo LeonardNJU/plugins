@@ -10,12 +10,17 @@ import { importPkcs12, unlockPrivateKey } from '../src/pkcs12.js';
 import { saveKeyRecord, saveSessionKeys, deleteSessionKeys } from '../src/key-storage.js';
 import { unlockedDecryptMaps } from '../src/session-keys.js';
 import { smimeDecrypt, normalizeCmsBytes, SmimeKeyLockedError } from '../src/smime-decrypt.js';
+import { detectSmime } from '../src/smime-detect.js';
+import { buildAuthEnveloped, stalwartMessage, flipMacByte, parseCertificatePem } from './helpers/auth-enveloped.mjs';
 
 const fixture = (name) => {
   const buf = readFileSync(fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url)));
   return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
 };
 const PLAINTEXT = 'Hello from the S/MIME test fixture.';
+const MESSAGE = new TextEncoder().encode(`Content-Type: text/plain; charset=utf-8\r\n\r\n${PLAINTEXT}\r\n`);
+const cert = parseCertificatePem(readFileSync(fileURLToPath(new URL('./fixtures/cert.pem', import.meta.url)), 'utf8'));
+const FAILED = 'Failed to decrypt message with any available key';
 const STORAGE_PASS = 'storage passphrase';
 
 let keyRecord;
@@ -74,4 +79,39 @@ describe('decrypting after the session store round trip', () => {
     });
     await expect(decrypt(fixture('cbc.p7m'))).rejects.toBeInstanceOf(SmimeKeyLockedError);
   }, 30_000);
+});
+
+describe('AES-256-GCM AuthEnvelopedData', () => {
+  beforeEach(unlock);
+
+  it('reads the OpenSSL fixture', async () => {
+    const text = await decrypt(fixture('gcm.p7m'));
+    expect(text).toMatch(/^Content-Type: text\/plain; charset=utf-8\r\n\r\n/);
+    expect(text).toContain(PLAINTEXT);
+  }, 30_000);
+
+  it('reads it as Stalwart stores it', async () => {
+    const der = await buildAuthEnveloped(cert, { plaintext: MESSAGE });
+    expect(await decrypt(stalwartMessage(der))).toContain(PLAINTEXT);
+  }, 30_000);
+
+  it('refuses the message once a mac byte is changed', async () => {
+    const der = normalizeCmsBytes(fixture('gcm.p7m'));
+    expect(await decrypt(der)).toContain(PLAINTEXT);
+    await expect(decrypt(flipMacByte(der))).rejects.toThrow(FAILED);
+  }, 30_000);
+
+  it('authenticates the authAttrs along with the content', async () => {
+    expect(await decrypt(await buildAuthEnveloped(cert, { plaintext: MESSAGE, authAttrs: 'match' }))).toContain(PLAINTEXT);
+    await expect(decrypt(await buildAuthEnveloped(cert, { plaintext: MESSAGE, authAttrs: 'altered' }))).rejects.toThrow(FAILED);
+  }, 30_000);
+});
+
+describe('detecting AuthEnvelopedData', () => {
+  it.each([
+    ['Stalwart', 'application/pkcs7-mime;\r\n\tname="smime.p7m";\r\n\tsmime-type=authenticated-enveloped-data'],
+    ['RFC 8551 / OpenSSL', 'application/pkcs7-mime; smime-type=authEnveloped-data; name="smime.p7m"'],
+  ])('counts the %s smime-type as encrypted', (_, contentType) => {
+    expect(detectSmime(contentType, null, null)).toMatchObject({ type: 'enveloped-data', supported: true });
+  });
 });

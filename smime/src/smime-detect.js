@@ -1,7 +1,15 @@
 /**
  * Detect S/MIME content in an email message. Ported from lib/smime/smime-detect.ts.
  * Checks Content-Type, JMAP bodyStructure, and attachment metadata.
+ *
+ * AuthEnvelopedData reports as 'enveloped-data' too: both are encrypted
+ * mail, and smime-decrypt.js tells them apart by their CMS content type.
  */
+
+// RFC 8551 calls it authEnveloped-data; Stalwart's encryption at rest
+// writes authenticated-enveloped-data.
+const AUTH_ENVELOPED = /smime-type="?(?:authenveloped-data|authenticated-enveloped-data)/;
+const isEnveloped = (lowerCt) => lowerCt.includes('smime-type=enveloped-data') || AUTH_ENVELOPED.test(lowerCt);
 
 export function detectSmime(contentType, bodyStructure, attachments) {
   const noResult = { type: null, supported: false };
@@ -10,7 +18,7 @@ export function detectSmime(contentType, bodyStructure, attachments) {
     const ct = contentType.toLowerCase();
 
     if (ct.includes('application/pkcs7-mime') || ct.includes('application/x-pkcs7-mime')) {
-      if (ct.includes('smime-type=enveloped-data')) {
+      if (isEnveloped(ct)) {
         const part = findCmsPart(bodyStructure, 'enveloped-data');
         return { type: 'enveloped-data', blobId: part?.blobId, partId: part?.partId, supported: true };
       }
@@ -112,7 +120,7 @@ function findCmsPart(bodyStructure, _smimeType) {
 
 function inferSmimeTypeFromContentType(ct) {
   const lower = ct.toLowerCase();
-  if (lower.includes('smime-type=enveloped-data')) return 'enveloped-data';
+  if (isEnveloped(lower)) return 'enveloped-data';
   if (lower.includes('smime-type=signed-data')) return 'signed-data';
   if (lower.includes('application/pkcs7-mime') || lower.includes('application/x-pkcs7-mime')) {
     return 'enveloped-data';

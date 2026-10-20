@@ -1,13 +1,20 @@
 /**
- * Decrypt CMS EnvelopedData to recover the inner MIME content.
- * Supports issuerAndSerialNumber and subjectKeyIdentifier recipient IDs.
- * Ported from lib/smime/smime-decrypt.ts (Buffer → toHex).
+ * Decrypt CMS EnvelopedData or AuthEnvelopedData to recover the inner MIME
+ * content. Supports issuerAndSerialNumber and subjectKeyIdentifier recipient
+ * IDs. Ported from lib/smime/smime-decrypt.ts (Buffer → toHex).
  */
 
 import * as pkijs from 'pkijs';
 import * as asn1js from 'asn1js';
 import { getLinerCryptoEngine, withLinerEngine } from './crypto-engine.js';
 import { arraysEqual, toHex } from './util.js';
+import {
+  OID_AUTH_ENVELOPED_DATA, UnsupportedAlgorithmError, parseAuthEnvelopedData, authCipher, unwrapContentKey,
+} from './auth-enveloped.js';
+
+export { UnsupportedAlgorithmError };
+
+const OID_ENVELOPED_DATA = '1.2.840.113549.1.7.3';
 
 export class SmimeKeyLockedError extends Error {
   constructor(message, keyRecordId) {
@@ -18,8 +25,10 @@ export class SmimeKeyLockedError extends Error {
 }
 
 /**
- * Attempt to decrypt CMS EnvelopedData.
- * @param input { cmsBytes, keyRecords, unlockedKeys: Map, legacyUnlockedKeys?: Map }
+ * Attempt to decrypt CMS EnvelopedData or AuthEnvelopedData.
+ * @param input { cmsBytes, keyRecords, unlockedKeys: Map, legacyUnlockedKeys?: Map,
+ *                rsaOaepKey?: (keyRecordId, hash) => Promise<CryptoKey|undefined> }
+ *              (the keys as session-keys.js unlockedDecryptMaps returns them)
  * @returns { mimeBytes: Uint8Array, keyRecordId: string }
  */
 export async function smimeDecrypt(input) {
@@ -32,6 +41,8 @@ export async function smimeDecrypt(input) {
   if (matchedRecords.length === 0) {
     throw new Error('No imported S/MIME key matches any recipient in this encrypted message');
   }
+
+  if (envelopedData.mac) return decryptAuthEnveloped(envelopedData, matchedRecords, input);
 
   for (const { keyRecord, recipientIndex } of matchedRecords) {
     const privateKey = unlockedKeys.get(keyRecord.id);
@@ -65,6 +76,26 @@ export async function smimeDecrypt(input) {
     }
   }
 
+  throwLockedOrFailed(matchedRecords, input);
+}
+
+async function decryptAuthEnveloped(envelope, matchedRecords, input) {
+  const cipher = authCipher(envelope.encryptedContentInfo);
+  for (const { keyRecord, recipientIndex } of matchedRecords) {
+    try {
+      const cek = await unwrapContentKey(envelope.recipientInfos[recipientIndex].value, keyRecord.id, input);
+      if (!cek) continue; // locked
+      const decrypted = await cipher.decrypt(cek, envelope);
+      return { mimeBytes: new Uint8Array(decrypted), keyRecordId: keyRecord.id };
+    } catch (err) {
+      if (err instanceof UnsupportedAlgorithmError) throw err;
+      /* wrong key or a broken message: try the next record */
+    }
+  }
+  throwLockedOrFailed(matchedRecords, input);
+}
+
+function throwLockedOrFailed(matchedRecords, { unlockedKeys, legacyUnlockedKeys }) {
   const isUnlocked = (id) => unlockedKeys.has(id) || (legacyUnlockedKeys?.has(id) ?? false);
   const hasLockedMatch = matchedRecords.some((m) => !isUnlocked(m.keyRecord.id));
   if (hasLockedMatch) {
@@ -181,11 +212,11 @@ function parseContentInfo(der) {
   }
 }
 
+// pkijs EnvelopedData, or the parsed AuthEnvelopedData (the one with a mac).
 function extractEnvelopedData(contentInfo) {
-  if (contentInfo.contentType !== '1.2.840.113549.1.7.3') {
-    throw new Error(`Unexpected CMS content type: ${contentInfo.contentType}`);
-  }
-  return new pkijs.EnvelopedData({ schema: contentInfo.content });
+  if (contentInfo.contentType === OID_ENVELOPED_DATA) return new pkijs.EnvelopedData({ schema: contentInfo.content });
+  if (contentInfo.contentType === OID_AUTH_ENVELOPED_DATA) return parseAuthEnvelopedData(contentInfo.content);
+  throw new Error(`Unexpected CMS content type: ${contentInfo.contentType}`);
 }
 
 function findMatchingKeyRecords(envelopedData, keyRecords) {
