@@ -61,7 +61,8 @@ for (const service of SERVICES) {
       await expect(frame.getByText('Your message')).toBeVisible();
       await expect(frame.getByText(DRAFT)).toBeVisible();
       await shoot(page, ID, `composer-panel-${slug(service.name)}`, service.theme);
-      await frame.getByRole('button', { name: 'More formal' }).click();
+      await frame.getByRole('button', { name: 'Actions' }).click();
+      await frame.getByRole('menuitem', { name: 'More formal' }).click();
       await acceptPrivacy(page, { frame, expectText: service.provider });
       await expect(frame.getByText('More formal · whole message')).toBeVisible();
 
@@ -161,7 +162,8 @@ test('translate a selected line and insert it below', async ({ page }) => {
     const { frame } = await openAssistant(page);
     await expect(frame.getByText('Selected text')).toBeVisible();
     await expect(frame.getByText('Guten Tag, wir sehen uns am Dienstag.')).toBeVisible();
-    await frame.getByRole('button', { name: 'Translate' }).click();
+    await frame.getByRole('button', { name: 'Actions' }).click();
+      await frame.getByRole('menuitem', { name: 'Translate' }).click();
     await frame.getByLabel('Translate into').selectOption('en');
     await acceptPrivacy(page, { frame });
     await expect(frame.getByText('Translate to English · selected text')).toBeVisible();
@@ -220,7 +222,7 @@ test('write an empty message from a description, then keep talking', async ({ pa
     await composeWith(page, '');
     const { frame } = await openAssistant(page);
     await expect(frame.getByText('Empty message')).toBeVisible();
-    await expect(frame.getByRole('button', { name: 'More formal' })).toHaveCount(0);
+    await expect(frame.getByRole('button', { name: 'Actions' })).toHaveCount(0);
     await shoot(page, ID, 'composer-write', 'light');
     await ask(frame, 'thank Anna for the workshop');
     await acceptPrivacy(page, { frame });
@@ -298,7 +300,8 @@ for (const [name, config, message] of ERRORS) {
       await start(page, api, { config });
       await composeWith(page, 'Hello there');
       const { frame } = await openAssistant(page);
-      await frame.getByRole('button', { name: 'Improve' }).click();
+      await frame.getByRole('button', { name: 'Actions' }).click();
+      await frame.getByRole('menuitem', { name: 'Improve' }).click();
       await acceptPrivacy(page, { frame });
       await expect(frame.getByRole('alert').filter({ hasText: message })).toBeVisible();
       await expect(frame.locator('[data-proposal]')).toHaveCount(0);

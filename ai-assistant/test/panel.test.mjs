@@ -38,6 +38,8 @@ function makeApi({ answers = ['Answer.'], body = 'Hello Bob, can we meet tuesday
 
 const sentPrompt = (api, n = -1) => JSON.parse(api.calls('proxy.fetch').at(n).args[2].body);
 const button = (name) => screen.getByRole('button', { name });
+/** A quick action: open the Actions menu, pick the entry. */
+const quickAction = async (name) => { await click(button('Actions')); await click(screen.getByRole('menuitem', { name })); };
 const click = async (el) => { await act(async () => { fireEvent.click(el); }); };
 const type = async (text) => {
   await act(async () => { fireEvent.change(screen.getByRole('textbox', { name: 'Message to the assistant' }), { target: { value: text } }); });
@@ -78,7 +80,7 @@ describe('the composer panel', () => {
     expect(screen.getByText('Selected text')).toBeTruthy();
     expect(screen.getByText('can we meet tuesday?')).toBeTruthy();
 
-    await click(button('Shorten'));
+    await quickAction('Shorten');
     await settled();
     // Only the selection went to the model, with the quick action's own prompt.
     expect(sentPrompt(api).messages[0].content).toBe('<draft>\ncan we meet tuesday?\n</draft>');
@@ -153,7 +155,7 @@ describe('the composer panel', () => {
   it('goes through spelling fixes one by one', async () => {
     const api = makeApi({ body: 'Teh cat sat on teh mat', answers: ['The cat sat on the mat'] });
     await mount(api, { composerId: 'c1', selection: { text: '', empty: true }, focusRequest: 0 });
-    await click(button('Fix spelling'));
+    await quickAction('Fix spelling');
     await settled();
     expect(screen.getByText('2 of 2 suggestions left')).toBeTruthy();
     await click(screen.getAllByRole('button', { name: /Accept/ })[0]);
@@ -168,7 +170,7 @@ describe('the composer panel', () => {
       ? { status: 429, ok: false, headers: { 'retry-after': '1' }, body: '' }
       : streamResponse(anthropicSse(['shorter.']))) } });
     await mount(api, { composerId: 'c1', selection: { text: 'can we meet tuesday?', empty: false }, focusRequest: 0 });
-    await click(button('Shorten'));
+    await quickAction('Shorten');
     await settled();
     expect(await screen.findByRole('alert')).toBeTruthy();
     await waitFor(() => expect(button('Try again').disabled).toBe(false), { timeout: 3000 });
@@ -184,7 +186,7 @@ describe('the composer panel', () => {
   it('asks for the privacy notice before the first request and does nothing when declined', async () => {
     const api = makeApi({ consent: false });
     await mount(api, { composerId: 'c1', selection: { text: 'x', empty: false }, focusRequest: 0 });
-    await click(button('Improve'));
+    await quickAction('Improve');
     expect(await screen.findByText('Send text to the AI service?')).toBeTruthy();
     await click(button('Cancel'));
     expect(api.calls('proxy.fetch')).toHaveLength(0);
@@ -204,7 +206,7 @@ describe('the reader panel', () => {
     const api = makeApi({ answers: ['- Carol asks for a meeting on Thursday at 3', 'Yes, at 3 pm.'] });
     await mount(api, { email: EMAIL, selection: { text: '' }, focusRequest: 0 });
     expect(screen.getByText('This message')).toBeTruthy();
-    await click(button('Summarize'));
+    await quickAction('Summarize');
     await settled();
     expect(sentPrompt(api).messages[0].content).toContain('Subject: Thursday');
     // Markdown: the bullet becomes a list item.
@@ -222,12 +224,12 @@ describe('the reader panel', () => {
     const api = makeApi({ answers: ['It means Thursday afternoon.', '<text>Hi Carol, Thursday at 3 works for me.</text>'] });
     await mount(api, { email: EMAIL, selection: { text: 'Thursday at 3' }, focusRequest: 0 });
     expect(screen.getByText('Highlighted passage')).toBeTruthy();
-    await click(button('Explain'));
+    await quickAction('Explain');
     await settled();
     expect(sentPrompt(api).messages[0].content).toContain('<passage>\nThursday at 3\n</passage>');
     expect(screen.getByText('It means Thursday afternoon.')).toBeTruthy();
 
-    await click(button('Draft a reply'));
+    await quickAction('Draft a reply');
     await settled();
     expect(sentPrompt(api).messages.at(-1).content).toContain('answers the passage I highlighted');
     await click(button('Open as reply'));
@@ -287,7 +289,7 @@ describe('the reader panel', () => {
     expect(system).toContain('Standing instructions from the user (these win over the administrator\'s):\nKeep it short.');
     expect(system.indexOf('administrator')).toBeLessThan(system.indexOf('Keep it short.'));
     // The quick actions get the same context.
-    await click(button('Summarize'));
+    await quickAction('Summarize');
     await settled();
     expect(sentPrompt(api).system).toContain('Keep it short.');
   });

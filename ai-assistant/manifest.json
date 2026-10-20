@@ -317,7 +317,8 @@
       "panel.steps.kind.check_calendar": "Calendar",
       "panel.steps.kind.find_contact": "Contacts",
       "panel.steps.kind.read_original_message": "Original message",
-      "panel.steps.kind.read_message": "Message"
+      "panel.steps.kind.read_message": "Message",
+      "panel.actions": "Actions"
     },
     "ar": {
       "common.cancel": "إلغاء",
@@ -507,7 +508,8 @@
       "panel.steps.kind.check_calendar": "التقويم",
       "panel.steps.kind.find_contact": "جهات الاتصال",
       "panel.steps.kind.read_original_message": "الرسالة الأصلية",
-      "panel.steps.kind.read_message": "رسالة"
+      "panel.steps.kind.read_message": "رسالة",
+      "panel.actions": "إجراءات"
     },
     "ca": {
       "common.cancel": "Cancel·la",
@@ -697,7 +699,8 @@
       "panel.steps.kind.check_calendar": "Calendari",
       "panel.steps.kind.find_contact": "Contactes",
       "panel.steps.kind.read_original_message": "Missatge original",
-      "panel.steps.kind.read_message": "Missatge"
+      "panel.steps.kind.read_message": "Missatge",
+      "panel.actions": "Accions"
     },
     "cs": {
       "common.cancel": "Zrušit",
@@ -887,7 +890,8 @@
       "panel.steps.kind.check_calendar": "Kalendář",
       "panel.steps.kind.find_contact": "Kontakty",
       "panel.steps.kind.read_original_message": "Původní zpráva",
-      "panel.steps.kind.read_message": "Zpráva"
+      "panel.steps.kind.read_message": "Zpráva",
+      "panel.actions": "Akce"
     },
     "da": {
       "common.cancel": "Annuller",
@@ -1077,7 +1081,8 @@
       "panel.steps.kind.check_calendar": "Kalender",
       "panel.steps.kind.find_contact": "Kontakter",
       "panel.steps.kind.read_original_message": "Oprindelig besked",
-      "panel.steps.kind.read_message": "Besked"
+      "panel.steps.kind.read_message": "Besked",
+      "panel.actions": "Handlinger"
     },
     "de": {
       "common.cancel": "Abbrechen",
@@ -1267,7 +1272,8 @@
       "panel.steps.kind.check_calendar": "Kalender",
       "panel.steps.kind.find_contact": "Kontakte",
       "panel.steps.kind.read_original_message": "Ursprüngliche Nachricht",
-      "panel.steps.kind.read_message": "Nachricht"
+      "panel.steps.kind.read_message": "Nachricht",
+      "panel.actions": "Aktionen"
     },
     "es": {
       "common.cancel": "Cancelar",
@@ -1457,7 +1463,8 @@
       "panel.steps.kind.check_calendar": "Calendario",
       "panel.steps.kind.find_contact": "Contactos",
       "panel.steps.kind.read_original_message": "Mensaje original",
-      "panel.steps.kind.read_message": "Mensaje"
+      "panel.steps.kind.read_message": "Mensaje",
+      "panel.actions": "Acciones"
     },
     "fa": {
       "common.cancel": "انصراف",
@@ -1647,7 +1654,8 @@
       "panel.steps.kind.check_calendar": "تقویم",
       "panel.steps.kind.find_contact": "مخاطبین",
       "panel.steps.kind.read_original_message": "پیام اصلی",
-      "panel.steps.kind.read_message": "پیام"
+      "panel.steps.kind.read_message": "پیام",
+      "panel.actions": "اقدامات"
     },
     "fr": {
       "common.cancel": "Annuler",
@@ -1837,7 +1845,8 @@
       "panel.steps.kind.check_calendar": "Agenda",
       "panel.steps.kind.find_contact": "Contacts",
       "panel.steps.kind.read_original_message": "Message d’origine",
-      "panel.steps.kind.read_message": "Message"
+      "panel.steps.kind.read_message": "Message",
+      "panel.actions": "Actions"
     },
     "he": {
       "common.cancel": "ביטול",
@@ -2027,7 +2036,8 @@
       "panel.steps.kind.check_calendar": "לוח שנה",
       "panel.steps.kind.find_contact": "אנשי קשר",
       "panel.steps.kind.read_original_message": "ההודעה המקורית",
-      "panel.steps.kind.read_message": "הודעה"
+      "panel.steps.kind.read_message": "הודעה",
+      "panel.actions": "פעולות"
     },
     "hu": {
       "common.cancel": "Mégse",
@@ -2217,7 +2227,8 @@
       "panel.steps.kind.check_calendar": "Naptár",
       "panel.steps.kind.find_contact": "Névjegyek",
       "panel.steps.kind.read_original_message": "Eredeti üzenet",
-      "panel.steps.kind.read_message": "Üzenet"
+      "panel.steps.kind.read_message": "Üzenet",
+      "panel.actions": "Műveletek"
     },
     "it": {
       "common.cancel": "Annulla",
@@ -2407,7 +2418,8 @@
       "panel.steps.kind.check_calendar": "Calendario",
       "panel.steps.kind.find_contact": "Contatti",
       "panel.steps.kind.read_original_message": "Messaggio originale",
-      "panel.steps.kind.read_message": "Messaggio"
+      "panel.steps.kind.read_message": "Messaggio",
+      "panel.actions": "Azioni"
     },
     "ja": {
       "common.cancel": "キャンセル",
@@ -2597,7 +2609,8 @@
       "panel.steps.kind.check_calendar": "カレンダー",
       "panel.steps.kind.find_contact": "連絡先",
       "panel.steps.kind.read_original_message": "元のメッセージ",
-      "panel.steps.kind.read_message": "メッセージ"
+      "panel.steps.kind.read_message": "メッセージ",
+      "panel.actions": "操作"
     },
     "ko": {
       "common.cancel": "취소",
@@ -2787,7 +2800,8 @@
       "panel.steps.kind.check_calendar": "캘린더",
       "panel.steps.kind.find_contact": "연락처",
       "panel.steps.kind.read_original_message": "원본 메시지",
-      "panel.steps.kind.read_message": "메시지"
+      "panel.steps.kind.read_message": "메시지",
+      "panel.actions": "작업"
     },
     "lv": {
       "common.cancel": "Atcelt",
@@ -2977,7 +2991,8 @@
       "panel.steps.kind.check_calendar": "Kalendārs",
       "panel.steps.kind.find_contact": "Kontakti",
       "panel.steps.kind.read_original_message": "Sākotnējā ziņa",
-      "panel.steps.kind.read_message": "Ziņa"
+      "panel.steps.kind.read_message": "Ziņa",
+      "panel.actions": "Darbības"
     },
     "mn": {
       "common.cancel": "Болих",
@@ -3167,7 +3182,8 @@
       "panel.steps.kind.check_calendar": "Хуанли",
       "panel.steps.kind.find_contact": "Харилцагчид",
       "panel.steps.kind.read_original_message": "Эх мессеж",
-      "panel.steps.kind.read_message": "Мессеж"
+      "panel.steps.kind.read_message": "Мессеж",
+      "panel.actions": "Үйлдлүүд"
     },
     "nb": {
       "common.cancel": "Avbryt",
@@ -3357,7 +3373,8 @@
       "panel.steps.kind.check_calendar": "Kalender",
       "panel.steps.kind.find_contact": "Kontakter",
       "panel.steps.kind.read_original_message": "Opprinnelig melding",
-      "panel.steps.kind.read_message": "Melding"
+      "panel.steps.kind.read_message": "Melding",
+      "panel.actions": "Handlinger"
     },
     "nl": {
       "common.cancel": "Annuleren",
@@ -3547,7 +3564,8 @@
       "panel.steps.kind.check_calendar": "Agenda",
       "panel.steps.kind.find_contact": "Contacten",
       "panel.steps.kind.read_original_message": "Oorspronkelijk bericht",
-      "panel.steps.kind.read_message": "Bericht"
+      "panel.steps.kind.read_message": "Bericht",
+      "panel.actions": "Acties"
     },
     "pl": {
       "common.cancel": "Anuluj",
@@ -3737,7 +3755,8 @@
       "panel.steps.kind.check_calendar": "Kalendarz",
       "panel.steps.kind.find_contact": "Kontakty",
       "panel.steps.kind.read_original_message": "Oryginalna wiadomość",
-      "panel.steps.kind.read_message": "Wiadomość"
+      "panel.steps.kind.read_message": "Wiadomość",
+      "panel.actions": "Akcje"
     },
     "pt": {
       "common.cancel": "Cancelar",
@@ -3927,7 +3946,8 @@
       "panel.steps.kind.check_calendar": "Calendário",
       "panel.steps.kind.find_contact": "Contactos",
       "panel.steps.kind.read_original_message": "Mensagem original",
-      "panel.steps.kind.read_message": "Mensagem"
+      "panel.steps.kind.read_message": "Mensagem",
+      "panel.actions": "Ações"
     },
     "ro": {
       "common.cancel": "Anulează",
@@ -4117,7 +4137,8 @@
       "panel.steps.kind.check_calendar": "Calendar",
       "panel.steps.kind.find_contact": "Contacte",
       "panel.steps.kind.read_original_message": "Mesajul original",
-      "panel.steps.kind.read_message": "Mesaj"
+      "panel.steps.kind.read_message": "Mesaj",
+      "panel.actions": "Acțiuni"
     },
     "ru": {
       "common.cancel": "Отмена",
@@ -4307,7 +4328,8 @@
       "panel.steps.kind.check_calendar": "Календарь",
       "panel.steps.kind.find_contact": "Контакты",
       "panel.steps.kind.read_original_message": "Исходное сообщение",
-      "panel.steps.kind.read_message": "Сообщение"
+      "panel.steps.kind.read_message": "Сообщение",
+      "panel.actions": "Действия"
     },
     "sk": {
       "common.cancel": "Zrušiť",
@@ -4497,7 +4519,8 @@
       "panel.steps.kind.check_calendar": "Kalendár",
       "panel.steps.kind.find_contact": "Kontakty",
       "panel.steps.kind.read_original_message": "Pôvodná správa",
-      "panel.steps.kind.read_message": "Správa"
+      "panel.steps.kind.read_message": "Správa",
+      "panel.actions": "Akcie"
     },
     "tr": {
       "common.cancel": "İptal",
@@ -4687,7 +4710,8 @@
       "panel.steps.kind.check_calendar": "Takvim",
       "panel.steps.kind.find_contact": "Kişiler",
       "panel.steps.kind.read_original_message": "Özgün ileti",
-      "panel.steps.kind.read_message": "İleti"
+      "panel.steps.kind.read_message": "İleti",
+      "panel.actions": "Eylemler"
     },
     "uk": {
       "common.cancel": "Скасувати",
@@ -4877,7 +4901,8 @@
       "panel.steps.kind.check_calendar": "Календар",
       "panel.steps.kind.find_contact": "Контакти",
       "panel.steps.kind.read_original_message": "Початкове повідомлення",
-      "panel.steps.kind.read_message": "Повідомлення"
+      "panel.steps.kind.read_message": "Повідомлення",
+      "panel.actions": "Дії"
     },
     "zh": {
       "common.cancel": "取消",
@@ -5067,7 +5092,8 @@
       "panel.steps.kind.check_calendar": "日历",
       "panel.steps.kind.find_contact": "联系人",
       "panel.steps.kind.read_original_message": "原始邮件",
-      "panel.steps.kind.read_message": "邮件"
+      "panel.steps.kind.read_message": "邮件",
+      "panel.actions": "操作"
     },
     "zh-TW": {
       "common.cancel": "取消",
@@ -5257,7 +5283,8 @@
       "panel.steps.kind.check_calendar": "行事曆",
       "panel.steps.kind.find_contact": "聯絡人",
       "panel.steps.kind.read_original_message": "原始郵件",
-      "panel.steps.kind.read_message": "郵件"
+      "panel.steps.kind.read_message": "郵件",
+      "panel.actions": "操作"
     }
   }
 }

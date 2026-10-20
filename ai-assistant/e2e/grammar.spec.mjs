@@ -23,7 +23,8 @@ for (const theme of ['light', 'dark']) {
       await composeWith(page, DRAFT);
       const before = await editorText(page);
       const { frame } = await openAssistant(page);
-      await frame.getByRole('button', { name: 'Fix spelling' }).click();
+      await frame.getByRole('button', { name: 'Actions' }).click();
+      await frame.getByRole('menuitem', { name: 'Fix spelling' }).click();
       await acceptPrivacy(page, { frame });
       await waitDone(frame);
 

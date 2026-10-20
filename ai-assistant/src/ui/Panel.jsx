@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert, Badge, Button, DiffView, Icon, LinkButton, List, ListRow, Row, RowAction, Select, Spinner, Stack, Text, Textarea,
+  Alert, Badge, Button, Chip, DiffView, Icon, LinkButton, List, ListRow, Row, RowAction, Select, Spinner, Stack, Text, Textarea,
 } from '@plugin-host/ui';
 import { ConsentNotice, ErrorMessage, copyWithToast, useApi } from './common.jsx';
 import { Markdown, stripMarkdown } from './Markdown.jsx';
@@ -412,54 +412,16 @@ export function AssistantPanel(props) {
 
   return (
     <div style={fill} data-assistant-panel={mode}>
-      {/* What the assistant works on, and the quick actions for it. */}
       <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
-        <Stack gap={2}>
-          <Row justify="between" wrap={false}>
-            <Row gap={1} wrap={false}>
-              <Icon name="sparkles" size="sm" className="text-primary" />
-              <Text size="sm" weight="semibold">{t('composer.title')}</Text>
-            </Row>
-            {turns.length > 0 && (
-              <Button variant="ghost" size="icon" icon="eraser" title={t('panel.new_chat')} aria-label={t('panel.new_chat')} onClick={clear} />
-            )}
+        <Row justify="between" wrap={false}>
+          <Row gap={1} wrap={false}>
+            <Icon name="sparkles" size="sm" className="text-primary" />
+            <Text size="sm" weight="semibold">{t('composer.title')}</Text>
           </Row>
-          <Row gap={1} wrap={false} align="start" className="min-w-0">
-            <Icon name={contextIcon} size="sm" className="text-muted-foreground" />
-            <Stack gap={0}>
-              <Text size="xs" weight="medium" tone="muted">{contextLabel}</Text>
-              {source.text && <Text size="xs" tone="muted" className="line-clamp-2" >{excerpt(source.text, 120)}</Text>}
-            </Stack>
-          </Row>
-          {actions.length > 0 && (
-            <Row gap={1}>
-              {actions.map((action) => (
-                action === 'translate' ? (
-                  translating ? (
-                    <Row key={action} gap={1} wrap={false}>
-                      <Select
-                        value={target}
-                        aria-label={t('composer.translate_label')}
-                        options={languages.map((l) => ({ value: l.tag, label: l.label }))}
-                        onChange={(value) => {
-                          setTarget(value);
-                          setTranslating(false);
-                          void savePrefs(api, { translateTo: value });
-                          quick('translate', { targetTag: value });
-                        }}
-                      />
-                      <Button variant="ghost" size="icon" icon="x" aria-label={t('common.cancel')} onClick={() => setTranslating(false)} />
-                    </Row>
-                  ) : (
-                    <Button key={action} variant="secondary" size="sm" icon="language" disabled={running} onClick={() => setTranslating(true)}>{actionLabel(action)}</Button>
-                  )
-                ) : (
-                  <Button key={action} variant="secondary" size="sm" disabled={running} onClick={() => quick(action)}>{actionLabel(action)}</Button>
-                )
-              ))}
-            </Row>
+          {turns.length > 0 && (
+            <Button variant="ghost" size="icon" icon="eraser" title={t('panel.new_chat')} aria-label={t('panel.new_chat')} onClick={clear} />
           )}
-        </Stack>
+        </Row>
       </div>
 
       {/* The transcript. */}
@@ -507,15 +469,21 @@ export function AssistantPanel(props) {
         </Stack>
       </div>
 
-      {/* The input. */}
-      <div style={{ padding: '8px 12px 12px', borderTop: '1px solid var(--color-border)', flexShrink: 0 }}>
+      {/* The input: what the assistant works on, the text field, the quick actions and Send. */}
+      <div style={{ padding: '8px 12px 12px', flexShrink: 0 }}>
+        <div data-assistant-input style={{ border: '1px solid var(--color-border)', borderRadius: 10, padding: '8px 8px 6px', background: 'var(--color-background)' }}>
         <Stack gap={1}>
+          <Row gap={1} wrap={false} className="min-w-0">
+            <Chip icon={contextIcon} label={contextLabel} detail={source.text ? excerpt(source.text, 40) : undefined} title={source.text ? excerpt(source.text, 400) : contextLabel} />
+          </Row>
           <Textarea
             ref={inputRef}
             rows={Math.min(6, Math.max(2, input.split('\n').length))}
             value={input}
             placeholder={placeholder}
             aria-label={t('panel.input_label')}
+            title={t('panel.enter_hint')}
+            style={{ border: 0, boxShadow: 'none', outline: 'none', background: 'transparent', padding: '4px 4px', resize: 'none' }}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent?.isComposing) {
@@ -529,13 +497,84 @@ export function AssistantPanel(props) {
             }}
           />
           <Row justify="between" wrap={false}>
-            <Text size="xs" tone="muted">{running ? t('common.thinking') : t('panel.enter_hint')}</Text>
+            <Row gap={1} wrap={false}>
+              {actions.length > 0 && (translating ? (
+                <Row gap={1} wrap={false}>
+                  <Select
+                    value={target}
+                    aria-label={t('composer.translate_label')}
+                    options={languages.map((l) => ({ value: l.tag, label: l.label }))}
+                    onChange={(value) => {
+                      setTarget(value);
+                      setTranslating(false);
+                      void savePrefs(api, { translateTo: value });
+                      quick('translate', { targetTag: value });
+                    }}
+                  />
+                  <Button variant="ghost" size="icon" icon="x" aria-label={t('common.cancel')} onClick={() => setTranslating(false)} />
+                </Row>
+              ) : (
+                <ActionsMenu
+                  api={api}
+                  actions={actions}
+                  actionLabel={actionLabel}
+                  disabled={running}
+                  onPick={(action) => (action === 'translate' ? setTranslating(true) : quick(action))}
+                />
+              ))}
+            </Row>
             {running
               ? <Button variant="secondary" size="sm" icon="player-stop" onClick={stop}>{t('common.stop')}</Button>
               : <Button size="icon" icon="arrow-up" disabled={!input.trim()} title={t('panel.send')} aria-label={t('panel.send')} onClick={submit} />}
           </Row>
         </Stack>
+        </div>
       </div>
+    </div>
+  );
+}
+
+const ACTION_ICONS = {
+  improve: 'wand', shorter: 'arrows-minimize', formal: 'tie', casual: 'mood-smile', grammar: 'spell-check', translate: 'language',
+  summary: 'align-left', actions: 'checklist', replies: 'message-reply', explain: 'bulb', reply: 'mail-forward',
+};
+
+/** The quick actions, in a menu that opens above its button. */
+function ActionsMenu({ api, actions, actionLabel, disabled, onPick }) {
+  const t = api.i18n.t;
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const away = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    const key = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', away);
+    document.addEventListener('keydown', key);
+    return () => { document.removeEventListener('mousedown', away); document.removeEventListener('keydown', key); };
+  }, [open]);
+  return (
+    <div ref={ref} style={{ position: 'relative' }} data-assistant-actions>
+      <Button variant="ghost" size="sm" icon="sparkles" disabled={disabled} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        {t('panel.actions')}
+        <Icon name={open ? 'chevron-up' : 'chevron-down'} size="xs" className="text-muted-foreground" />
+      </Button>
+      {open && (
+        <div role="menu" style={{ position: 'absolute', bottom: 'calc(100% + 4px)', insetInlineStart: 0, minWidth: 200, zIndex: 20, background: 'var(--color-popover, var(--color-background))', color: 'var(--color-foreground)', border: '1px solid var(--color-border)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)', padding: 4 }}>
+          {actions.map((action) => (
+            <button
+              key={action}
+              type="button"
+              role="menuitem"
+              className="bk hover:bg-muted rounded-md"
+              style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 8px', background: 'none', border: 0, font: 'inherit', fontSize: '0.875rem', color: 'inherit', textAlign: 'start', cursor: 'pointer' }}
+              onClick={() => { setOpen(false); onPick(action); }}
+            >
+              <Icon name={ACTION_ICONS[action] ?? 'sparkles'} size="sm" className="text-muted-foreground" />
+              <span>{actionLabel(action)}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

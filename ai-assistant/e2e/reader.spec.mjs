@@ -115,7 +115,8 @@ for (const theme of ['light', 'dark']) {
       // On a desktop the panel is the assistant; the phone bar above the message stays away.
       await expect(page.frameLocator('[data-plugin-slot="email-banner"] iframe').getByText('AI assistant')).toHaveCount(0);
       if (theme === 'light') await shoot(page, ID, 'reader-panel', theme);
-      await frame.getByRole('button', { name: 'Summarize' }).click();
+      await frame.getByRole('button', { name: 'Actions' }).click();
+      await frame.getByRole('menuitem', { name: 'Summarize' }).click();
       await acceptPrivacy(page, { frame });
       await expect(frame.getByText('Summarize · this message')).toBeVisible();
       await waitDone(frame);
@@ -194,7 +195,8 @@ test('a highlighted passage: explain it from the right-click menu, then draft a 
     await expect(frame.locator('[data-turn="assistant"]').last()).toContainText(svc.answer);
     // The panel follows the selection while it is there.
     await expect(frame.getByText('Highlighted passage', { exact: true })).toBeVisible();
-    await frame.getByRole('button', { name: 'Draft a reply' }).click();
+    await frame.getByRole('button', { name: 'Actions' }).click();
+      await frame.getByRole('menuitem', { name: 'Draft a reply' }).click();
     await waitDone(frame);
     await expect(frame.getByText('Draft a reply · highlighted passage')).toBeVisible();
     await expect(frame.locator('[data-turn="assistant"][data-status="done"]')).toHaveCount(2);
