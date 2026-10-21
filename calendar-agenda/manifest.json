@@ -1,7 +1,7 @@
 {
   "id": "calendar-agenda",
   "name": "Calendar Agenda",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "author": "Bulwark Mail Community",
   "description": "Shows an agenda of your upcoming calendar events in the sidebar.",
   "type": "sidebar-app",
