@@ -5,27 +5,21 @@ A sidebar section that shows an agenda of your **upcoming calendar events**, eac
 ## Features
 
 - **Sidebar agenda** — Upcoming events for the next _N_ days as sidebar rows, with the start time where a folder shows its count and the location in the tooltip.
-- **Recurring events** — Recurring series are expanded server-side, so the right occurrences show up.
+- **Recurring events** — Recurring series are expanded, so the right occurrences show up.
+- **Shared calendars** — Events from calendars shared with you and group calendars are included.
 - **Live updates** — Refreshes on a timer, on focus, and immediately whenever you create/update/delete an event.
 - **Looks like the app** — Drawn with the app's UI kit (sidebar rows, list rows, info bar), so it follows light, dark and custom themes.
-- **Credentials stay server-side** — The plugin only ever sees slim event DTOs.
+- **Read-only** — Needs only `calendar:read`; it never changes your calendar.
 
 ## How it works
 
-The widget calls the host sidecar route `POST /api/calendar-agenda`, which:
-
-1. Resolves the caller's calendar account from the stored Stalwart auth context (JMAP session).
-2. Runs `CalendarEvent/query` + `CalendarEvent/get` over JMAP for events up to the horizon.
-3. Normalizes and expands recurring series (reusing the app's own calendar helpers).
-4. Returns a slim, sorted agenda: `{ id, title, start, end, allDay, status, color, location, calendarId }`.
+The widget reads events from the start of today to _N_ days ahead with `api.calendar.getEvents()`, keeps the ones still running or yet to start, and sorts them by start. The app expands recurring series and includes shared calendars.
 
 The background hooks (`onAfterEventCreate`, `onAfterEventUpdate`, `onAfterEventDelete`, `onEventsImport`, `onEventRsvp`, `onCalendarChange`, `onICalSubscriptionChange`) bump a `agendaDirty` marker in plugin storage; the widget watches it and refetches promptly.
 
-> The sidecar route lives in the main app at `app/api/calendar-agenda/route.ts`. If you run a custom build without it, the widget shows a friendly error instead of crashing.
-
 ## Demonstrates
 
-- `api.http.post()` — calling a same-origin host sidecar (allow-listed via `apiPostPaths`)
+- `api.calendar.getEvents()` — reading events in a date range
 - `slots['sidebar-section']` with `api.ui.setSectionTitle()` — the host draws the section header and folding
 - `@plugin-host/ui` — `SidebarRow`, `ListRow`, `InfoBar` and `Chip` from the app's UI kit
 - `api.hooks.onAfter*` calendar hooks — reacting to data changes from the background iframe

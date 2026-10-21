@@ -1,11 +1,9 @@
 /**
  * Calendar Agenda Plugin — upcoming-events agenda.
  *
- *   - The slot component (src/lib/agenda.js) runs in its own iframe and pulls
- *     the agenda from the host sidecar `POST /api/calendar-agenda`, which
- *     resolves the calendar account server-side, queries upcoming
- *     CalendarEvents over JMAP, expands recurring series, and returns slim
- *     DTOs. Credentials never reach the sandbox.
+ *   - The slot component (src/lib/agenda.js) runs in its own iframe and reads
+ *     upcoming events with api.calendar.getEvents (calendar:read), which
+ *     covers shared calendars and expands recurring series.
  *   - The `hooks` export runs in the BACKGROUND iframe and stamps a "dirty"
  *     marker into plugin storage whenever calendar data changes, so the
  *     agenda refetches promptly instead of waiting for the next poll.

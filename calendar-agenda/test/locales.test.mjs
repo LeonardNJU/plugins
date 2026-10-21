@@ -72,38 +72,47 @@ describe('translations', () => {
 // any text still hard-coded in English shows up as a failed lookup here.
 const pseudo = Object.fromEntries(Object.entries(en).map(([k, v]) => [k, [`‹${k}›`, ...placeholders(v).map((p) => `{${p}}`)].join(' ')]));
 const NOW = () => new Date(2026, 9, 14, 9, 0);
+const standupStart = new Date(2026, 9, 14, 10, 0);
 const events = [
-  { id: 'a', title: 'Standup', start: new Date(2026, 9, 14, 10, 0).toISOString() },
-  { id: 'b', title: 'Offsite', start: new Date(2026, 9, 15, 0, 0).toISOString(), allDay: true },
-  { id: 'c', title: 'Party', start: new Date(2026, 9, 14, 0, 0).toISOString(), allDay: true },
+  {
+    id: 'a', title: 'Standup', start: '2026-10-14T10:00:00', duration: 'PT15M', isAllDay: false,
+    utcStart: standupStart.toISOString(), utcEnd: new Date(standupStart.getTime() + 15 * 60_000).toISOString(),
+  },
+  { id: 'b', title: 'Offsite', start: '2026-10-15T00:00:00', duration: 'P1D', isAllDay: true, utcStart: null, utcEnd: null },
+  { id: 'c', title: 'Party', start: '2026-10-14T00:00:00', duration: 'P1D', isAllDay: true, utcStart: null, utcEnd: null },
+  { id: 'd', title: '', start: '2026-10-14T00:00:00', duration: 'P1D', isAllDay: true, utcStart: null, utcEnd: null },
 ];
 
-async function show(slot, response) {
-  const api = fakeApi({ locale: 'xx', translations: { en, xx: pseudo }, settings: { daysAhead: 7 }, handlers: { 'http.post': async () => response } });
+async function show(slot, getEvents) {
+  const api = fakeApi({ locale: 'xx', translations: { en, xx: pseudo }, settings: { daysAhead: 7 }, handlers: { 'calendar.getEvents': getEvents } });
   const Agenda = makeAgenda(React, api, { slot, now: NOW });
   await act(async () => { render(React.createElement(Agenda)); });
 }
 
 describe('the agenda in another language', () => {
-  it('names today, tomorrow and all-day events from the locale', async () => {
-    await show('email-detail-sidebar', { ok: true, status: 200, data: { events } });
+  it('names today, tomorrow, all-day and untitled events from the locale', async () => {
+    await show('email-detail-sidebar', async () => events);
     expect(screen.getByRole('heading', { name: '‹header.title›' })).toBeTruthy();
     const rows = screen.getAllByRole('listitem').map((r) => r.textContent);
-    expect(rows[1]).toBe('Offsite‹day.tomorrow›');
-    expect(rows[2]).toBe('Party‹event.all_day›');
+    expect(rows).toEqual([
+      'Party‹event.all_day›',
+      '‹event.untitled›‹event.all_day›',
+      expect.stringMatching(/^Standup/),
+      'Offsite‹day.tomorrow›',
+    ]);
   });
 
   it.each([
-    ['empty', { ok: true, status: 200, data: { events: [] } }, '‹state.empty› 7'],
-    ['signed out', { ok: false, status: 401 }, '‹state.unauth›'],
-    ['failing', { ok: false, status: 500, data: { error: 'boom' } }, '‹state.error› boom'],
-  ])('says it is %s in the locale', async (_name, response, text) => {
-    await show('sidebar-section', response);
+    ['empty', async () => [], '‹state.empty› 7'],
+    ['signed out', async () => { throw new Error('calendar.getEvents: no active session'); }, '‹state.unauth›'],
+    ['failing', async () => { throw new Error('boom'); }, '‹state.error› boom'],
+  ])('says it is %s in the locale', async (_name, getEvents, text) => {
+    await show('sidebar-section', getEvents);
     expect(document.body.textContent).toBe(text);
   });
 
   it('labels the top banner from the locale', async () => {
-    await show('app-top-banner', { ok: true, status: 200, data: { events } });
+    await show('app-top-banner', async () => events);
     expect(document.querySelector('.bk-infobar').textContent.startsWith('‹header.title›')).toBe(true);
   });
 });

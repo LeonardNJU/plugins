@@ -11,7 +11,6 @@ import {
 } from '@plugin-host/ui';
 
 export const DIRTY_KEY = 'agendaDirty'; // timestamp bumped by calendar hooks
-export const AGENDA_PATH = '/api/calendar-agenda';
 /** Chips shown in the top banner. */
 export const BANNER_EVENTS = 4;
 
@@ -30,6 +29,56 @@ function startOfDay(d) {
   const n = new Date(d);
   n.setHours(0, 0, 0, 0);
   return n;
+}
+
+/** `2026-10-22T07:30:00Z`, the UTC form calendar.getEvents takes (no milliseconds). */
+function utcBound(date) {
+  return `${date.toISOString().slice(0, 19)}Z`;
+}
+
+/** Milliseconds in an ISO 8601 duration such as PT1H30M or P1D. */
+export function durationMs(duration) {
+  const m = /^P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$/.exec(duration || '');
+  if (!m) return 0;
+  const [, w = 0, d = 0, h = 0, min = 0, s = 0] = m;
+  return (((+w * 7 + +d) * 24 + +h) * 3600 + +min * 60 + +s) * 1000;
+}
+
+/**
+ * An event from api.calendar.getEvents as the agenda draws it. A timed
+ * event's `start` is wall-clock time in its own zone, so its UTC start
+ * places it; an all-day event starts at local midnight.
+ */
+export function toAgendaEvent(view, untitled) {
+  const allDay = !!view.isAllDay;
+  const start = !allDay && view.utcStart ? new Date(view.utcStart) : new Date(view.start);
+  const end = !allDay && view.utcEnd ? new Date(view.utcEnd) : new Date(start.getTime() + durationMs(view.duration));
+  return {
+    id: view.id,
+    title: (view.title || '').trim() || untitled,
+    start: start.toISOString(),
+    end: end.toISOString(),
+    allDay,
+    status: view.status || null,
+    location: view.location || null,
+  };
+}
+
+/**
+ * Events still running or starting in the next `days` days, earliest first.
+ * Reads through api.calendar (calendar:read), which covers shared calendars
+ * and expands recurring series.
+ */
+export async function loadAgenda(api, { days, limit, now = new Date(), untitled = '' }) {
+  const from = startOfDay(now);
+  const to = new Date(now.getTime() + days * 86_400_000);
+  const views = (await api.calendar.getEvents({ from: utcBound(from), to: utcBound(to) })) || [];
+  return views
+    .filter((v) => typeof v?.start === 'string' && !Number.isNaN(Date.parse(v.start)))
+    .map((v) => toAgendaEvent(v, untitled))
+    .filter((ev) => Date.parse(ev.end) >= now.getTime())
+    .sort((a, b) => Date.parse(a.start) - Date.parse(b.start))
+    .slice(0, limit);
 }
 
 export function makeFormat(api, now = () => new Date()) {
@@ -84,21 +133,16 @@ export function makeAgenda(React, api, { slot = DEFAULT_SLOT, now } = {}) {
       if (inFlightRef.current) return;
       inFlightRef.current = true;
       try {
-        const res = await api.http.post(AGENDA_PATH, { days, limit });
-        if (res?.status === 401) {
+        setEvents(await loadAgenda(api, { days, limit, now: now ? now() : new Date(), untitled: t('event.untitled') }));
+        setState('ready');
+      } catch (err) {
+        const text = String((err && err.message) || err);
+        if (/no active session/.test(text)) {
           setState('unauth');
           return;
         }
-        if (!res?.ok) {
-          setError((res?.data && res.data.error) || `HTTP ${res?.status || '??'}`);
-          setState('error');
-          return;
-        }
-        setEvents(Array.isArray(res.data?.events) ? res.data.events : []);
-        setState('ready');
-      } catch (err) {
         api.log.warn('calendar-agenda: fetch failed', err);
-        setError(String((err && err.message) || err));
+        setError(text);
         setState('error');
       } finally {
         inFlightRef.current = false;
