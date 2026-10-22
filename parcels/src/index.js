@@ -4,13 +4,13 @@
 // file wires it to the host.
 
 import host from '@plugin-host';
-import { bannerShouldShow, createBackground } from './lib/background.js';
+import { bannerShouldShow } from './lib/background.js';
+import { getBackground } from './lib/runtime.js';
 import { ParcelCard } from './ui/card.js';
 import { PluginDialog } from './ui/dialog.js';
 import { DeliveriesWidget } from './ui/widget.js';
 
-let background = null;
-const bg = () => (background ??= createBackground(host));
+const bg = () => getBackground(host);
 
 /** The sidebar section's header, drawn by the host, in the user's language. */
 function setTitle() {

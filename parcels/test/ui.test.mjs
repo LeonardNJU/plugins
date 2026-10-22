@@ -64,7 +64,7 @@ function makeApi({ settings = {}, locale = 'en', openDialog } = {}) {
 
 const parcel = (number, extra = {}) => ({
   number, carrier: 'dhl', carrierName: 'DHL', trackingUrl: `https://track.example/${number}`, emailId: null, subject: '',
-  addedAt: 1, status: null, text: '', location: '', time: '', eta: null, events: [], lastPolledAt: 0, lastChangeAt: Date.now(),
+  addedAt: Date.now(), status: null, text: '', location: '', time: '', eta: null, events: [], lastPolledAt: 0, lastChangeAt: Date.now(),
   received: false, stopped: false, error: null, ...extra,
 });
 
@@ -141,7 +141,8 @@ describe('deliveries section', () => {
     await show(React.createElement(Section));
     expect(await screen.findByText('No parcels on the way.')).toBeTruthy();
     const buttons = screen.getAllByRole('button');
-    expect(buttons.map((b) => b.textContent)).toEqual(['Add tracking number']);
+    expect(buttons.map((b) => b.textContent)).toEqual(['', 'Add tracking number']);
+    expect(screen.getByRole('button', { name: 'Refresh' })).toBeTruthy();
     // No own heading: the host draws the section header.
     expect(document.querySelector('h1, h2, h3, h4')).toBeNull();
   });
