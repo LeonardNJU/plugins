@@ -134,6 +134,19 @@ describe('reader card', () => {
   });
 });
 
+describe('delivery heading actions', () => {
+  it('shows refresh and most recent tracking time in the inline slot', async () => {
+    const api = makeApi();
+    await api.storage.set('parcel:1Z999AA10123456784', parcel('1Z999AA10123456784',
+      { carrier: 'ups', lastPolledAt: Date.parse('2026-10-21T19:10:00Z') }));
+    const Header = load(api).slots['sidebar-section-actions'].component;
+    await show(React.createElement(Header));
+    const button = await screen.findByRole('button', { name: 'Refresh' });
+    expect(button).toBeTruthy();
+    expect(screen.getByText(/\d{1,2}:\d\d/)).toBeTruthy();
+  });
+});
+
 describe('deliveries section', () => {
   it('says when nothing is on the way, and offers "Add tracking number" as a row', async () => {
     const api = makeApi();
@@ -141,8 +154,7 @@ describe('deliveries section', () => {
     await show(React.createElement(Section));
     expect(await screen.findByText('No parcels on the way.')).toBeTruthy();
     const buttons = screen.getAllByRole('button');
-    expect(buttons.map((b) => b.textContent)).toEqual(['', 'Add tracking number']);
-    expect(screen.getByRole('button', { name: 'Refresh' })).toBeTruthy();
+    expect(buttons.map((b) => b.textContent)).toEqual(['Add tracking number']);
     // No own heading: the host draws the section header.
     expect(document.querySelector('h1, h2, h3, h4')).toBeNull();
   });

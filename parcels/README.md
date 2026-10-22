@@ -11,7 +11,7 @@ Finds tracking numbers in your mail and shows where each parcel is.
 - **Deliveries** section in the mail sidebar, below the folders and tags:
   every parcel you follow that you haven't marked received, newest activity
   first, one row each with a short status. A small **Refresh** button appears
-  at the upper right of the list alongside the most recent check time, so all
+  on the same line as the Deliveries heading alongside the most recent check time, so all
   active parcels can be updated without finding each original email. A row
   opens the parcel with its full status, *Track* and *Mark received*.
   *Add tracking number* at the end follows a number by hand.

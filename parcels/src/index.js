@@ -9,6 +9,7 @@ import { getBackground } from './lib/runtime.js';
 import { ParcelCard } from './ui/card.js';
 import { PluginDialog } from './ui/dialog.js';
 import { DeliveriesWidget } from './ui/widget.js';
+import { DeliveryHeaderActions } from './ui/header-actions.js';
 
 const bg = () => getBackground(host);
 
@@ -24,6 +25,7 @@ export default {
   slots: {
     'email-banner': { component: ParcelCard, shouldShow: bannerShouldShow },
     'sidebar-section': { component: DeliveriesWidget, order: 60 },
+    'sidebar-section-actions': { component: DeliveryHeaderActions },
     'plugin-dialog': { component: PluginDialog },
   },
   hooks: {

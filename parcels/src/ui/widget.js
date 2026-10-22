@@ -43,7 +43,6 @@ function Item({ parcel, label, onOpen }) {
 export function DeliveriesWidget() {
   const [parcels, setParcels] = React.useState(null);
   const [expanded, setExpanded] = React.useState(false);
-  const [refreshing, setRefreshing] = React.useState(false);
 
   const reload = React.useCallback(async () => {
     try {
@@ -54,16 +53,13 @@ export function DeliveriesWidget() {
     }
   }, []);
 
-  const refreshAll = React.useCallback(async (manual = false) => {
-    if (manual) setRefreshing(true);
+  const refreshAll = React.useCallback(async () => {
     try {
-      if (manual) await getBackground(host).refresh();
-      else await getBackground(host).visit();
+      await getBackground(host).visit();
     } catch (err) {
       host.log.warn('parcels: could not refresh deliveries', err);
     } finally {
       await reload();
-      if (manual) setRefreshing(false);
     }
   }, [reload]);
 
@@ -111,29 +107,8 @@ export function DeliveriesWidget() {
   if (!parcels) return null;
   const shown = expanded ? parcels : parcels.slice(0, COLLAPSED);
   const labels = rowLabels(shown);
-  const lastCheck = Math.max(0, ...parcels.map((p) => p.lastPolledAt || 0));
-  const lastTime = lastCheck ? new Date(lastCheck).toLocaleTimeString(host.i18n.getLocale(), { hour: 'numeric', minute: '2-digit' }) : '';
-  const refreshLabel = refreshing ? t('card.refreshing') : t('card.refresh');
   // Stack: the kit's reset reaches the rows' buttons only inside a kit element.
   return h(Stack, { gap: 0 },
-    h('div', { style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8,
-      padding: '0 12px 4px', color: 'inherit' } },
-      lastTime ? h('span', { style: { fontSize: 11, opacity: 0.6 }, title: lastTime }, lastTime) : null,
-      h('button', {
-        type: 'button', title: refreshLabel, 'aria-label': refreshLabel, 'aria-busy': refreshing,
-        disabled: refreshing, onClick: () => { void refreshAll(true); },
-        style: { display: 'inline-flex', justifyContent: 'center', alignItems: 'center',
-          width: 28, height: 26, border: 'none', background: 'transparent',
-          borderRadius: 5, color: 'inherit', opacity: refreshing ? 0.5 : 0.8,
-          cursor: refreshing ? 'wait' : 'pointer' },
-      }, h('svg', { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none',
-        stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round',
-        'aria-hidden': true },
-        h('path', { d: 'M20 11a8 8 0 0 0-14.6-4.6L3 9' }),
-        h('path', { d: 'M3 4v5h5' }),
-        h('path', { d: 'M4 13a8 8 0 0 0 14.6 4.6L21 15' }),
-        h('path', { d: 'M21 20v-5h-5' }))),
-    ),
     parcels.length ? null : h(SidebarEmpty, null, t('widget.empty')),
     shown.map((p, i) => h(Item, { key: p.number, parcel: p, label: labels[i], onOpen: openParcel(p) })),
     parcels.length > COLLAPSED
