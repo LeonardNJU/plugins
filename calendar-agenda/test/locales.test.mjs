@@ -98,8 +98,9 @@ describe('the agenda in another language', () => {
       'Party‹event.all_day›',
       '‹event.untitled›‹event.all_day›',
       expect.stringMatching(/^Standup/),
-      'Offsite‹day.tomorrow›',
+      'Offsite‹event.all_day›',
     ]);
+    expect(screen.getAllByRole('list').map((l) => l.getAttribute('aria-label'))).toEqual(['‹day.today›', '‹day.tomorrow›']);
   });
 
   it.each([

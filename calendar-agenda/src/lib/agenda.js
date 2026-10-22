@@ -1,18 +1,21 @@
 // The agenda, drawn with the app's UI kit for the place the user picked:
-//   - sidebar-section: one sidebar row per event. The host draws the section
-//     header (the title set with api.ui.setSectionTitle) and folds it.
-//   - email-detail-sidebar: a heading and a list of rows, like the Files app.
+//   - sidebar-section: events grouped under a line per day, one sidebar row
+//     per event with a dot in its calendar's colour. The host draws the
+//     section header (the title set with api.ui.setSectionTitle) and folds it.
+//   - email-detail-sidebar: a heading, then per day a label and a list of rows.
 //   - app-top-banner: a one-line info bar with the next events as chips.
 // Built from a factory so tests can hand in React and a fake api.
 
 import {
-  Alert, Chip, EmptyState, Heading, Icon, InfoBar, List, ListRow, Loading, Page,
+  Alert, Chip, ColorDot, EmptyState, Heading, InfoBar, List, ListRow, Loading, Page,
   SidebarEmpty, SidebarRow, Stack, Text,
 } from '@plugin-host/ui';
 
 export const DIRTY_KEY = 'agendaDirty'; // timestamp bumped by calendar hooks
 /** Chips shown in the top banner. */
 export const BANNER_EVENTS = 4;
+/** What the calendar view uses for a calendar without a colour. */
+export const DEFAULT_COLOR = '#3b82f6';
 
 export const POSITION_TO_SLOT = {
   'Left sidebar': 'sidebar-section',
@@ -49,7 +52,7 @@ export function durationMs(duration) {
  * event's `start` is wall-clock time in its own zone, so its UTC start
  * places it; an all-day event starts at local midnight.
  */
-export function toAgendaEvent(view, untitled) {
+export function toAgendaEvent(view, untitled, colors = new Map()) {
   const allDay = !!view.isAllDay;
   const start = !allDay && view.utcStart ? new Date(view.utcStart) : new Date(view.start);
   const end = !allDay && view.utcEnd ? new Date(view.utcEnd) : new Date(start.getTime() + durationMs(view.duration));
@@ -61,7 +64,19 @@ export function toAgendaEvent(view, untitled) {
     allDay,
     status: view.status || null,
     location: view.location || null,
+    color: colors.get(view.calendarId) || DEFAULT_COLOR,
   };
+}
+
+/** Calendar id → colour. If this fails the agenda still loads, every dot in the default colour. */
+async function calendarColors(api) {
+  try {
+    const calendars = (await api.calendar.listCalendars()) || [];
+    return new Map(calendars.filter((c) => c?.id && c.color).map((c) => [c.id, c.color]));
+  } catch (err) {
+    api.log.warn('calendar-agenda: listCalendars failed', err);
+    return new Map();
+  }
 }
 
 /**
@@ -72,13 +87,32 @@ export function toAgendaEvent(view, untitled) {
 export async function loadAgenda(api, { days, limit, now = new Date(), untitled = '' }) {
   const from = startOfDay(now);
   const to = new Date(now.getTime() + days * 86_400_000);
-  const views = (await api.calendar.getEvents({ from: utcBound(from), to: utcBound(to) })) || [];
-  return views
+  const [views, colors] = await Promise.all([
+    api.calendar.getEvents({ from: utcBound(from), to: utcBound(to) }),
+    calendarColors(api),
+  ]);
+  return (views || [])
     .filter((v) => typeof v?.start === 'string' && !Number.isNaN(Date.parse(v.start)))
-    .map((v) => toAgendaEvent(v, untitled))
+    .map((v) => toAgendaEvent(v, untitled, colors))
     .filter((ev) => Date.parse(ev.end) >= now.getTime())
     .sort((a, b) => Date.parse(a.start) - Date.parse(b.start))
     .slice(0, limit);
+}
+
+/**
+ * Sorted events in one group per local day. An event that began before today
+ * and is still running goes under today.
+ */
+export function groupByDay(events, now = new Date()) {
+  const today = startOfDay(now).getTime();
+  const groups = [];
+  for (const ev of events) {
+    const day = new Date(Math.max(startOfDay(new Date(ev.start)).getTime(), today));
+    const last = groups[groups.length - 1];
+    if (last && last.day.getTime() === day.getTime()) last.events.push(ev);
+    else groups.push({ key: day.getTime(), day, events: [ev] });
+  }
+  return groups;
 }
 
 export function makeFormat(api, now = () => new Date()) {
@@ -180,16 +214,35 @@ export function makeAgenda(React, api, { slot = DEFAULT_SLOT, now } = {}) {
     return { events, state, message };
   }
 
+  // The calendar's colour, in a 16 px box so it lines up with the folder icons.
+  const dot = (ev) => h('span', {
+    style: { display: 'inline-flex', width: '16px', justifyContent: 'center', verticalAlign: 'middle', marginInlineEnd: '8px', lineHeight: 0 },
+  }, h(ColorDot, { color: ev.color }));
+
+  // In a chip the dot needs no icon column, just a gap before the title.
+  const chipDot = (ev) => h('span', {
+    style: { display: 'inline-flex', verticalAlign: 'middle', marginInlineEnd: '6px', lineHeight: 0 },
+  }, h(ColorDot, { color: ev.color }));
+
+  // "TODAY", "TOMORROW", "FRI, OCT 24" above that day's events.
+  const dayHeading = (date, padding) => h('div', {
+    role: 'heading', 'aria-level': 4,
+    style: { padding, textTransform: 'uppercase', letterSpacing: '0.04em' },
+  }, h(Text, { size: 'xs', tone: 'muted', weight: 'semibold' }, fmt.dayLabel(date)));
+
+  const groups = (events) => groupByDay(events, now ? now() : new Date());
+
   function SidebarAgenda() {
     const { events, message } = useAgenda();
     if (message) return h(SidebarEmpty, null, message);
-    return h(React.Fragment, null, ...events.map((ev) => h(SidebarRow, {
-      key: ev.id,
-      icon: 'calendar-event',
-      label: titleOf(ev),
-      detail: fmt.when(ev),
-      title: tooltip(ev),
-    })));
+    return h(React.Fragment, null, ...groups(events).map((g) => h('div', { key: g.key, 'data-day': '' },
+      dayHeading(g.day, '8px 12px 2px 32px'),
+      ...g.events.map((ev) => h(SidebarRow, {
+        key: ev.id,
+        label: h(React.Fragment, null, dot(ev), titleOf(ev)),
+        detail: fmt.timeLabel(ev),
+        title: tooltip(ev),
+      })))));
   }
 
   function PanelAgenda() {
@@ -199,12 +252,14 @@ export function makeAgenda(React, api, { slot = DEFAULT_SLOT, now } = {}) {
     else if (state === 'error') body = h(Alert, { tone: 'danger', icon: 'alert-triangle' }, message);
     else if (message) body = h(EmptyState, { compact: true, icon: 'calendar', title: message });
     else {
-      body = h(List, { label: t('header.title') }, ...events.map((ev) => h(ListRow, {
-        key: ev.id,
-        icon: h(Icon, { name: 'calendar-event' }),
-        title: titleOf(ev),
-        subtitle: [fmt.when(ev), ev.location].filter(Boolean).join(' · '),
-      })));
+      body = h(Stack, { gap: 3 }, ...groups(events).map((g) => h(Stack, { key: g.key, gap: 1 },
+        dayHeading(g.day, '0'),
+        h(List, { label: fmt.dayLabel(g.day) }, ...g.events.map((ev) => h(ListRow, {
+          key: ev.id,
+          icon: h(ColorDot, { color: ev.color }),
+          title: titleOf(ev),
+          subtitle: [fmt.timeLabel(ev), ev.location].filter(Boolean).join(' · '),
+        }))))));
     }
     return h(Page, null, h(Stack, { gap: 3 }, h(Heading, { level: 3 }, t('header.title')), body));
   }
@@ -213,7 +268,7 @@ export function makeAgenda(React, api, { slot = DEFAULT_SLOT, now } = {}) {
     const { events, message } = useAgenda();
     return h(InfoBar, { compact: true, tone: 'primary', icon: 'calendar', eyebrow: t('header.title'), title: message || undefined },
       ...(message ? [] : events.slice(0, BANNER_EVENTS).map((ev) => h(Chip, {
-        key: ev.id, icon: 'calendar-event', label: ev.title, detail: fmt.when(ev), title: tooltip(ev),
+        key: ev.id, label: h(React.Fragment, null, chipDot(ev), ev.title), detail: fmt.when(ev), title: tooltip(ev),
       }))),
       !message && events.length > BANNER_EVENTS ? h(Text, { key: 'more', size: 'xs', tone: 'muted' }, `+${events.length - BANNER_EVENTS}`) : null);
   }

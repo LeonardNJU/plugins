@@ -39,8 +39,13 @@ const events = [
   timed('c', 'Dropped', new Date(2026, 9, 15, 15, 30), 30, { status: 'cancelled' }),
 ];
 
-function setup(slot, { getEvents = async () => events, settings = { daysAhead: 7 } } = {}) {
-  const api = fakeApi({ translations: manifest.locales, settings, handlers: { 'calendar.getEvents': getEvents } });
+const calendars = [{ id: 'cal', name: 'Work', color: '#3b82f6', isVisible: true, isDefault: true, isTasksOnly: false }];
+
+function setup(slot, { getEvents = async () => events, listCalendars = async () => calendars, settings = { daysAhead: 7 } } = {}) {
+  const api = fakeApi({
+    translations: manifest.locales, settings,
+    handlers: { 'calendar.getEvents': getEvents, 'calendar.listCalendars': listCalendars },
+  });
   const Agenda = makeAgenda(React, api, { slot, now: NOW });
   return { api, Agenda };
 }
@@ -49,7 +54,10 @@ async function show(Agenda) {
   await act(async () => { render(React.createElement(Agenda)); });
 }
 
-const rowTitles = () => [...document.body.firstChild.children].map((r) => r.getAttribute('title').split(' · ')[0]);
+const rows = () => [...document.querySelectorAll('[title]')];
+const rowTitles = () => rows().map((r) => r.getAttribute('title').split(' · ')[0]);
+const dayHeadings = () => [...document.querySelectorAll('[role="heading"]')].map((d) => d.textContent);
+const clock = (date) => date.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
 
 describe('position', () => {
   it('puts the left-sidebar agenda in a sidebar section', () => {
@@ -100,7 +108,7 @@ describe('reading events', () => {
     const { Agenda } = setup('sidebar-section', { getEvents: async () => [events[0]] });
     await show(Agenda);
     const time = new Date(2026, 9, 14, 10, 0).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
-    expect(document.body.textContent).toBe(`Standup${time}`);
+    expect(document.body.textContent).toBe(`TodayStandup${time}`);
   });
 
   it('names an event without a title', async () => {
@@ -119,18 +127,57 @@ describe('reading events', () => {
 });
 
 describe('sidebar section', () => {
-  it('draws one sidebar row per event with when it starts, and no header of its own', async () => {
+  it('groups events under a line per day, with the time on each row and no header of its own', async () => {
     const { Agenda } = setup('sidebar-section');
     await show(Agenda);
-    const time = new Date(2026, 9, 14, 10, 0).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
-    const later = new Date(2026, 9, 15, 15, 30).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
-    const rows = [...document.body.firstChild.children];
-    expect(rows.map((r) => r.textContent)).toEqual([`Standup${time}`, 'OffsiteTomorrow', `DroppedTomorrow ${later}`]);
-    expect(rows[0].getAttribute('title')).toBe(`Standup · ${time} · Room 1`);
-    expect(rows[2].querySelector('del').textContent).toBe('Dropped');
+    const time = clock(new Date(2026, 9, 14, 10, 0));
+    const later = clock(new Date(2026, 9, 15, 15, 30));
+    const days = [...document.querySelectorAll('[data-day]')];
+    expect(days.map((d) => d.querySelector('[role="heading"]').textContent)).toEqual(['Today', 'Tomorrow']);
+    expect(days.map((d) => [...d.querySelectorAll('[title]')].map((r) => r.textContent))).toEqual([
+      [`Standup${time}`],
+      ['OffsiteAll day', `Dropped${later}`],
+    ]);
+    expect(rows()[0].getAttribute('title')).toBe(`Standup · ${time} · Room 1`);
+    expect(rows()[2].querySelector('del').textContent).toBe('Dropped');
     // The host draws the header and folds the section.
     expect(screen.queryByText('Agenda')).toBeNull();
     expect(screen.queryByRole('button', { name: /collapse|expand|refresh/i })).toBeNull();
+  });
+
+  it('marks each event with its calendar colour, blue when the calendar has none', async () => {
+    const list = [
+      timed('a', 'Work thing', new Date(2026, 9, 14, 10, 0), 30, { calendarId: 'work' }),
+      timed('b', 'Home thing', new Date(2026, 9, 14, 11, 0), 30, { calendarId: 'home' }),
+      timed('c', 'Orphan', new Date(2026, 9, 14, 12, 0), 30, { calendarId: 'gone' }),
+    ];
+    const { Agenda } = setup('sidebar-section', {
+      getEvents: async () => list,
+      listCalendars: async () => [{ id: 'work', color: '#ef4444' }, { id: 'home', color: '#22c55e' }, { id: 'plain', color: '' }],
+    });
+    await show(Agenda);
+    expect(rows().map((r) => r.querySelector('[data-color]')?.getAttribute('data-color'))).toEqual(['#ef4444', '#22c55e', '#3b82f6']);
+  });
+
+  it('still lists events, all blue, when the calendars cannot be read', async () => {
+    const { api, Agenda } = setup('sidebar-section', { listCalendars: async () => { throw new Error('nope'); } });
+    await show(Agenda);
+    expect(rowTitles()).toEqual(['Standup', 'Offsite', 'Dropped']);
+    expect(rows().map((r) => r.querySelector('[data-color]').getAttribute('data-color'))).toEqual(['#3b82f6', '#3b82f6', '#3b82f6']);
+    expect(api.calls('calendar.listCalendars')).toHaveLength(1);
+  });
+
+  it('puts an event that started before today and is still running under today', async () => {
+    const list = [
+      allDay('t', 'Trip', '2026-10-13', { duration: 'P3D' }),
+      timed('a', 'Standup', new Date(2026, 9, 14, 10, 0), 15),
+      allDay('n', 'Next week', '2026-10-17'),
+    ];
+    const { Agenda } = setup('sidebar-section', { getEvents: async () => list });
+    await show(Agenda);
+    const sat = new Date(2026, 9, 17).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' });
+    expect(dayHeadings()).toEqual(['Today', sat]);
+    expect(rowTitles()).toEqual(['Trip', 'Standup', 'Next week']);
   });
 
   it('says so when there is nothing, in the sidebar empty line', async () => {
@@ -149,13 +196,18 @@ describe('sidebar section', () => {
 });
 
 describe('reading pane and top banner', () => {
-  it('lists events as rows with a subtitle in the reading pane', async () => {
+  it('lists events per day with time and place in the reading pane', async () => {
     const { Agenda } = setup('email-detail-sidebar');
     await show(Agenda);
     expect(screen.getByRole('heading', { name: 'Agenda' })).toBeTruthy();
-    const rows = screen.getAllByRole('listitem');
-    expect(rows).toHaveLength(3);
-    expect(rows[1].textContent).toBe('OffsiteTomorrow');
+    const lists = screen.getAllByRole('list');
+    expect(lists.map((l) => l.getAttribute('aria-label'))).toEqual(['Today', 'Tomorrow']);
+    const items = screen.getAllByRole('listitem');
+    expect(items.map((r) => r.textContent)).toEqual([
+      `Standup${clock(new Date(2026, 9, 14, 10, 0))} · Room 1`,
+      'OffsiteAll day',
+      `Dropped${clock(new Date(2026, 9, 15, 15, 30))}`,
+    ]);
   });
 
   it('shows an error as an alert in the reading pane', async () => {
